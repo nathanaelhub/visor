@@ -76,7 +76,7 @@ def _translate_transfer(rows: list[dict], catalog) -> tuple[list[Taken], list[di
             entry["note"] = "Not in the equivalency table yet; look it up and flag it for review."
             report.append(entry)
             continue
-        confirmed, proposed, _ = _live_rows(ext)
+        confirmed, proposed, placeholders = _live_rows(ext)
         grade = r.get("grade") or "TR"
         if confirmed:
             q = confirmed[0]
@@ -95,6 +95,10 @@ def _translate_transfer(rows: list[dict], catalog) -> tuple[list[Taken], list[di
         elif proposed:
             entry.update(status="proposed", counts_as=proposed[0].course.code if proposed[0].course else None,
                          note="Pending: a person has to confirm this before it counts.")
+        elif placeholders:
+            entry["note"] = "Flagged for professor review; it counts once someone decides."
+        else:
+            entry["note"] = "No equivalency yet; flag it for review from the lookup page."
         report.append(entry)
     return taken, report
 

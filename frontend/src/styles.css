@@ -24,3 +24,37 @@ td.full { color: #b42318; font-weight: 600; }
 .lookup-result.status-confirmed { border-color: #1a7f37; }
 .lookup-result.status-proposed { border-color: #bf8700; }
 .lookup-result.status-unknown { border-color: #b42318; }
+
+/* Degree Progress (spec 05 showcase) */
+.banner { background: #eef4ff; border: 1px solid #c8d8f5; padding: 8px 12px; border-radius: 6px; font-size: 0.9em; }
+.lookup-form label.inline { flex-direction: row; align-items: center; gap: 6px; font-size: 0.95em; }
+.review-flag { background: #fff4e0; border: 1px solid #f0c36d; padding: 10px 12px; border-radius: 6px; margin: 12px 0; }
+.summary { display: flex; gap: 24px; align-items: center; flex-wrap: wrap; margin: 16px 0; }
+.summary .big { font-size: 1.8em; font-weight: 700; color: #1b2a41; }
+.summary .hours { flex: 1; min-width: 240px; }
+.bar { display: flex; height: 12px; background: #e3e8ef; border-radius: 6px; overflow: hidden; margin-bottom: 6px; }
+.bar .done { background: #1a7f37; }
+.bar .progress { background: #7cc48a; }
+.degree h2 { font-size: 1.15em; margin: 24px 0 8px; color: #1b2a41; }
+.groups { list-style: none; padding: 0; margin: 0; }
+.groups li.group { border-bottom: 1px solid #e3e8ef; padding: 6px 0; }
+.groups summary { cursor: pointer; }
+.group-name { font-weight: 600; margin-left: 8px; }
+.used { margin: 6px 0 6px 24px; }
+.pill { display: inline-block; font-size: 0.75em; padding: 2px 8px; border-radius: 999px; background: #e3e8ef; text-transform: capitalize; }
+.pill-met, .pill-confirmed { background: #dcf2e3; color: #11602a; }
+.pill-in_progress, .pill-proposed { background: #fff1cc; color: #7a5300; }
+.pill-needed, .pill-unknown { background: #fde2e1; color: #8f1d14; }
+tr.not-counted td { color: #697586; }
+.warnings li { color: #8f1d14; margin: 4px 0; }
+.terms { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; }
+.term { border: 1px solid #d2d6dc; border-radius: 8px; padding: 10px 12px; }
+.term.next { border-color: #1b2a41; box-shadow: 0 0 0 1px #1b2a41; }
+.term header h3 { margin: 0; font-size: 1em; }
+.term ul { list-style: none; padding: 0; margin: 8px 0 0; }
+.term li { padding: 6px 0; border-top: 1px solid #eef1f4; }
+.reasons { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; }
+.chip { font-size: 0.72em; padding: 1px 6px; border-radius: 4px; background: #f4f6f8; border: 1px solid #e3e8ef; }
+.chip-retake, .chip-deferred { background: #fff4e0; border-color: #f0c36d; }
+.chip-unlocks { background: #eef4ff; border-color: #c8d8f5; }
+.chip-prerequisite, .chip-standing { background: #f3eefe; border-color: #d8ccf5; }

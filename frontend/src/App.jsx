@@ -2,19 +2,14 @@ import { useState } from 'react'
 import Schedule from './Schedule.jsx'
 import TransferLookup from './TransferLookup.jsx'
 import PrereqCheck from './PrereqCheck.jsx'
+import DegreeProgress from './DegreeProgress.jsx'
 
 const TABS = [
   { id: 'schedule', label: 'Schedule & Conflicts', Component: Schedule },
   { id: 'transfer', label: 'Transfer Course Lookup', Component: TransferLookup },
   { id: 'prereqs', label: 'Prerequisites', Component: PrereqCheck },
-  { id: 'degree', label: 'Degree Progress', Component: ComingSoon },
+  { id: 'degree', label: 'Degree Progress', Component: DegreeProgress }, // spec 05 showcase
 ]
-
-// Placeholder: no backend yet for program/requirement tracking. Scope TBD after we meet
-// with the registrar about what she actually needs here.
-function ComingSoon() {
-  return <p className="hint">Coming soon — scope still being worked out with the registrar.</p>
-}
 
 export default function App() {
   const [activeId, setActiveId] = useState(TABS[0].id)

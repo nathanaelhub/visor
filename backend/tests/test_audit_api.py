@@ -41,6 +41,7 @@ def test_audit_api_transfer_statuses(demo_client):
     assert by["PHED 1110"]["status"] == "confirmed" and not by["PHED 1110"]["counted"]
     assert by["CIS 2350"]["status"] == "proposed" and not by["CIS 2350"]["counted"]
     assert by["HIST 2010"]["status"] == "unknown" and not by["HIST 2010"]["counted"]
+    assert "flag it for review" in by["HIST 2010"]["note"]
     # The confirmed CS 2233 counts in the major core, and the plan starts above it.
     core = next(g for g in r["groups"] if g["id"] == "major-core")
     assert any(u["code"] == "CS 2233" and u["via"] == "completed" for u in core["used"]) is False
