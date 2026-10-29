@@ -65,6 +65,10 @@ def create_app(config: dict | None = None) -> Flask:
     from .equivalencies import bp as equivalencies_bp
     app.register_blueprint(equivalencies_bp)
 
+    # Scaled-up showcase (spec 05): degree audit + semester forecast.
+    from .audit_api import bp as audit_bp
+    app.register_blueprint(audit_bp)
+
     with app.app_context():
         db.create_all()
 

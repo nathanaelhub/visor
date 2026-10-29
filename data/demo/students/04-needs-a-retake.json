@@ -1,0 +1,16 @@
+{
+  "id": "demo-04",
+  "name": "Casey Lin (fictional)",
+  "story": "Passed Data Structures with a D+, but the major needs a C. The retake goes back in the plan and everything after it waits.",
+  "program_id": "cs-bs-2026-27",
+  "start_term": "2027SP",
+  "taken": [
+    {"code": "LU 1303", "grade": "B"}, {"code": "CS 1213", "grade": "B-"}, {"code": "MA 1314", "grade": "C+"},
+    {"code": "BI 1093", "grade": "B"}, {"code": "CCT 1133", "grade": "A-"},
+    {"code": "MA 2103", "grade": "C"}, {"code": "MA 2314", "grade": "C"}, {"code": "SENG 2513", "grade": "B"},
+    {"code": "BI 1073", "grade": "B+"}, {"code": "EN 1223", "grade": "B"},
+    {"code": "CS 2233", "grade": "D+"}, {"code": "CS 2243", "grade": null}, {"code": "BI 1083", "grade": null},
+    {"code": "HI 1003", "grade": null}, {"code": "EC 2403", "grade": null}
+  ],
+  "transfer": []
+}

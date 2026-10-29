@@ -1,0 +1,12 @@
+id,program,name,rule,n,hours,min_grade,shareable,sort
+major-core,cs-bs-2026-27,Major core,all,,,C,0,1
+major-electives,cs-bs-2026-27,Major electives,hours,,9,C,0,2
+core-specific,cs-bs-2026-27,Core: courses required for this major,all,,,,0,3
+core-compass,cs-bs-2026-27,Core: Compass first-year seminar,all,,,,0,4
+core-bible-story,cs-bs-2026-27,Core: Seek through scripture,all,,,,0,5
+core-christianity-society,cs-bs-2026-27,Core: Christianity & Society,choose_n,1,,,0,6
+core-literature,cs-bs-2026-27,Core: Literary inquiry,choose_n,1,,,0,7
+core-history,cs-bs-2026-27,Core: Great Ideas in History,all,,,,0,8
+core-social-inquiry,cs-bs-2026-27,Core: Social Inquiry,hours,,3,,0,9
+core-artistic-inquiry,cs-bs-2026-27,Core: Artistic Inquiry,all,,,,0,10
+core-diverse-perspectives,cs-bs-2026-27,Core: Diverse Perspectives,hours,,3,,1,11

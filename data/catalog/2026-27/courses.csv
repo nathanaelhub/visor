@@ -1,0 +1,130 @@
+subject,number,title,credits
+ARTS,2303,Artistic Inquiry and the Human Experience,3
+BI,1003,Introduction to the Bible and Christianity,3
+BI,1073,The Story of Jesus,3
+BI,1083,The Story of the Church,3
+BI,1093,The Story of Israel,3
+BI,3213,Faith and Culture,3
+BI,4213,Christian Ethics,3
+BY,3553,"The Art of Anatomy, Culture, and Healthcare",3
+CCT,1133,Introduction to Computing,3
+CCT,395V,Internship,3
+CCT,405V,Senior Seminar,3
+CO,1223,Communicating: Rhetorical Techniques,3
+CS,1013,Scripting I,3
+CS,1213,Introduction to Computer Programming,3
+CS,2233,Data Structures,3
+CS,2243,Database Management Systems,3
+CS,2323,Computer Organization,3
+CS,2623,Design and Analysis of Algorithms,3
+CS,3123,Object-oriented Programming and Design,3
+CS,3233,Computer Graphics,3
+CS,3433,Numerical Methods,3
+CS,3453,Principles of Artificial Intelligence,3
+CS,3463,Machine Learning,3
+CS,3523,Operating Systems,3
+CS,3633,Advanced Algorithms,3
+CS,3713,Comparative Programming Languages,3
+CS,3843,Survey of CS Topics for AI,3
+CS,4103,Parallel and Distributed Computing,3
+CS,4223,Compiler Construction,3
+CS,4323,Modern AI Models and Abstractions,3
+CS,4333,Modern Implementations of AI,3
+CS,4413,Fundamentals of Automata and Formal Language Theory,3
+CS,4423,Computability and Complexity Theory,3
+CS,4433,Algorithmic Graph Theory,3
+CS,4443,Database Theory and Applications,3
+EC,2403,Principles of Macroeconomics,3
+EC,2413,Principles of Microeconomics,3
+ED,2313,Introduction to Education,3
+ED,3343,Cultural Perspectives in Education,3
+EN,1223,Writing: Rhetorical Techniques,3
+EN,2103,Literary Inquiry,3
+EN,2113,Survey of English Literature I,3
+EN,2123,Survey of English Literature II,3
+EN,2133,Survey of American Literature I,3
+EN,2143,Survey of American Literature II,3
+EN,2153,Survey of World Literature I,3
+EN,2163,Survey of World Literature II,3
+EN,2903,Reading and Writing Critically,3
+EN,3063,African American Literature,3
+EN,3143,Technical Writing,3
+ENGR,3613,Humanitarian Engineering,3
+ENGR,3943,Engineering Economy and Planning,3
+ENGR,3993,"Engineering / Computing Ethics: Virtue, Flourishing and Vocation",3
+FR,1114,Elementary French I,4
+FR,1124,Elementary French II,4
+FS,1013,Introduction to Family Science,3
+FS,2013,Introduction to Marriage & Family Therapy,3
+FS,2333,Family and Intimate Relationships: Christian Perspectives,3
+FS,2503,Families and Spirituality,3
+FS,3433,Family Relationships Across the Life Span,3
+FS,3503,Family Dynamics,3
+GE,1114,Elementary German I,4
+GE,1124,Elementary German II,4
+GL,110V,The Cross-Cultural Experience,3
+GL,1203,City as Text,3
+HI,1003,Great Ideas in History,3
+HI,4053,History and Politics of the Middle East,3
+IT,2223,Web Application Development I,3
+IT,2313,Cloud Services,3
+IT,3223,Web Application Development II,3
+IT,3233,Web Server Technologies,3
+IT,3243,Principles of Web Engineering,3
+IT,3313,Network Principles,3
+IT,3323,Wireless Networks and Mobile Systems,3
+IT,3333,Network Administration,3
+IT,3343,Database Administration,3
+IT,3413,Systems Analysis and Design,3
+IT,3423,Project Management,3
+IT,3433,Operating Systems Management,3
+IT,4323,Modern Telecommunications,3
+IT,4423,Management of Information Technology,3
+ITA,1114,Elementary Italian I,4
+ITA,1124,Elementary Italian II,4
+KIN,1303,Healthful Living,3
+KIN,2013,Sport Sociology,3
+LJS,2103,Society and the Law,3
+LJS,3533,Women and the Law,3
+LU,1013,POWERS: Writing to Discover,3
+LU,1303,Compass: First Year Seminar,3
+MA,1314,Calculus I,4
+MA,2103,Discrete Mathematics,3
+MA,2183,Elementary Statistics,3
+MA,2314,Calculus II,4
+MA,2903,"Logic, Proof, and Mathematical Modeling",3
+MA,3123,Mathematical Theory of Statistics,3
+MA,3213,Linear Algebra,3
+ML,2103,How Language Works,3
+PH,2414,General Physics I,4
+PO,3153,African Politics,3
+PS,1113,Introduction to Psychology,3
+PS,2423,Life Span Development,3
+PS,3243,Human Development and Learning,3
+PS,3413,Social Psychology,3
+PS,3483,Human Sexuality,3
+PS,4113,"Mindfulness: History, Science & Practice",3
+PS,4423,Abnormal Psychology,3
+PS,4613,History and Systems of Psychology,3
+SEC,3113,Fundamentals of Information Security,3
+SEC,3313,Introduction to Policy and Procedures,3
+SEC,3323,Cryptography,3
+SEC,3333,Introduction to Business Continuity and Recovery Planning,3
+SEC,3433,Cyber Defense Competition,3
+SEC,4113,Penetration Testing,3
+SEC,4213,Computer Forensics,3
+SEC,4313,Database Security,3
+SEC,4323,Network Security,3
+SENG,2513,Introduction to Software Engineering,3
+SENG,3233,Software Studio I,3
+SENG,3243,Software Studio II,3
+SENG,4233,Software Studio III,3
+SENG,4243,Software Studio IV,3
+SN,1114,Elementary Spanish I,4
+SN,1124,Elementary Spanish II,4
+SO,1123,Introduction to Sociology,3
+SO,2103,The Family,3
+SO,2113,Social Problems,3
+SO,3023,Criminology,3
+SW,1103,Introduction to Social Work,3
+SW,3133,Human Diversity,3

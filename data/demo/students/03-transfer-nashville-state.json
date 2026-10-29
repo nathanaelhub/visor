@@ -1,0 +1,22 @@
+{
+  "id": "demo-03",
+  "name": "Sam Okafor (fictional)",
+  "story": "Transferring from Nashville State with Vol State credit too. Shows confirmed, elective, not-transferring, pending, and unknown transfer courses flowing into the audit.",
+  "program_id": "cs-bs-2026-27",
+  "start_term": "2027SP",
+  "taken": [
+    {"code": "LU 1303", "grade": null}, {"code": "BI 1093", "grade": null}, {"code": "CCT 1133", "grade": null}
+  ],
+  "transfer": [
+    {"school": "Nashville State Community College", "subject": "CISP", "number": "1010", "grade": "A"},
+    {"school": "Nashville State Community College", "subject": "CISP", "number": "1020", "grade": "B"},
+    {"school": "Nashville State Community College", "subject": "MATH", "number": "1910", "grade": "B"},
+    {"school": "Nashville State Community College", "subject": "MATH", "number": "1920", "grade": "C+"},
+    {"school": "Nashville State Community College", "subject": "PHYS", "number": "2110", "grade": "B-"},
+    {"school": "Nashville State Community College", "subject": "ENGL", "number": "1010", "grade": "A"},
+    {"school": "Nashville State Community College", "subject": "ART", "number": "1035", "grade": "A"},
+    {"school": "Volunteer State Community College", "subject": "CIS", "number": "2350", "grade": "B"},
+    {"school": "Volunteer State Community College", "subject": "PHED", "number": "1110", "grade": "A"},
+    {"school": "Nashville State Community College", "subject": "HIST", "number": "2010", "grade": "B"}
+  ]
+}
