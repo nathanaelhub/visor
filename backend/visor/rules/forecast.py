@@ -36,7 +36,7 @@ class Settings:
 
 @dataclass(frozen=True)
 class Reason:
-    kind: str  # requirement / unlocks / offering / retake / prerequisite / standing
+    kind: str  # requirement / unlocks / offering / retake / prerequisite / standing / needs
     text: str
 
 
@@ -107,7 +107,7 @@ def _outstanding(program: Program, catalog: Catalog, taken: list[Taken], result:
             return
         n = needs.setdefault(code, _Need(code, [], [], gi))
         n.counts_toward.append(group_id)
-        n.reasons.append(Reason("requirement", f"Required: {group_name}"))
+        n.reasons.append(Reason("requirement", f"Fills: {group_name}"))
         if code in retake_codes:
             r = retake_codes[code]
             n.reasons.append(Reason("retake", f"Retake: earned {r.grade}, needs {r.min_grade}"))
@@ -148,7 +148,7 @@ def _outstanding(program: Program, catalog: Catalog, taken: list[Taken], result:
             for c in pool:
                 if c in needs and any(matches(i, c, catalog) for i in g.items):
                     needs[c].counts_toward.append(g.id)
-                    needs[c].reasons.append(Reason("requirement", f"Also counts for: {g.name}"))
+                    needs[c].reasons.append(Reason("requirement", f"Also fills: {g.name}"))
                     break
             continue
         for c in (c for i in g.items if i.tag for c in catalog.tag_order.get(i.tag, ())):
@@ -307,8 +307,11 @@ def project(program: Program, catalog: Catalog, taken: list[Taken], result: Audi
                 continue
             n = needs[code]
             deferred = first_ready.get(code)
+            # "Needs X": a prerequisite this plan places in an earlier term.
+            needs_reasons = [Reason("needs", f"Needs {o}") for pg in catalog.prereqs.get(code, ())
+                             for o in pg.any_of if o in done_before][:2]
             placed.append(PlannedCourse(code, catalog.courses[code].title, credits, list(n.counts_toward),
-                                        list(n.reasons), deferred))
+                                        list(n.reasons) + needs_reasons, deferred))
             hours += credits
             remaining.remove(code)
         if placed:

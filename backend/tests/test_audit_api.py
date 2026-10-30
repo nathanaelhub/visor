@@ -68,3 +68,26 @@ def test_audit_api_normalizes_codes_and_fills_credits(demo_client):
     r = demo_client.post("/api/audit", json={"program_id": "cs-bs-2026-27", "start_term": "2027SP",
                                              "taken": [{"code": "cs1213", "grade": "A"}]}).get_json()
     assert r["hours_done"] == 3 and r["unknown_codes"] == []
+
+
+def test_advisor_student_list(demo_client):
+    rows = {r["id"]: r for r in demo_client.get("/api/students").get_json()}
+    assert len(rows) == 5
+    assert rows["demo-04"]["flags"]["retake"] and rows["demo-03"]["flags"]["transfer_pending"]
+    assert rows["demo-02"]["projected_term"] == "2028FA" and rows["demo-02"]["student_number"] == "L00402115"
+
+
+def test_course_info(demo_client):
+    info = demo_client.get("/api/courses/CS 2233/info").get_json()
+    assert info["title"] == "Data Structures" and "CS 2623" in info["unlocks"]
+    assert any(f["group"] == "major-core" for f in info["fills"])
+    assert demo_client.get("/api/courses/ZZ 9999/info").status_code == 404
+
+
+def test_plan_checks_and_in_progress(demo_client):
+    r = demo_client.post("/api/audit", json=_student(demo_client, "demo-04")).get_json()
+    assert r["checks"]["prerequisites_ok"] and r["checks"]["retakes"] == ["CS 2233"]
+    assert r["checks"]["max_load"] <= r["checks"]["load_limit"]
+    assert r["in_progress"]["term"] == "2026FA" and {c["code"] for c in r["in_progress"]["courses"]} >= {"CS 2243"}
+    core = next(g for g in r["groups"] if g["id"] == "major-core")
+    assert 0 < core["done_hours"] <= core["counted_hours"] <= core["required_hours"]

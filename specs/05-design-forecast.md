@@ -61,6 +61,36 @@ the courses in it, **so that** we both know the path and the graduation term.
 1. **Given** a plan with any warning, **then** `needs_review` is true and each warning names the
    course or group and the constraint that failed. [`test_unplaceable_course_warns`]
 
+### US-5.5 Student / advisor: ask Visor about the plan (bring your own key)
+
+**As** a student or advisor, **I want** to ask questions about the plan in plain language, **so that**
+I understand it without reading every chip — while the planner, not the AI, stays in charge.
+
+1. **Given** no key, **then** the chat refuses before calling Anthropic, and the UI shows the connect
+   card. A key is checked without spending tokens (model lookup). [`test_no_key_is_refused_before_any_call`]
+2. **Given** a question about transfer credit, the plan, or a course, **then** Claude answers through
+   read-only tools that call Visor's own code (`compute_audit`, the equivalency rows, the catalog), and
+   each tool call is shown as a card with its source. [`test_transfer_question_uses_the_equivalency_table`,
+   `test_audit_tool_returns_the_planners_plan`, `test_course_info_tool_reports_where_it_sits`]
+3. **Given** a request to change the plan, **then** the answer says it can't and explains why the
+   planner placed the course there (system prompt; no write tool exists).
+4. **Given** a rejected key, rate limiting, or an API outage, **then** the response is one of the
+   designed states (`invalid_key` 401, `rate_limited` 429 with retry-after, `api_down` 503).
+   [`test_errors_map_to_the_designed_states`]
+5. **Given** any chat, **then** nothing is stored — not the key, not the conversation, not unknown
+   transfer courses. [`test_chat_stores_nothing`]
+
+Models: Claude Opus 5.5 (default), Sonnet 5.5, Haiku 5.5. Opus and Sonnet requests opt into
+server-side refusal fallbacks (`fallbacks: "default"`). A deployment may set
+`VISOR_ANTHROPIC_API_KEY` to use one shared key instead of per-user keys. [`test_shared_key_mode`]
+
+## UI
+
+The frontend follows the Claude Design package (October 2026): landing page, four role-based tabs
+(Student: My Plan, Ask Visor · Advisor: Students, Transfer, Ask Visor · Registrar: Transfer, Ask
+Visor), light/dark themes, and phone layouts with a bottom nav and a bottom-sheet chat. Every number
+on screen comes from the API.
+
 ## Design
 
 ### Where the code lives (each piece can be lifted on its own)
@@ -74,7 +104,8 @@ the courses in it, **so that** we both know the path and the graduation term.
 | `backend/visor/rules/verify.py` | `verify()` → list of violations; **does not import forecast** | audit, terms, grades |
 | `backend/visor/catalog_files.py` | Reads `data/catalog/<year>/*.csv` into the rules dataclasses | rules (I/O lives here, not in `rules/`) |
 | `backend/visor/audit_api.py` | `POST /api/audit`, `GET /api/programs`, `GET /api/demo/students` | the above + the equivalency lookup |
-| `frontend/src/DegreeProgress.jsx` | The "Degree Progress" tab | the API |
+| `backend/visor/chat.py` | Ask Visor relay: `POST /api/chat`, `/api/chat/verify`, `/api/chat/config` | audit_api, `anthropic` |
+| `frontend/src/` | Landing, My Plan, Students, Transfer, Ask Visor (`views/`), design tokens (`theme.css`) | the API |
 
 The program tables from spec 04 (`program`, `req_group`, `req_item`, …) are **not** in the database
 yet: the catalog files are read directly. Moving them into tables is spec 04's importer work and

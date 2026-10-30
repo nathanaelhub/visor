@@ -132,6 +132,9 @@ class GroupResult:
     outstanding_courses: list  # course codes still required by name ("all" groups)
     outstanding_count: int = 0  # choose_n
     outstanding_hours: float = 0  # hours
+    required_hours: float = 0  # size of the group in hours (for progress bars)
+    counted_hours: float = 0  # hours counted so far, finished + in progress
+    done_hours: float = 0  # finished only
 
 
 @dataclass
@@ -263,7 +266,7 @@ def audit(program: Program, catalog: Catalog, taken: list[Taken]) -> AuditResult
             used[g.id] = [t for t in attempts if not t.elective_only and _counts_in(t, g)
                           and any(matches(i, t.code, catalog) for i in g.items)]
 
-    results = [_group_result(g, used[g.id]) for g in groups]
+    results = [_group_result(g, used[g.id], catalog) for g in groups]
     counted = {t.code for g in groups for t in used[g.id]}
     done = sum(t.credits for t in attempts if not t.in_progress and t.passed)
     in_prog = sum(t.credits for t in attempts if t.in_progress)
@@ -275,7 +278,15 @@ def audit(program: Program, catalog: Catalog, taken: list[Taken]) -> AuditResult
     )
 
 
-def _group_result(g: ReqGroup, used: list[Taken]) -> GroupResult:
+def _required_hours(g: ReqGroup, catalog: Catalog) -> float:
+    if g.rule == "all":
+        return sum(catalog.credits(i.course) for i in g.items if i.course)
+    if g.rule == "choose_n":
+        return g.n * 3.0  # a "choose" group is counted in courses; 3 hours each for the progress bar
+    return g.hours
+
+
+def _group_result(g: ReqGroup, used: list[Taken], catalog: Catalog) -> GroupResult:
     done = [t for t in used if not t.in_progress]
     counted = [Counted(t.code, t.credits, "in_progress" if t.in_progress else
                        ("transfer" if t.source == "transfer" else "completed"), t.detail) for t in used]
@@ -298,4 +309,8 @@ def _group_result(g: ReqGroup, used: list[Taken]) -> GroupResult:
         remaining = f"{need_n} more course{'s' if need_n != 1 else ''} from the list"
     else:
         remaining = f"{need_h:g} more hours"
-    return GroupResult(g.id, g.name, status, counted, remaining, missing, need_n, need_h)
+    req = _required_hours(g, catalog)
+    return GroupResult(g.id, g.name, status, counted, remaining, missing, need_n, need_h,
+                       required_hours=req,
+                       counted_hours=min(req, sum(t.credits for t in used)),
+                       done_hours=min(req, sum(t.credits for t in done)))

@@ -67,7 +67,9 @@ def create_app(config: dict | None = None) -> Flask:
 
     # Scaled-up showcase (spec 05): degree audit + semester forecast.
     from .audit_api import bp as audit_bp
+    from .chat import bp as chat_bp
     app.register_blueprint(audit_bp)
+    app.register_blueprint(chat_bp)
 
     with app.app_context():
         db.create_all()

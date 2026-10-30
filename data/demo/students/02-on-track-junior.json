@@ -1,18 +1,95 @@
 {
   "id": "demo-02",
+  "student_number": "L00402115",
   "name": "Jordan Rivera (fictional)",
   "story": "Fourth semester in progress, on track. The typical case an advisor sees.",
   "program_id": "cs-bs-2026-27",
   "start_term": "2027SP",
   "taken": [
-    {"code": "LU 1303", "grade": "A"}, {"code": "CS 1213", "grade": "A-"}, {"code": "MA 1314", "grade": "B+"},
-    {"code": "BI 1093", "grade": "A"}, {"code": "CCT 1133", "grade": "A"},
-    {"code": "MA 2103", "grade": "B"}, {"code": "MA 2314", "grade": "B-"}, {"code": "SENG 2513", "grade": "A"},
-    {"code": "BI 1073", "grade": "A-"}, {"code": "EN 1223", "grade": "B+"}, {"code": "PH 2414", "grade": "B"},
-    {"code": "CS 2233", "grade": "B+"}, {"code": "CS 2243", "grade": "A"}, {"code": "BI 1083", "grade": "A"},
-    {"code": "SENG 3233", "grade": "A-"}, {"code": "HI 1003", "grade": "B"},
-    {"code": "CS 2323", "grade": null}, {"code": "CS 3233", "grade": null}, {"code": "MA 3123", "grade": null},
-    {"code": "EN 2103", "grade": null}, {"code": "PS 1113", "grade": null}
+    {
+      "code": "LU 1303",
+      "grade": "A"
+    },
+    {
+      "code": "CS 1213",
+      "grade": "A-"
+    },
+    {
+      "code": "MA 1314",
+      "grade": "B+"
+    },
+    {
+      "code": "BI 1093",
+      "grade": "A"
+    },
+    {
+      "code": "CCT 1133",
+      "grade": "A"
+    },
+    {
+      "code": "MA 2103",
+      "grade": "B"
+    },
+    {
+      "code": "MA 2314",
+      "grade": "B-"
+    },
+    {
+      "code": "SENG 2513",
+      "grade": "A"
+    },
+    {
+      "code": "BI 1073",
+      "grade": "A-"
+    },
+    {
+      "code": "EN 1223",
+      "grade": "B+"
+    },
+    {
+      "code": "PH 2414",
+      "grade": "B"
+    },
+    {
+      "code": "CS 2233",
+      "grade": "B+"
+    },
+    {
+      "code": "CS 2243",
+      "grade": "A"
+    },
+    {
+      "code": "BI 1083",
+      "grade": "A"
+    },
+    {
+      "code": "SENG 3233",
+      "grade": "A-"
+    },
+    {
+      "code": "HI 1003",
+      "grade": "B"
+    },
+    {
+      "code": "CS 2323",
+      "grade": null
+    },
+    {
+      "code": "CS 3233",
+      "grade": null
+    },
+    {
+      "code": "MA 3123",
+      "grade": null
+    },
+    {
+      "code": "EN 2103",
+      "grade": null
+    },
+    {
+      "code": "PS 1113",
+      "grade": null
+    }
   ],
   "transfer": []
 }

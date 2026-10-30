@@ -3,6 +3,9 @@
 Nothing here writes to the database: the audit takes the student's courses in the request and
 returns a result (spec 04, "No student records are stored in v1"). Transfer courses go through the
 same equivalency rows the lookup page uses, read-only — an unknown course is reported, not recorded.
+
+``compute_audit()`` is the one entry point; the HTTP routes and the Ask Visor tools both call it, so
+the chat can never describe a plan the planner did not produce.
 """
 from __future__ import annotations
 
@@ -16,73 +19,78 @@ from flask import Blueprint, jsonify, request
 from .catalog_files import DEFAULT_CATALOG, load_catalog
 from .equivalencies import _live_rows
 from .models import ExternalCourse, School, db
-from .rules.audit import Taken, audit
+from .rules.audit import Taken, audit, matches
 from .rules.forecast import Settings, project
-from .rules.terms import parse_term
+from .rules.terms import describe_offerings, parse_term
+from .rules.verify import verify
 
 bp = Blueprint("audit", __name__, url_prefix="/api")
 
 DEMO_STUDENTS = Path(__file__).resolve().parents[2] / "data" / "demo" / "students"
 
 
+class AuditError(ValueError):
+    def __init__(self, message: str, status: int = 400):
+        super().__init__(message)
+        self.status = status
+
+
 def _err(message: str, status: int = 400):
     return jsonify({"error": message}), status
 
 
-def _catalog():
+def catalog_and_programs():
     return load_catalog(os.environ.get("VISOR_CATALOG_DIR", str(DEFAULT_CATALOG)))
 
 
-def _code(raw: str) -> str:
+def current_term() -> str:
+    """The term in progress now. Configuration, never the clock (spec 05)."""
+    return parse_term(os.environ.get("VISOR_CURRENT_TERM", "2026FA")).code
+
+
+def course_code(raw: str) -> str:
     """'cs2233', ' CS  2233 ' -> 'CS 2233'."""
     s = "".join(str(raw).split()).upper()
     i = next((k for k, ch in enumerate(s) if ch.isdigit()), len(s))
     return f"{s[:i]} {s[i:]}".strip()
 
 
-@bp.get("/programs")
-def list_programs():
-    _, programs = _catalog()
-    return jsonify([{"id": p.id, "name": p.name, "degree": p.degree, "catalog_year": p.catalog_year,
-                     "total_hours": p.total_hours} for p in programs.values()])
+# --- Transfer --------------------------------------------------------------------------------------
 
 
-@bp.get("/demo/students")
-def demo_students():
-    """Fictional students for the Degree Progress tab. Schools are given by name in the files and
-    resolved to ids here, so the files don't depend on database ids."""
-    schools = {s.name: s.id for s in School.query.all()}
-    out = []
-    for f in sorted(DEMO_STUDENTS.glob("*.json")):
-        s = json.loads(f.read_text())
-        for t in s.get("transfer", []):
-            t["school_id"] = schools.get(t.pop("school", None))
-        out.append(s)
-    return jsonify(out)
+def find_school(school_id=None, name: str | None = None) -> School | None:
+    if isinstance(school_id, int):
+        return db.session.get(School, school_id)
+    if name:
+        n = name.strip().lower()
+        return next((s for s in School.query.all() if s.name.lower() == n or n in s.name.lower()), None)
+    return None
 
 
-def _translate_transfer(rows: list[dict], catalog) -> tuple[list[Taken], list[dict]]:
+def translate_transfer(rows: list[dict], catalog) -> tuple[list[Taken], list[dict]]:
     """Each transfer course -> what it counts as. Only `confirmed` counts (spec 04)."""
     taken, report = [], []
     for r in rows:
-        school = db.session.get(School, r.get("school_id")) if isinstance(r.get("school_id"), int) else None
+        school = find_school(r.get("school_id"), r.get("school"))
         subject, number = str(r.get("subject", "")).strip().upper(), str(r.get("number", "")).strip()
         label = f"{school.name if school else 'Unknown school'}: {subject} {number}"
         entry = {"school": school.name if school else None, "external": f"{subject} {number}",
-                 "status": "unknown", "counts_as": None, "counted": False, "note": ""}
+                 "title": None, "status": "unknown", "counts_as": None, "counts_as_title": None,
+                 "counted": False, "note": ""}
         ext = (ExternalCourse.query.filter_by(school_id=school.id, subject=subject, number=number)
                .order_by(ExternalCourse.catalog_year.desc()).first()) if school else None
         if ext is None:
             entry["note"] = "Not in the equivalency table yet; look it up and flag it for review."
             report.append(entry)
             continue
+        entry["title"] = ext.title
         confirmed, proposed, placeholders = _live_rows(ext)
         grade = r.get("grade") or "TR"
         if confirmed:
             q = confirmed[0]
             entry["status"] = "confirmed"
             if q.kind == "direct" and q.course is not None:
-                entry.update(counts_as=q.course.code, counted=True)
+                entry.update(counts_as=q.course.code, counts_as_title=q.course.title, counted=True)
                 taken.append(Taken(q.course.code, catalog.credits(q.course.code, q.course.credits), grade,
                                    source="transfer", detail=label))
             elif q.kind == "elective":
@@ -93,7 +101,9 @@ def _translate_transfer(rows: list[dict], catalog) -> tuple[list[Taken], list[di
             else:
                 entry["note"] = "Confirmed as not transferring."
         elif proposed:
-            entry.update(status="proposed", counts_as=proposed[0].course.code if proposed[0].course else None,
+            top = proposed[0].course
+            entry.update(status="proposed", counts_as=top.code if top else None,
+                         counts_as_title=top.title if top else None,
                          note="Pending: a person has to confirm this before it counts.")
         elif placeholders:
             entry["note"] = "Flagged for professor review; it counts once someone decides."
@@ -103,28 +113,29 @@ def _translate_transfer(rows: list[dict], catalog) -> tuple[list[Taken], list[di
     return taken, report
 
 
-@bp.post("/audit")
-def run_audit():
-    body = request.get_json(silent=True) or {}
-    catalog, programs = _catalog()
+# --- The audit -------------------------------------------------------------------------------------
+
+
+def compute_audit(body: dict) -> dict:
+    """Run transfer translation, the audit and (with a start term) the forecast. Raises AuditError."""
+    catalog, programs = catalog_and_programs()
     program = programs.get(body.get("program_id"))
     if program is None:
-        return _err(f"program_id must be one of {', '.join(programs)}", 404)
+        raise AuditError(f"program_id must be one of {', '.join(programs)}", 404)
     start_term = body.get("start_term")
     if start_term:
         try:
             start_term = parse_term(start_term).code
         except ValueError as e:
-            return _err(str(e))
+            raise AuditError(str(e)) from e
 
     taken: list[Taken] = []
     for r in body.get("taken", []):
         if not r.get("code"):
-            return _err("every taken course needs a code")
-        code = _code(r["code"])
-        credits = r.get("credits") or catalog.credits(code)
-        taken.append(Taken(code, float(credits), r.get("grade") or None))
-    transfer_taken, transfer_report = _translate_transfer(body.get("transfer", []), catalog)
+            raise AuditError("every taken course needs a code")
+        code = course_code(r["code"])
+        taken.append(Taken(code, float(r.get("credits") or catalog.credits(code)), r.get("grade") or None))
+    transfer_taken, transfer_report = translate_transfer(body.get("transfer", []), catalog)
     taken += transfer_taken
 
     s = body.get("settings") or {}
@@ -137,14 +148,117 @@ def run_audit():
 
     out = asdict(result)
     out.update(
+        program_id=program.id,
+        program_name=f"{program.degree} {program.name}",
+        catalog_year=program.catalog_year,
         transfer=transfer_report,
+        transfer_hours=sum(t.credits for t in transfer_taken),
+        in_progress={"term": current_term(), "courses": [
+            {"code": t.code, "title": catalog.courses[t.code].title if t.code in catalog.courses else t.code,
+             "credits": t.credits} for t in taken if t.in_progress]},
         plan=None if plan is None else {
             "start_term": plan.start_term, "complete": plan.complete,
             "free_elective_hours": plan.free_elective_hours,
             "terms": [asdict(t) for t in plan.terms]},
         warnings=[] if plan is None else [asdict(w) for w in plan.warnings],
         needs_review=bool(plan and plan.needs_review),
-        unknown_codes=sorted({t.code for t in taken if t.code not in catalog.courses
-                              and not t.elective_only}),
+        unknown_codes=sorted({t.code for t in taken if t.code not in catalog.courses and not t.elective_only}),
     )
-    return jsonify(out)
+    if plan is not None:
+        violations = verify(plan, catalog, taken, settings.max_hours)
+        out["checks"] = {
+            "prerequisites_ok": not any(v.rule in ("prerequisite", "standing") for v in violations),
+            "offerings_ok": not any(v.rule == "offering" for v in violations),
+            "violations": [asdict(v) for v in violations],
+            "retakes": [r.code for r in result.retakes],
+            "max_load": max((t.hours for t in plan.terms), default=0),
+            "load_limit": settings.max_hours,
+        }
+    return out
+
+
+@bp.post("/audit")
+def run_audit():
+    try:
+        return jsonify(compute_audit(request.get_json(silent=True) or {}))
+    except AuditError as e:
+        return _err(str(e), e.status)
+
+
+# --- Catalog and demo data -------------------------------------------------------------------------
+
+
+@bp.get("/programs")
+def list_programs():
+    _, programs = catalog_and_programs()
+    return jsonify([{"id": p.id, "name": p.name, "degree": p.degree, "catalog_year": p.catalog_year,
+                     "total_hours": p.total_hours} for p in programs.values()])
+
+
+def course_info(code: str) -> dict | None:
+    """Everything the catalog says about one course, and which requirement groups it can fill."""
+    catalog, programs = catalog_and_programs()
+    code = course_code(code)
+    c = catalog.courses.get(code)
+    if c is None:
+        return None
+    fills = [{"program": p.id, "group": g.id, "name": g.name} for p in programs.values() for g in p.groups
+             if any(matches(i, code, catalog) for i in g.items)]
+    return {
+        "code": c.code, "title": c.title, "credits": c.credits,
+        "prerequisites": [{"any_of": list(pg.any_of), "min_grade": pg.min_grade}
+                          for pg in catalog.prereqs.get(code, ())],
+        "offered": describe_offerings(catalog.offered.get(code, ())),
+        "min_hours": catalog.min_hours.get(code),
+        "tags": sorted(catalog.tags.get(code, ())),
+        "unlocks": sorted(k for k, pgs in catalog.prereqs.items() if any(code in pg.any_of for pg in pgs)),
+        "fills": fills,
+    }
+
+
+@bp.get("/courses/<path:code>/info")
+def get_course_info(code):
+    info = course_info(code)
+    return jsonify(info) if info else _err(f"{course_code(code)} is not in the catalog", 404)
+
+
+def demo_students() -> list[dict]:
+    """Fictional students. Schools are named in the files and resolved to ids here."""
+    out = []
+    for f in sorted(DEMO_STUDENTS.glob("*.json")):
+        s = json.loads(f.read_text())
+        for t in s.get("transfer", []):
+            school = find_school(name=t.get("school"))
+            t["school_id"] = school.id if school else None
+        out.append(s)
+    return out
+
+
+@bp.get("/demo/students")
+def list_demo_students():
+    return jsonify(demo_students())
+
+
+@bp.get("/students")
+def advisor_students():
+    """The advisor's list: one summary row per (fictional) student, computed by the real planner."""
+    rows = []
+    for s in demo_students():
+        try:
+            r = compute_audit(s)
+        except AuditError:
+            continue
+        rows.append({
+            "id": s["id"], "student_number": s.get("student_number"), "name": s["name"],
+            "program": r["program_name"], "hours_done": r["hours_done"],
+            "hours_in_progress": r["hours_in_progress"], "hours_required": r["hours_required"],
+            "projected_term": r["projected_term"],
+            "complete": bool(r["plan"] and r["plan"]["complete"]),
+            "flags": {
+                "needs_review": r["needs_review"],
+                "retake": bool(r["retakes"]),
+                "transfer_pending": any(t["status"] in ("proposed", "unknown") for t in r["transfer"]),
+            },
+            "first_warning": r["warnings"][0]["message"] if r["warnings"] else None,
+        })
+    return jsonify(rows)

@@ -1,8 +1,8 @@
 # Scaled-up showcase (branch `scaled-up`)
 
 This branch is one way **spec 04 (degree audit)** can grow into a full semester planner, built on
-this repo's own stack and rules so any piece can be lifted into a PR. Nothing on `main` changes;
-the existing 61 tests still pass untouched.
+this repo's own stack and rules so any piece can be lifted into a PR. The existing 61 tests still pass untouched;
+the frontend is new (the original tabs are in git history).
 
 **Read first:** `specs/05-design-forecast.md` (what and why), then `data/catalog/2026-27/notes.md`
 (the catalog judgment calls).
@@ -14,11 +14,17 @@ cd backend
 pip install -r requirements-dev.txt
 VISOR_DATA_DIR=../data/catalog/2026-27 VISOR_EQUIV_DATA_DIR=../data/demo flask --app wsgi seed
 flask --app wsgi run --debug
-cd ../frontend && npm install && npm run dev      # open "Degree Progress"
+cd ../frontend && npm install && npm run dev      # http://localhost:5173
 ```
 
 Use a fresh database (e.g. `DATABASE_URL=sqlite:///visor-demo.db`): the demo catalog's course
 titles differ from `data/sample/`'s made-up ones.
+
+## Ask Visor (optional)
+
+Open **Ask Visor** and paste an Anthropic API key (it stays in the browser session and is sent only to
+Visor's server, per request). Or give the whole deployment one key: `export VISOR_ANTHROPIC_API_KEY=sk-ant-…`
+before `flask run`. Without a key everything else still works.
 
 ## What to look at, and what you could borrow
 
@@ -32,7 +38,8 @@ titles differ from `data/sample/`'s made-up ones.
 | CSV → rules loader (I/O outside `rules/`) | `backend/visor/catalog_files.py` | until the program tables exist |
 | `POST /api/audit` using the equivalency rows read-only | `backend/visor/audit_api.py` | you connect equivalencies to the audit |
 | Real CS catalog in seed format | `data/catalog/2026-27/` | you want real data before the importer is done |
-| Degree Progress tab | `frontend/src/DegreeProgress.jsx` | Firas's audit page |
+| Ask Visor: Claude answering through read-only tools over Visor's own code | `backend/visor/chat.py` | you add any AI feature and want it grounded, testable and unable to change data |
+| A full UI from a design system (tokens, light/dark, phone layouts) | `frontend/src/theme.css`, `frontend/src/views/` | Firas's pages need a consistent look |
 
 ## Ideas worth stealing even if you take no code
 
