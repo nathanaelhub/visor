@@ -1,31 +1,68 @@
 # Visor
 
-A tool for Lipscomb's registrar's office to manage transfer course equivalencies, with degree-audit features to follow. Scope came from the 10/1 registrar meeting; see `CLAUDE.md` for the current state of the project and `specs/03-design-equivalencies.md` for the design.
+Course planning and transfer advising for Lipscomb University: a degree audit and a
+semester-by-semester plan to graduation, with the reason every course sits where it does, plus
+transfer-credit lookup and an AI assistant that explains the plan using your own Anthropic key.
 
-**Using an AI assistant on this repo? Point it at `CLAUDE.md` first.**
+> **Showcase build.** This repository extends the
+> [Lunatic Labs Visor](https://github.com/Lunatic-Labs/Visor) Software Studio project. It was built
+> by their graduate assistant to show one way the team's design can grow; any piece can be borrowed.
+> All student data is fictional. The course catalog is Lipscomb's public 2026-27 catalog.
 
-Software Studio team project. Jira board: https://visor1.atlassian.net (project KAN, "The Visors").
+## What it does
 
-## How we work: spec-driven development
+- **My Plan (students):** progress toward the degree, projected graduation, a term-by-term plan
+  that respects prerequisites, when courses are offered, class standing and credit load, and a reason
+  on every course ("Unlocks 6 later courses", "Offered Spring only", "Retake: earned D+, needs C").
+- **Students (advisors):** every advisee with flags for retakes and pending transfer credit; open any
+  plan, with warnings when the planner can't place something.
+- **Transfer (registrar):** what a course from another school counts as: Confirmed, Proposed (a person
+  must confirm) or Unknown (flag it for a professor).
+- **Ask Visor:** Claude answers questions about the plan through read-only tools that call Visor's
+  own planner, catalog and equivalency table. It explains the plan; it can never change it. Bring your
+  own Anthropic API key (kept in the browser session only) or set one key for the deployment.
 
-Each spec is drafted, reviewed in a PR, and approved before the next one starts:
+The plan comes from a deterministic rules engine: the same record always gives the same plan, and
+an independent checker re-verifies every plan in the tests.
 
-1. `specs/00-vision.md`: problem, users, goals, and what counts as success
-2. `specs/01-requirements.md`: user stories with acceptance criteria
-3. `specs/02-design.md`: architecture, data model, integrations, and scale
-4. `specs/03-tasks.md`: implementation task breakdown (mirrored in Jira)
+## Run it
 
-Other folders:
+```bash
+cd backend
+pip install -r requirements-dev.txt
+export DATABASE_URL=sqlite:///visor-demo.db
+VISOR_DATA_DIR=../data/catalog/2026-27 VISOR_EQUIV_DATA_DIR=../data/demo flask --app wsgi seed
+flask --app wsgi run --debug                     # API on :5000
 
-- `specs/open-questions.md`: decisions we still need to make
-- `docs/adr/`: architecture decision records (one file per big decision)
+cd ../frontend
+npm install && npm run dev                       # http://localhost:5173
+```
 
-## Running it
+Ask Visor is optional: paste a key on the Ask Visor tab, or `export VISOR_ANTHROPIC_API_KEY=sk-ant-…`
+before `flask run` to use one shared key.
 
-See **docs/dev-setup.md**. Short version: the backend runs with `flask --app wsgi seed` and `flask --app wsgi run`, and the frontend with `npm install` and `npm run dev`.
+On macOS, port 5000 is often taken by AirPlay: run `flask --app wsgi run --debug --port 5050` and start the
+frontend with `VITE_API_URL=http://localhost:5050 npm run dev`.
 
-## Branches and PRs
+Checks: `cd backend && ruff check . && pytest -q` and `cd frontend && npm run build`.
 
-- Name branches after their Jira key, e.g. `KAN-26-time-conflicts`.
-- Never commit straight to `main`. Open a PR and get one review.
-- Put the Jira key in the PR title.
+## Where to look
+
+| Path | What |
+|---|---|
+| `SHOWCASE.md` | Guide for the student team: what was added and what to borrow |
+| `specs/05-design-forecast.md` | Spec for the audit, forecast and Ask Visor (extends the team's `specs/04`) |
+| `backend/visor/rules/` | Pure rules: terms, grades, audit, forecast, independent plan checker |
+| `backend/visor/audit_api.py`, `chat.py` | Audit/plan API and the Ask Visor relay |
+| `data/catalog/2026-27/` | The real CS B.S. catalog as data, with `notes.md` listing every judgment call |
+| `data/demo/` | Fictional students and sample equivalencies |
+| `frontend/src/` | React app (landing, My Plan, Students, Transfer, Ask Visor) |
+
+## Credits
+
+- **Original Visor project** (transfer equivalencies, SIS import, data model, specs 00–04,
+  scheduling rules): Austin Patton, Gabriel Pop and Firas Adas, Lunatic Labs, Lipscomb University
+  Software Studio, with Dr. Steve Nordstrom. Their commit history is kept in this repository.
+- **Showcase extensions** (spec 05, degree audit and forecast engine, catalog data, Ask Visor, new UI):
+  Nathanael Johnson, with Claude.
+- UI designed with Claude Design.
