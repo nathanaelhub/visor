@@ -67,3 +67,23 @@ def test_flag_lookup_needs_token_in_production(app, client, monkeypatch):
     monkeypatch.delenv(TOKEN_ENV, raising=False)
     r = client.post("/api/equivalencies/lookup/flag", json=_body(client, "Volunteer", "COMM", "2025", reviewer="x"))
     assert r.status_code == 403
+
+
+def test_same_reviewer_flagging_twice_returns_the_pending_review(client):
+    body = _body(client, "Volunteer", "COMM", "2025", reviewer="CS faculty")
+    first = client.post("/api/equivalencies/lookup/flag", json=body)
+    second = client.post("/api/equivalencies/lookup/flag", json=body)
+    assert first.status_code == 201
+    assert second.status_code == 200 and second.json["already_pending"] is True
+    assert second.json["review"]["id"] == first.json["review"]["id"]
+    assert second.json["equivalency"]["pending_reviews"] == 1
+
+
+def test_same_reviewer_can_flag_again_after_a_decision(client):
+    from visor.models import EquivalencyReview, db
+    body = _body(client, "Volunteer", "COMM", "2025", reviewer="CS faculty")
+    first = client.post("/api/equivalencies/lookup/flag", json=body).json
+    db.session.get(EquivalencyReview, first["review"]["id"]).decision = "rejected"
+    db.session.commit()
+    again = client.post("/api/equivalencies/lookup/flag", json=body)
+    assert again.status_code == 201 and again.json["review"]["id"] != first["review"]["id"]
