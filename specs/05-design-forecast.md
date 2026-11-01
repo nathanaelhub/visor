@@ -166,6 +166,12 @@ Response: spec 04's `AuditResult` (`program`, `hours_done`, `hours_required`, `g
 `courses` → `reasons`), `warnings`, and `needs_review`. A `grade` of `null` means in progress.
 Nothing is stored.
 
+Input errors return 400 with `{"error": …}`: a missing `program_id`, a grade that isn't a letter
+(A to F), `TR`, `P`, `CR`, `W` or `I`, and non-numeric credits or settings. An unknown `program_id`
+is 404. A taken course the catalog doesn't know adds a warning of kind `unknown_course` and sets
+`needs_review` (it still counts toward hours). [`test_audit_api_rejects_unknown_grades`,
+`test_unknown_course_code_warns_and_needs_review`]
+
 ## Open questions this surfaced (send to Ms. Hood / the department)
 
 The catalog itself disagrees with itself in places; every case is in `data/catalog/2026-27/notes.md`.

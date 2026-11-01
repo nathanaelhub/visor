@@ -9,6 +9,8 @@ GRADES = ("A", "A-", "B+", "B", "B-", "C+", "C", "C-", "D+", "D", "D-", "F")
 PASSING = "D-"
 # Non-letter grades that count as a pass, and the letter they are treated as.
 EQUIVALENT = {"TR": "C", "P": "C", "CR": "C"}
+# Recorded but never passing: withdrawn, incomplete.
+NON_PASSING = ("W", "I")
 
 
 def normalize(grade: str | None) -> str | None:
@@ -16,6 +18,12 @@ def normalize(grade: str | None) -> str | None:
         return None
     g = str(grade).strip().upper()
     return EQUIVALENT.get(g, g) if g else None
+
+
+def is_known(grade: str | None) -> bool:
+    """Is ``grade`` a letter, a pass-equivalent, W/I, or in progress (``None``/blank)?"""
+    g = None if grade is None else str(grade).strip().upper()
+    return not g or g in GRADES or g in EQUIVALENT or g in NON_PASSING
 
 
 def meets(grade: str | None, minimum: str | None) -> bool:
