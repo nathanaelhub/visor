@@ -48,9 +48,9 @@ export default function Transfer() {
   async function flag() {
     const ext = result.external_course
     try {
-      await api('/api/equivalencies/lookup/flag', { method: 'POST', body: {
+      const r = await api('/api/equivalencies/lookup/flag', { method: 'POST', body: {
         school_id: ext.school_id, subject: ext.subject, number: ext.number, reviewer: 'CS faculty', requested_by: 'registrar' } })
-      setFlagMsg('Flagged for professor review.')
+      setFlagMsg(r.already_pending ? 'Already flagged; waiting on professor review.' : 'Flagged for professor review.')
     } catch (e) {
       setFlagMsg(e.status === 409 ? 'Already confirmed; nothing to review.' : `Could not flag: ${e.message}`)
     }
