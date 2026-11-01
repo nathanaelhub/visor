@@ -1,11 +1,13 @@
-## Jira
-KAN-
+## What
 
-## What changed
+## Why
 
-## How to test
+Closes #
 
-## Checklist
-- [ ] Linked the Jira issue above
-- [ ] Specs updated if behavior changed
-- [ ] Tests added or updated
+## How I tested it
+
+- [ ] `cd backend && ruff check . && pytest -q`
+- [ ] `cd frontend && npm run build`
+- [ ] Tried it in the running app (or: not applicable because …)
+
+## Notes for reviewers
