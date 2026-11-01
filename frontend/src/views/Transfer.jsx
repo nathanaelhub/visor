@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { api } from '../lib.js'
+import { parseCourseCode } from '../courseCode.js'
 import { Icon, Pill, Spinner } from '../ui.jsx'
 
 // Registrar / advisor: what does a course from another school count as here?
@@ -31,15 +32,21 @@ export default function Transfer() {
   }, [])
 
   async function lookup(sid = schoolId, c = code) {
-    const m = c.trim().toUpperCase().match(/^([A-Z]+)\s*([\w-]+)$/)
-    if (!sid || !m) { setError('Enter a course code like CISP 1020.'); return }
+    const parsed = parseCourseCode(c)
+    if (!sid || !parsed) {
+      // Clear the last answer so it isn't read as the answer for what was just typed.
+      setResult(null); setFills(null); setFlagMsg('')
+      setError('Enter a course code like CISP 1020.')
+      return
+    }
+    const { subject, number } = parsed
     setBusy(true); setError(''); setFlagMsg(''); setFills(null)
     try {
-      const r = await api('/api/equivalencies/lookup', { method: 'POST', body: { school_id: Number(sid), subject: m[1], number: m[2] } })
+      const r = await api('/api/equivalencies/lookup', { method: 'POST', body: { school_id: Number(sid), subject, number } })
       setResult(r)
       const school = schools.find((s) => String(s.id) === String(sid))
-      setRecent((prev) => [{ sid, code: `${m[1]} ${m[2]}`, school: school?.name, status: r.status },
-        ...prev.filter((x) => !(x.sid === sid && x.code === `${m[1]} ${m[2]}`))].slice(0, 5))
+      setRecent((prev) => [{ sid, code: `${subject} ${number}`, school: school?.name, status: r.status },
+        ...prev.filter((x) => !(x.sid === sid && x.code === `${subject} ${number}`))].slice(0, 5))
       const lip = r.equivalency?.course?.code
       if (lip) api(`/api/courses/${encodeURIComponent(lip)}/info`).then((i) => setFills(i.fills)).catch(() => setFills([]))
     } catch (e) { setError(e.message) } finally { setBusy(false) }
