@@ -122,6 +122,19 @@ def test_course_info_tool_reports_where_it_sits(make):
     assert info["in_this_plan"]["term"] == "Spring 2028"
 
 
+def test_course_info_tool_says_which_prerequisites_the_student_has_met(make):
+    c, _ = make([reply(tool_use("t1", "course_info", {"code": "CS 3433"}), stop="tool_use"), reply(text("ok"))])
+    info = ask(c, "Does skipping MA 3213 delay CS 3433?", sid="demo-04").get_json()["tool_calls"][0]["result"]
+    math = next(p for p in info["prerequisites"] if "MA 3213" in p["any_of"])
+    assert math["met_by"] == {"code": "MA 2314", "how": "passed with C"}
+    assert info["prerequisites_met"] is True
+
+
+def test_system_prompt_requires_a_lookup_before_prerequisite_claims():
+    from visor.chat import SYSTEM
+    assert "call course_info" in SYSTEM and "any one" in SYSTEM
+
+
 def test_fallbacks_and_effort_are_set_on_opus_but_not_haiku(make):
     c, fake = make([reply(text("a")), reply(text("b"))])
     ask(c, "hi", model="opus")
