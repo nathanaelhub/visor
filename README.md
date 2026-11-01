@@ -51,6 +51,7 @@ Checks: `cd backend && ruff check . && pytest -q` and `cd frontend && npm run bu
 | Path | What |
 |---|---|
 | `SHOWCASE.md` | Guide for the student team: what was added and what to borrow |
+| `docs/user-cases/Visor-User-Cases.pdf` | 25 hands-on user cases (student, advisor, registrar, Ask Visor) with screenshots and ranked findings |
 | `specs/05-design-forecast.md` | Spec for the audit, forecast and Ask Visor (extends the team's `specs/04`) |
 | `backend/visor/rules/` | Pure rules: terms, grades, audit, forecast, independent plan checker |
 | `backend/visor/audit_api.py`, `chat.py` | Audit/plan API and the Ask Visor relay |

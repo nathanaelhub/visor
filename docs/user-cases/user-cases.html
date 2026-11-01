@@ -1,0 +1,527 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Visor User Cases</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500&family=IBM+Plex+Sans:wght@400;500;600&family=Source+Serif+4:opsz,wght@8..60,500;8..60,600&display=swap" />
+<style>
+/* Tokens copied from frontend/src/theme.css (light theme) so the report matches the app. */
+:root {
+  --bg:#F7F6F9; --sf:#FFFFFF; --sf2:#F0EEF4; --ln:#DDD9E4;
+  --ink:#1D1628; --ink2:#4E4760; --ink3:#625B70;
+  --pu:#331E54; --puS:#ECE7F4; --go:#F4AA00; --goS:#FDF3DC;
+  --metF:#0B6B4F; --metB:#E2F3EC; --prgF:#1D55A0; --prgB:#E4EDF9;
+  --rvF:#8A4300; --rvB:#FDEBD3; --erF:#A3261A; --erB:#FCE9E7;
+}
+@page { size: Letter; margin: 0.6in 0.65in; }
+* { box-sizing: border-box; }
+body { margin: 0; background: #fff; color: var(--ink); font-family: 'IBM Plex Sans', system-ui, sans-serif;
+  font-size: 10.5pt; line-height: 1.5; }
+h1, h2, h3 { font-family: 'Source Serif 4', Georgia, serif; font-weight: 600; margin: 0; }
+h2 { font-size: 20pt; color: var(--pu); margin: 0 0 6pt; }
+h3 { font-size: 13pt; margin: 0; }
+p { margin: 0 0 8pt; }
+.mono, code { font-family: 'IBM Plex Mono', ui-monospace, monospace; font-weight: 500; font-size: 0.92em; }
+.muted { color: var(--ink2); }
+.small { font-size: 9pt; }
+section { break-before: page; }
+.keep { break-inside: avoid; }
+
+/* Cover */
+.cover { height: 9.6in; display: flex; flex-direction: column; justify-content: space-between; break-before: auto; }
+.brand { display: flex; align-items: center; gap: 10pt; font-family: 'Source Serif 4', serif; font-size: 18pt; font-weight: 600; }
+.mark { width: 30pt; height: 30pt; border-radius: 8pt; background: var(--pu); display: grid; place-items: center; }
+.cover h1 { font-size: 40pt; line-height: 1.1; color: var(--pu); margin: 0 0 14pt; }
+.cover .lede { font-size: 13pt; color: var(--ink2); max-width: 5.6in; }
+.meta { display: grid; grid-template-columns: 1.3in 1fr; gap: 4pt 12pt; font-size: 10pt; border-top: 1px solid var(--ln); padding-top: 12pt; }
+.meta dt { color: var(--ink3); } .meta dd { margin: 0; }
+.stats { display: flex; gap: 10pt; margin: 22pt 0 0; }
+.stat { flex: 1; border: 1px solid var(--ln); border-radius: 10pt; padding: 10pt 12pt; }
+.stat b { display: block; font-family: 'Source Serif 4', serif; font-size: 24pt; line-height: 1.1; }
+
+/* Pills */
+.pill { display: inline-block; padding: 1pt 7pt; border-radius: 99pt; font-size: 8.5pt; font-weight: 600; white-space: nowrap; }
+.pass { background: var(--metB); color: var(--metF); }
+.note { background: var(--rvB); color: var(--rvF); }
+.fail { background: var(--erB); color: var(--erF); }
+.high { background: var(--erB); color: var(--erF); }
+.med { background: var(--rvB); color: var(--rvF); }
+.low { background: var(--prgB); color: var(--prgF); }
+
+/* Tables */
+table { width: 100%; border-collapse: collapse; font-size: 9.5pt; margin: 6pt 0 10pt; }
+th { text-align: left; font-weight: 600; color: var(--ink2); background: var(--sf2); }
+th, td { padding: 3.2pt 6pt; border-bottom: 1px solid var(--ln); vertical-align: top; }
+tr { break-inside: avoid; }
+
+/* Case cards */
+.case { border: 1px solid var(--ln); border-radius: 10pt; padding: 10pt 12pt; margin: 0 0 12pt; break-inside: avoid; }
+.case-head { display: flex; align-items: baseline; gap: 8pt; margin-bottom: 6pt; }
+.case-head .id { font-family: 'IBM Plex Mono', monospace; color: var(--pu); font-weight: 500; }
+.case-head h3 { flex: 1; }
+.case dl { display: grid; grid-template-columns: 0.95in 1fr; gap: 3pt 10pt; margin: 0; font-size: 9.8pt; }
+.case dt { color: var(--ink3); font-weight: 500; }
+.case dd { margin: 0; }
+.case ol { margin: 0; padding-left: 14pt; }
+.shot { margin: 8pt 0 0; }
+.shot img { width: 100%; border: 1px solid var(--ln); border-radius: 6pt; display: block; }
+.shot.phone img { width: 2.3in; }
+.shot figcaption { font-size: 8.5pt; color: var(--ink3); margin-top: 3pt; }
+.intro { color: var(--ink2); margin-bottom: 12pt; max-width: 6.4in; }
+.callout { background: var(--puS); border-radius: 10pt; padding: 10pt 12pt; margin: 8pt 0 12pt; }
+.finding { border-left: 3pt solid var(--ln); padding: 2pt 0 2pt 10pt; margin: 0 0 10pt; break-inside: avoid; }
+.finding.f-high { border-color: var(--erF); } .finding.f-med { border-color: var(--rvF); } .finding.f-low { border-color: var(--prgF); }
+.finding h3 { font-size: 11.5pt; display: flex; gap: 8pt; align-items: baseline; }
+.finding p { margin: 3pt 0 0; }
+</style>
+</head>
+<body>
+
+<!-- ============ Cover ============ -->
+<div class="cover">
+  <div class="brand">
+    <span class="mark"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M3 15a9 9 0 0 1 18 0" stroke="#F4AA00" stroke-width="3" stroke-linecap="round"/><circle cx="12" cy="15" r="2.2" fill="#F4AA00"/></svg></span>
+    Visor
+  </div>
+  <div>
+    <p class="muted" style="font-weight:600; letter-spacing:.04em; text-transform:uppercase; font-size:9.5pt">User cases and hands-on test report</p>
+    <h1>How Visor holds up for students, advisors and the registrar</h1>
+    <p class="lede">Twenty-five user cases, each run by hand against the working app: what the person wants,
+      what we did, what Visor showed, and whether that was right. Findings at the end are ranked so the team
+      can pick what to build next.</p>
+    <div class="stats">
+      <div class="stat"><b>25</b><span class="muted">user cases</span></div>
+      <div class="stat"><b style="color:var(--metF)">17</b><span class="muted">pass</span></div>
+      <div class="stat"><b style="color:var(--rvF)">7</b><span class="muted">pass with a note</span></div>
+      <div class="stat"><b style="color:var(--erF)">1</b><span class="muted">fail</span></div>
+    </div>
+  </div>
+  <dl class="meta">
+    <dt>Build tested</dt><dd><span class="mono">nathanaelhub/visor</span> at commit <span class="mono">96d1672</span> (31 Oct 2026)</dd>
+    <dt>Catalog</dt><dd>Lipscomb University 2026-27, B.S. Computer Science (127 hours)</dd>
+    <dt>Data</dt><dd>Five fictional demo students and illustrative equivalencies. No real student records.</dd>
+    <dt>Tested by</dt><dd>Nathanael Johnson (graduate assistant), with Claude</dd>
+    <dt>Builds on</dt><dd>Lunatic Labs Visor: Austin Patton, Gabriel Pop, Firas Adas, with Dr. Steve Nordstrom</dd>
+  </dl>
+</div>
+
+<!-- ============ Method + summary ============ -->
+<section>
+  <h2>How we tested</h2>
+  <p class="intro">Unit tests (117, all passing) prove the rules engine works piece by piece. These cases test it the way a person
+    would: start from someone's goal, click through the real screens, and check every number on screen against the catalog
+    data and the API's own answer.</p>
+  <table>
+    <tr><th style="width:1.5in">Angle</th><th>How it was run</th></tr>
+    <tr><td>Student, advisor, registrar</td><td>Local app (React on Vite, Flask API, SQLite seeded from <span class="mono">data/</span>) driven in a real browser, desktop at 1280 px wide. A screenshot was taken for each case.</td></tr>
+    <tr><td>Ask Visor</td><td>Live Claude Opus 5.5 through Visor's relay, using a server-side key so no key ever appears on screen. Every fact in each answer was checked against the catalog files.</td></tr>
+    <tr><td>Planner edge cases</td><td>Direct calls to <span class="mono">POST /api/audit</span>. Every plan returned includes the independent checker's result (<span class="mono">rules/verify.py</span>), which shares no code with the planner.</td></tr>
+    <tr><td>General</td><td>Landing page, dark mode, and a 390 px phone viewport.</td></tr>
+  </table>
+  <p class="small muted">Verdicts: <span class="pill pass">Pass</span> worked as intended. <span class="pill note">Note</span> worked, but we
+    saw something worth improving. <span class="pill fail">Fail</span> did the wrong thing. Finding numbers (F1…) point to the last section.</p>
+
+  </section>
+<section>
+  <h2>Summary</h2>
+  <table>
+    <tr><th style="width:0.55in">Case</th><th>Who wants what</th><th style="width:0.7in">Verdict</th><th style="width:0.7in">Findings</th></tr>
+    <tr><td class="mono">S1</td><td>New freshman sees every semester to graduation</td><td><span class="pill pass">Pass</span></td><td></td></tr>
+    <tr><td class="mono">S2</td><td>Junior checks progress and graduation term</td><td><span class="pill note">Note</span></td><td>F10</td></tr>
+    <tr><td class="mono">S3</td><td>Student understands why a course is back in the plan (retake)</td><td><span class="pill pass">Pass</span></td><td></td></tr>
+    <tr><td class="mono">S4</td><td>Almost-done student sees the last term</td><td><span class="pill note">Note</span></td><td>F9</td></tr>
+    <tr><td class="mono">S5</td><td>Student can see the plan but not change it</td><td><span class="pill pass">Pass</span></td><td></td></tr>
+    <tr><td class="mono">A1</td><td>Advisor scans advisees and finds who needs attention</td><td><span class="pill pass">Pass</span></td><td></td></tr>
+    <tr><td class="mono">A2</td><td>Advisor sees why a plan needs review</td><td><span class="pill note">Note</span></td><td>F3, F12</td></tr>
+    <tr><td class="mono">A3</td><td>Advisor sees how a transfer student's credit counted</td><td><span class="pill note">Note</span></td><td>F2</td></tr>
+    <tr><td class="mono">R1</td><td>Registrar looks up a confirmed equivalency</td><td><span class="pill pass">Pass</span></td><td></td></tr>
+    <tr><td class="mono">R2</td><td>Registrar looks up a proposed equivalency</td><td><span class="pill pass">Pass</span></td><td>F13</td></tr>
+    <tr><td class="mono">R3</td><td>Registrar flags an unknown course for a professor</td><td><span class="pill note">Note</span></td><td>F4</td></tr>
+    <tr><td class="mono">R4</td><td>Registrar mistypes a course code</td><td><span class="pill fail">Fail</span></td><td>F7</td></tr>
+    <tr><td class="mono">C1</td><td>Student connects an API key and picks a model</td><td><span class="pill pass">Pass</span></td><td></td></tr>
+    <tr><td class="mono">C2</td><td>Student asks what to register for and why</td><td><span class="pill note">Note</span></td><td>F5</td></tr>
+    <tr><td class="mono">C3</td><td>Student asks Ask Visor to move a course</td><td><span class="pill pass">Pass</span></td><td></td></tr>
+    <tr><td class="mono">C4</td><td>Student pastes a bad key</td><td><span class="pill pass">Pass</span></td><td></td></tr>
+    <tr><td class="mono">C5</td><td>Student asks whether transfer credit counts</td><td><span class="pill pass">Pass</span></td><td></td></tr>
+    <tr><td class="mono">E1</td><td>Same record twice gives the same plan</td><td><span class="pill pass">Pass</span></td><td></td></tr>
+    <tr><td class="mono">E2</td><td>Summer terms turned on</td><td><span class="pill note">Note</span></td><td>F6</td></tr>
+    <tr><td class="mono">E3</td><td>Lower credit cap stretches the plan safely</td><td><span class="pill pass">Pass</span></td><td></td></tr>
+    <tr><td class="mono">E4</td><td>Missing prerequisite gets added on its own</td><td><span class="pill pass">Pass</span></td><td></td></tr>
+    <tr><td class="mono">E5</td><td>Bad input to the API</td><td><span class="pill pass">Pass</span></td><td>F8</td></tr>
+    <tr><td class="mono">G1</td><td>Visitor understands Visor from the landing page</td><td><span class="pill pass">Pass</span></td><td>F1</td></tr>
+    <tr><td class="mono">G2</td><td>Dark mode</td><td><span class="pill pass">Pass</span></td><td></td></tr>
+    <tr><td class="mono">G3</td><td>Phone layout</td><td><span class="pill pass">Pass</span></td><td>F11</td></tr>
+  </table>
+</section>
+
+<!-- ============ Student ============ -->
+<section>
+  <h2>Student cases</h2>
+  <p class="intro">Students see their own plan, read-only. Each demo student covers a different situation.</p>
+
+  <div class="case">
+    <div class="case-head"><span class="id">UC-S1</span><h3>New freshman sees every semester to graduation</h3><span class="pill pass">Pass</span></div>
+    <dl>
+      <dt>Who</dt><dd>Riley Fresh (fictional), first semester, five courses in progress, nothing finished.</dd>
+      <dt>Goal</dt><dd>“Show me what I take each semester until I graduate.”</dd>
+      <dt>Steps</dt><dd><ol><li>Landing page → “I’m a student”.</li><li>Pick Riley Fresh in the avatar menu.</li><li>Read the summary and the semester plan.</li></ol></dd>
+      <dt>Expected</dt><dd>Every remaining requirement placed or warned; graduation term shown; hours add up to 127.</dd>
+      <dt>Actual</dt><dd>16 hours in progress, then 7 planned terms (Spring 2027 to Spring 2030, 15–17 hours each), graduation <b>May 2030</b>.
+        Plan checks all pass, no warnings. 16 + 107 planned + 4 free-elective hours = 127. Every course carries a reason chip
+        (“Unlocks 16 later courses”, “Offered Spring only”, “Needed before EN 3143”).</dd>
+    </dl>
+    <figure class="shot"><img src="screenshots/s1-riley-plan.png" alt="Riley's semester plan" /><figcaption>Riley’s plan: Spring 2027 is highlighted as “Register next”; every course says why it is there.</figcaption></figure>
+  </div>
+
+  <div class="case">
+    <div class="case-head"><span class="id">UC-S2</span><h3>Junior checks progress and graduation term</h3><span class="pill note">Note</span></div>
+    <dl>
+      <dt>Who</dt><dd>Jordan Rivera (fictional), fourth semester in progress, on track.</dd>
+      <dt>Goal</dt><dd>“How far along am I, and when do I finish?”</dd>
+      <dt>Steps</dt><dd><ol><li>Student view, Jordan Rivera (the default).</li><li>Read the progress card, plan checks and requirement list.</li></ol></dd>
+      <dt>Expected</dt><dd>Done, in progress and remaining hours that match the audit; a graduation term.</dd>
+      <dt>Actual</dt><dd>66 of 127 hours counted (51 done, 15 in progress), graduation <b>Dec 2028</b>, “4 terms after this one · On track”.
+        Requirements: 3 met · 3 in progress · 5 needed. Numbers match <span class="mono">/api/audit</span> exactly.
+        <br/><b>Note (F10):</b> “Major core” shows <i>Needed</i> at 38 of 71 hours. To a student that reads as “not started”.</dd>
+    </dl>
+    <figure class="shot"><img src="screenshots/s2-jordan-plan.png" alt="Jordan's plan summary" /></figure>
+  </div>
+
+  <div class="case">
+    <div class="case-head"><span class="id">UC-S3</span><h3>Student understands why a course is back in the plan</h3><span class="pill pass">Pass</span></div>
+    <dl>
+      <dt>Who</dt><dd>Casey Lin (fictional): passed Data Structures (CS 2233) with a D+, but the major needs a C.</dd>
+      <dt>Goal</dt><dd>“Why is Data Structures in my plan again?”</dd>
+      <dt>Steps</dt><dd><ol><li>Pick Casey Lin.</li><li>Read Plan checks and the Spring 2027 term.</li></ol></dd>
+      <dt>Expected</dt><dd>The retake is placed first and says why; courses that depend on it wait.</dd>
+      <dt>Actual</dt><dd>Plan checks: “1 retake required: CS 2233”. CS 2233 sits first in Spring 2027 with
+        “Retake: earned D+, needs C” and “Unlocks 14 later courses”. Graduation May 2029.</dd>
+    </dl>
+    <figure class="shot"><img src="screenshots/s3-casey-retake.png" alt="Casey's retake in Spring 2027" /></figure>
+  </div>
+
+  <div class="case">
+    <div class="case-head"><span class="id">UC-S4</span><h3>Almost-done student sees the last term</h3><span class="pill note">Note</span></div>
+    <dl>
+      <dt>Who</dt><dd>Morgan Ellis (fictional), 108 hours done, 9 in progress.</dd>
+      <dt>Goal</dt><dd>“What’s left, and is next semester my last?”</dd>
+      <dt>Actual</dt><dd>117 of 127 counted; Spring 2027 is the <b>graduation term</b> with CS 3633 and ENGR 3993 (6 hours, marked “Light term”);
+        graduation May 2027. Both courses explain themselves (“Offered Spring only”, “Needs 60+ hours”).
+        <br/><b>Note (F9):</b> the page also says “Plus 4 hours of free electives”. Those 4 hours have to go somewhere, and the light last term is the obvious place, but the plan doesn’t suggest it.
+        The “nothing left” case (plan empty, “complete pending final grades”) is covered by the unit test <span class="mono">test_nothing_left</span>; no demo student reaches it.</dd>
+    </dl>
+    <figure class="shot"><img src="screenshots/s4-morgan-almost-done.png" alt="Morgan's last term" /></figure>
+  </div>
+
+  <div class="case">
+    <div class="case-head"><span class="id">UC-S5</span><h3>Student can see the plan but not change it</h3><span class="pill pass">Pass</span></div>
+    <dl>
+      <dt>Goal</dt><dd>Students get a forecast, not an editor (the original requirement).</dd>
+      <dt>Steps</dt><dd>Listed every button, input and dropdown inside the student’s My Plan page.</dd>
+      <dt>Actual</dt><dd>Only two controls: “Ask about this plan” and “Show courses” (expands the in-progress term). There is nothing that edits the plan. Ask Visor also refuses edits (UC-C3).</dd>
+    </dl>
+  </div>
+</section>
+
+<!-- ============ Advisor ============ -->
+<section>
+  <h2>Advisor cases</h2>
+  <p class="intro">Advisors see every advisee, can open any plan, and should notice who needs attention first.</p>
+
+  <div class="case">
+    <div class="case-head"><span class="id">UC-A1</span><h3>Advisor scans advisees and finds who needs attention</h3><span class="pill pass">Pass</span></div>
+    <dl>
+      <dt>Steps</dt><dd><ol><li>Switch “Viewing as” to Advisor → Students tab.</li><li>Use the filter chips and the search box.</li></ol></dd>
+      <dt>Expected</dt><dd>All advisees with hours, graduation term and flags; filters and search narrow the list.</dd>
+      <dt>Actual</dt><dd>5 advisees with student numbers, hours and graduation terms that match each student’s My Plan.
+        Chips: All 5 · Needs review 0 · Retake 1 (Casey) · Transfer pending 1 (Sam). “Transfer pending” shows only Sam;
+        searching “casey” or the student number “L0043” finds the right person.</dd>
+    </dl>
+    <figure class="shot"><img src="screenshots/a1-advisees.png" alt="Advisee list" /></figure>
+  </div>
+
+  <div class="case">
+    <div class="case-head"><span class="id">UC-A2</span><h3>Advisor sees why a plan needs review</h3><span class="pill note">Note</span></div>
+    <dl>
+      <dt>Setup</dt><dd>None of the five demo students produces a warning (F12), so we forced one by capping Riley’s plan at 6 credit hours a term in the request the page sends.</dd>
+      <dt>Expected</dt><dd>“Needs advisor review” badge, each warning naming the course and what failed.</dd>
+      <dt>Actual</dt><dd>Badge and banner appear: “EN 3143 could not be placed: it did not fit within 16 terms”, and four more like it.
+        <br/><b>Note (F3):</b> the card still says “Projected graduation <b>Dec 2034</b>”, even though five required courses have no term.
+        That date is not a real graduation date and should not be shown as one.</dd>
+    </dl>
+    <figure class="shot"><img src="screenshots/a2-needs-review.png" alt="Plan needing review" /></figure>
+  </div>
+
+  <div class="case">
+    <div class="case-head"><span class="id">UC-A3</span><h3>Advisor sees how a transfer student’s credit counted</h3><span class="pill note">Note</span></div>
+    <dl>
+      <dt>Who</dt><dd>Sam Okafor (fictional): 10 transfer courses from Nashville State and Vol State, covering every status.</dd>
+      <dt>Steps</dt><dd>Students → filter “Transfer pending” → Open plan → expand requirement groups.</dd>
+      <dt>Actual</dt><dd>“33 of 127 · Includes 24 transfer hours.” Counted courses show their source, e.g.
+        “CS 2233 (transfer: Nashville State Community College: CISP 1020)”. Elective-only credit adds hours, and free electives drop to 0.
+        <br/><b>Note (F2):</b> the three courses that <i>don’t</i> count (CIS 2350 proposed, PHED 1110 not transferring, HIST 2010 unknown)
+        appear nowhere on the page. The API returns them, and the advisee list flags “Transfer pending”, but the advisor can’t see <i>which</i> course is pending.</dd>
+    </dl>
+    <figure class="shot"><img src="screenshots/a3-sam-transfer.png" alt="Transfer credit inside the audit" /></figure>
+  </div>
+</section>
+
+<!-- ============ Registrar ============ -->
+<section>
+  <h2>Registrar cases</h2>
+  <p class="intro">The Transfer tab is the team’s original feature (specs/03), shown with the new design. Lookups use the
+    team’s equivalency API unchanged.</p>
+
+  <div class="case">
+    <div class="case-head"><span class="id">UC-R1</span><h3>Look up a confirmed equivalency</h3><span class="pill pass">Pass</span></div>
+    <dl>
+      <dt>Steps</dt><dd>Registrar → Transfer → Nashville State, <span class="mono">CISP 1020</span> → Look up.</dd>
+      <dt>Actual</dt><dd><b>Confirmed</b>: counts as CS 2233 Data Structures, Major core. Source “Registrar (sample), 2026-08-15”. No flag button (“Confirmed answers are not re-flagged”).</dd>
+    </dl>
+    <figure class="shot"><img src="screenshots/r1-confirmed.png" alt="Confirmed lookup" /></figure>
+  </div>
+
+  <div class="case">
+    <div class="case-head"><span class="id">UC-R2</span><h3>Look up a proposed equivalency</h3><span class="pill pass">Pass</span></div>
+    <dl>
+      <dt>Steps</dt><dd>Columbia State, <span class="mono">CSCI 1020</span>.</dd>
+      <dt>Actual</dt><dd><b>Proposed</b> → CS 2233: “A person must confirm this before it counts.” Source “Equivalency table (rules)”, “1 review pending”.
+        <br/><span class="muted">Data note (F13): the demo row maps <i>Object-Oriented Programming</i> to <i>Data Structures</i>. Ask Visor itself pointed out the mismatch (UC-C5).</span></dd>
+    </dl>
+    <figure class="shot"><img src="screenshots/r2-proposed.png" alt="Proposed lookup" /></figure>
+  </div>
+
+  <div class="case">
+    <div class="case-head"><span class="id">UC-R3</span><h3>Flag an unknown course for a professor</h3><span class="pill note">Note</span></div>
+    <dl>
+      <dt>Steps</dt><dd>Nashville State, <span class="mono">HIST 2010</span> → <b>Unknown</b> → Flag for review. Then click Flag again.</dd>
+      <dt>Actual</dt><dd>First click: “Flagged for professor review.” The second click also succeeds, and the lookup now says “<b>2</b> review pending” (F4).
+        After flagging, the Source line reads “Equivalency table (registrar)” for a course with no match, which is misleading.</dd>
+    </dl>
+    <figure class="shot"><img src="screenshots/r3-unknown-flagged.png" alt="Unknown course flagged" /></figure>
+  </div>
+
+  <div class="case">
+    <div class="case-head"><span class="id">UC-R4</span><h3>Registrar mistypes a course code</h3><span class="pill fail">Fail</span></div>
+    <dl>
+      <dt>Steps</dt><dd>Tried <span class="mono">HIST</span>, <span class="mono">12345</span>, <span class="mono">CISP-1020</span>, <span class="mono">cisp 1020</span>, <span class="mono">␣␣CISP␣␣␣1020␣</span>.</dd>
+      <dt>Expected</dt><dd>Clean-up of obvious variants; a clear message for anything else.</dd>
+      <dt>Actual</dt><dd>Lowercase and extra spaces work. But <span class="mono">HIST</span> is read as subject “HIS”, number “T”, and
+        returns <b>Unknown: HIS T</b>, which a registrar could flag by mistake. <span class="mono">CISP-1020</span> becomes “CISP -1020” (Unknown, though CISP 1020 is confirmed).
+        <span class="mono">12345</span> shows the right message, but the previous result stays on screen under it (F7).</dd>
+    </dl>
+    <figure class="shot"><img src="screenshots/r4-bad-input.png" alt="HIST parsed as HIS T" /></figure>
+  </div>
+</section>
+
+<!-- ============ Ask Visor ============ -->
+<section>
+  <h2>Ask Visor cases</h2>
+  <p class="intro">Claude answers through three read-only tools that call Visor’s own code. It explains the plan and never changes it.
+    Three live conversations as Casey Lin on Claude Opus 5.5. Each one answered in a few seconds, and we checked every factual claim against the catalog files.</p>
+
+  <div class="case">
+    <div class="case-head"><span class="id">UC-C1</span><h3>Connect an API key and pick a model</h3><span class="pill pass">Pass</span></div>
+    <dl>
+      <dt>Actual</dt><dd>Connect card with a masked key field, “Starts with sk-ant-” hint and link, three models (Opus 5.5 default, Sonnet 5.5, Haiku 5.5),
+        and the promise “never stored or shown again”. The right panel lists what Ask Visor can and cannot do.</dd>
+    </dl>
+    <figure class="shot"><img src="screenshots/c1-connect.png" alt="Connect card" /></figure>
+  </div>
+
+  <div class="case">
+    <div class="case-head"><span class="id">UC-C2</span><h3>“What should I register for next term, and why?”</h3><span class="pill note">Note</span></div>
+    <dl>
+      <dt>Actual</dt><dd>A tool card (“Ran the degree audit · 7 groups still needed”), then a table of the five Spring 2027 courses
+        with reasons that match the planner: CS 2233 retake (D+ → needs C, unlocks 14), MA 3213 spring-only, and so on. It also gave priorities, the graduation term and an advisor reminder.
+        <br/><b>Note (F5):</b> it said skipping MA 3213 would delay <i>CS 3433</i> a year. In fact CS 3433 accepts MA 2314, which Casey already passed.
+        It made the claim without calling the course lookup tool. The CS 3233 half of the claim is correct.</dd>
+    </dl>
+    <figure class="shot"><img src="screenshots/c2-why-next-term.png" alt="Register-next answer" /></figure>
+  </div>
+
+  <div class="case">
+    <div class="case-head"><span class="id">UC-C3</span><h3>“Can you move Operating Systems to next fall instead?”</h3><span class="pill pass">Pass</span></div>
+    <dl>
+      <dt>Actual</dt><dd>It looked up CS 3523, then replied “<b>I can’t edit your plan. Ask your advisor.</b>” and explained why fall is impossible anyway:
+        the course is spring-only, and its prerequisite CS 2323 is fall-only and needs the CS 2233 retake. All three facts checked against
+        <span class="mono">prereqs.csv</span> and <span class="mono">course_terms.csv</span>.</dd>
+    </dl>
+    <figure class="shot"><img src="screenshots/c3-declines-edit.png" alt="Ask Visor declines to edit" /></figure>
+  </div>
+
+  <div class="case">
+    <div class="case-head"><span class="id">UC-C4</span><h3>Student pastes a bad key</h3><span class="pill pass">Pass</span></div>
+    <dl>
+      <dt>Actual</dt><dd>“Key rejected · That key was not accepted. Check it and try again.” The key is checked with a model lookup, so a bad key costs no tokens, and the field stays masked.</dd>
+    </dl>
+    <figure class="shot"><img src="screenshots/c4-invalid-key.png" alt="Key rejected state" /></figure>
+  </div>
+
+  <div class="case">
+    <div class="case-head"><span class="id">UC-C5</span><h3>“Will CSCI 1020 from Columbia State count, and skip my retake?”</h3><span class="pill pass">Pass</span></div>
+    <dl>
+      <dt>Actual</dt><dd>Tool card “Looked up CSCI 1020 at Columbia State → CS 2233 · Proposed”. The answer: <b>not yet</b>, because a proposed match doesn’t count, so keep the retake in Spring 2027.
+        It explained what happens if the match is confirmed or denied. It also noticed the titles differ (OOP vs Data Structures), said someone will likely compare
+        course content, and listed three questions for the advisor.</dd>
+    </dl>
+    <figure class="shot"><img src="screenshots/c5-transfer-question.png" alt="Transfer question" /></figure>
+  </div>
+</section>
+
+<!-- ============ Edge cases ============ -->
+<section>
+  <h2>Planner edge cases (API)</h2>
+  <p class="intro">These run against <span class="mono">POST /api/audit</span> directly. Every response includes <span class="mono">checks</span>
+    from the independent checker; “0 violations” means it re-verified prerequisites, offerings, load, duplicates and class standing.</p>
+
+  <div class="case">
+    <div class="case-head"><span class="id">UC-E1</span><h3>Same record twice gives the same plan</h3><span class="pill pass">Pass</span></div>
+    <dl><dt>Actual</dt><dd>Jordan’s record sent twice; the two JSON responses are byte-for-byte identical.</dd></dl>
+  </div>
+
+  <div class="case">
+    <div class="case-head"><span class="id">UC-E2</span><h3>Summer terms turned on</h3><span class="pill note">Note</span></div>
+    <dl>
+      <dt>Actual</dt><dd>Riley, summer off: 7 terms, graduation 2030SP. Summer on: 9 terms (adds 2027SU at 13 hrs and 2028SU at 3 hrs), graduation still <b>2030SP</b>,
+        with a 3-hour final term. 0 violations either way.
+        <br/><b>Note (F6):</b> turning on summer added two terms without moving graduation earlier, and it left a 3-hour summer and a 3-hour final term.</dd>
+    </dl>
+    <table>
+      <tr><th>Setting</th><th>Terms</th><th>Graduation</th><th>Smallest term</th><th>Violations</th></tr>
+      <tr><td>Summer off</td><td>7</td><td>2030SP</td><td>15 hrs</td><td>0</td></tr>
+      <tr><td>Summer on</td><td>9</td><td>2030SP</td><td>3 hrs</td><td>0</td></tr>
+    </table>
+  </div>
+
+  <div class="case">
+    <div class="case-head"><span class="id">UC-E3</span><h3>Lower credit cap stretches the plan safely</h3><span class="pill pass">Pass</span></div>
+    <table>
+      <tr><th>Jordan, max hours</th><th>Terms</th><th>Graduation</th><th>Heaviest term</th><th>Violations</th></tr>
+      <tr><td>18 (default)</td><td>4</td><td>2028FA</td><td>18</td><td>0</td></tr>
+      <tr><td>12</td><td>5</td><td>2029SP</td><td>12</td><td>0</td></tr>
+      <tr><td>9</td><td>7</td><td>2030SP</td><td>9</td><td>0</td></tr>
+    </table>
+  </div>
+
+  <div class="case">
+    <div class="case-head"><span class="id">UC-E4</span><h3>Missing prerequisite gets added on its own</h3><span class="pill pass">Pass</span></div>
+    <dl><dt>Actual</dt><dd>The program requires EN 3143 but never lists its prerequisite. For Riley and Sam the planner adds EN 1223 in Spring 2027 with the reason
+      “Needed before EN 3143”.</dd></dl>
+  </div>
+
+  <div class="case">
+    <div class="case-head"><span class="id">UC-E5</span><h3>Bad input to the API</h3><span class="pill pass">Pass</span></div>
+    <table>
+      <tr><th>Input</th><th>Response</th><th></th></tr>
+      <tr><td>Unknown program</td><td>404 “program_id must be one of cs-bs-2026-27”</td><td><span class="pill pass">OK</span></td></tr>
+      <tr><td>Term <span class="mono">2027XX</span></td><td>400 “term code must look like 2027SP”</td><td><span class="pill pass">OK</span></td></tr>
+      <tr><td>Grade <span class="mono">Q</span></td><td>200, treated as a failing grade and planned as a retake “earned Q”</td><td><span class="pill note">F8</span></td></tr>
+      <tr><td>Empty body</td><td>404 (program message) rather than 400</td><td><span class="pill note">F8</span></td></tr>
+      <tr><td>Unknown course <span class="mono">ZZ 9999</span></td><td>Listed in <span class="mono">unknown_codes</span>, but no warning and <span class="mono">needs_review</span> stays false</td><td><span class="pill note">F8</span></td></tr>
+    </table>
+  </div>
+</section>
+
+<!-- ============ General ============ -->
+<section>
+  <h2>General cases</h2>
+  <div class="case">
+    <div class="case-head"><span class="id">UC-G1</span><h3>Visitor understands Visor from the landing page</h3><span class="pill pass">Pass</span></div>
+    <dl><dt>Actual</dt><dd>Headline, three-step “How it works”, and a live example (Jordan’s real numbers from the API, plus a live CISP 1020 lookup). Role buttons go straight to each view.
+      The page promises “Advisors approve every plan” and “Your advisor reviews it before you register”, but the app has no approve step yet. See F1.</dd></dl>
+    <figure class="shot"><img src="screenshots/g1-landing.png" alt="Landing page" /></figure>
+  </div>
+  <div class="case">
+    <div class="case-head"><span class="id">UC-G2</span><h3>Dark mode</h3><span class="pill pass">Pass</span></div>
+    <dl><dt>Actual</dt><dd>The toggle switches every surface; the choice is remembered. Text and status colors stay readable.</dd></dl>
+    <figure class="shot"><img src="screenshots/g2-dark-mode.png" alt="Dark mode" /></figure>
+  </div>
+  <div class="case">
+    <div class="case-head"><span class="id">UC-G3</span><h3>Phone layout</h3><span class="pill pass">Pass</span></div>
+    <dl><dt>Actual</dt><dd>At 390 px: no sideways scrolling, a bottom nav replaces the top tabs, and the role picker becomes a dropdown.
+      Small (F11): the “Load per term stays at or under 18 hrs” line has no icon. It is fixed text, not an actual check.</dd></dl>
+    <figure class="shot phone"><img src="screenshots/g3-phone.png" alt="Phone layout" /></figure>
+  </div>
+</section>
+
+<!-- ============ Findings ============ -->
+<section>
+  <h2>Findings and recommendations</h2>
+  <p class="intro">Ranked by how much each one matters to the people using Visor. Nothing was changed during testing; these are for the team to pick from.</p>
+
+  <div class="finding f-high"><h3><span class="pill high">High</span>F1 · Advisors can view plans but not change them</h3>
+    <p>The original goal was an advisor who can <i>view and modify</i> a student’s plan. Today an advisor can open any plan, but there is no way to turn on summer,
+      lower the load, move or pin a course, or approve the plan, although the landing page says advisors approve every plan.
+      <b>Next step:</b> a short spec (06) for advisor overrides: plan settings, “pin this course to this term”, and an Approve button. Store the overrides,
+      re-run the planner, and let <span class="mono">verify()</span> re-check the result so an override can never produce an invalid plan.</p></div>
+
+  <div class="finding f-med"><h3><span class="pill med">Medium</span>F2 · The plan page hides transfer credit that doesn’t count</h3>
+    <p>Pending, not-transferring and unknown courses are returned by the API but not shown. Add a “Transfer credit” card to the plan listing every course with its status pill, linking unknown ones to the Transfer tab.</p></div>
+
+  <div class="finding f-med"><h3><span class="pill med">Medium</span>F3 · A graduation date is shown when courses couldn’t be placed</h3>
+    <p>When there are unplaceable warnings, replace the date with “Can’t project yet: 5 courses not placed” and keep the date out of the advisee list.</p></div>
+
+  <div class="finding f-med"><h3><span class="pill med">Medium</span>F4 · The same course can be flagged twice</h3>
+    <p>Each click creates another pending review. Disable the button after a successful flag, and have the flag endpoint return the existing open review instead of adding one (the 409 path already exists for confirmed rows).</p></div>
+
+  <div class="finding f-med"><h3><span class="pill med">Medium</span>F5 · Ask Visor stated a prerequisite without checking</h3>
+    <p>The claim that CS 3433 depended on MA 3213 was wrong, because Casey’s MA 2314 already satisfies it. Either include each planned course’s prerequisites in the audit tool’s result,
+      or add a line to the system prompt: call <span class="mono">course_info</span> before stating that one course depends on another.</p></div>
+
+  <div class="finding f-low"><h3><span class="pill low">Low</span>F6 · Turning on summer can add terms without helping</h3>
+    <p>Only open a summer term when it moves graduation earlier, and run the same last-term compaction with summer on.</p></div>
+
+  <div class="finding f-low"><h3><span class="pill low">Low</span>F7 · Course code parsing on the Transfer tab</h3>
+    <p>Require a letter subject followed by a number starting with a digit (<span class="mono">^([A-Z]{2,5})\s*-?\s*(\d[\w]*)$</span>), accept a hyphen, and clear the old result when showing an input error.</p></div>
+
+  <div class="finding f-low"><h3><span class="pill low">Low</span>F8 · The audit API is too forgiving</h3>
+    <p>Reject unknown grades with 400, return 400 for a missing <span class="mono">program_id</span>, and add a warning (and <span class="mono">needs_review</span>) for course codes not in the catalog.</p></div>
+
+  <div class="finding f-low"><h3><span class="pill low">Low</span>F9 · Free-elective hours aren’t placed</h3>
+    <p>When the last term is light, say “add 4 hours of free electives here” on that term instead of only in the footnote.</p></div>
+
+  <div class="finding f-low"><h3><span class="pill low">Low</span>F10 · “Needed” on half-finished groups</h3>
+    <p>Show a third state such as “Partly done” when some hours count but the group isn’t met.</p></div>
+
+  <div class="finding f-low"><h3><span class="pill low">Low</span>F11 · Load line isn’t a real check</h3>
+    <p>Compare <span class="mono">checks.max_load</span> with <span class="mono">checks.load_limit</span> and show a check or alert like the other lines.</p></div>
+
+  <div class="finding f-low"><h3><span class="pill low">Low</span>F12 · No demo student shows the “needs review” path</h3>
+    <p>Add a sixth fictional student whose plan produces a warning, so the advisor demo and the Needs review chip show something.</p></div>
+
+  <div class="finding f-low"><h3><span class="pill low">Low</span>F13 · One demo equivalency is unlikely</h3>
+    <p>CSCI 1020 (Object-Oriented Programming) is proposed as CS 2233 (Data Structures). That is fine as illustration, but a closer match makes a better demo.</p></div>
+
+  <div class="callout keep"><b>What held up well.</b> Every plan we produced (five students, summer on and off, three credit caps) passed the independent checker with
+    zero violations. Reasons on every course matched the catalog. Ask Visor refused to edit, used the planner’s own data, and named what it didn’t know.</div>
+</section>
+
+<!-- ============ Traceability ============ -->
+<section>
+  <h2>Appendix: where each case is specified and tested</h2>
+  <p class="intro">Spec stories are in <span class="mono">specs/05-design-forecast.md</span> (the transfer lookup is the team’s <span class="mono">specs/03</span>). Test names are in <span class="mono">backend/tests/</span>.</p>
+  <table>
+    <tr><th style="width:0.6in">Case</th><th style="width:1.1in">Spec</th><th>Automated test</th></tr>
+    <tr><td class="mono">S1</td><td>US-5.1.1, 5.1.4</td><td class="mono">test_every_requirement_placed_or_warned, test_start_term_and_summer</td></tr>
+    <tr><td class="mono">S3</td><td>US-5.2.1</td><td class="mono">test_every_planned_course_has_a_reason</td></tr>
+    <tr><td class="mono">S4</td><td>US-5.1.5</td><td class="mono">test_nothing_left</td></tr>
+    <tr><td class="mono">A2</td><td>US-5.4.1</td><td class="mono">test_unplaceable_course_warns</td></tr>
+    <tr><td class="mono">A3</td><td>US-5.3.1</td><td class="mono">test_audit_api_transfer_statuses</td></tr>
+    <tr><td class="mono">R1–R4</td><td>specs/03</td><td class="muted">team’s equivalency tests (unchanged)</td></tr>
+    <tr><td class="mono">C1</td><td>US-5.5.1</td><td class="mono">test_no_key_is_refused_before_any_call</td></tr>
+    <tr><td class="mono">C2, C5</td><td>US-5.5.2</td><td class="mono">test_audit_tool_returns_the_planners_plan, test_transfer_question_uses_the_equivalency_table</td></tr>
+    <tr><td class="mono">C3</td><td>US-5.5.3</td><td class="muted">system prompt; no write tool exists (verified live here)</td></tr>
+    <tr><td class="mono">C4</td><td>US-5.5.4</td><td class="mono">test_errors_map_to_the_designed_states</td></tr>
+    <tr><td class="mono">E1</td><td>US-5.1.3</td><td class="mono">test_forecast_is_deterministic</td></tr>
+    <tr><td class="mono">E2</td><td>US-5.1.4</td><td class="mono">test_start_term_and_summer</td></tr>
+    <tr><td class="mono">E3</td><td>US-5.1.2</td><td class="mono">test_plan_respects_prereqs_offerings_and_load, test_verify_catches_broken_plans</td></tr>
+    <tr><td class="mono">E4</td><td>US-5.2.3</td><td class="mono">test_prerequisite_gap_is_filled</td></tr>
+  </table>
+  <p class="small muted">Rebuild this PDF: <span class="mono">docs/user-cases/build_pdf.sh</span>. Screenshots are in <span class="mono">docs/user-cases/screenshots/</span>.
+    All student data shown is fictional.</p>
+</section>
+
+</body>
+</html>
