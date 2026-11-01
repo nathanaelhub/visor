@@ -270,3 +270,10 @@ def test_unplaceable_course_warns():
     assert plan.needs_review
     w = next(w for w in plan.warnings if w.code == "SP 1000")
     assert "SP 1000" in w.message and w.group == "core"
+
+
+def test_no_graduation_term_while_a_course_cannot_be_placed():
+    cat = tiny_catalog(offered={**tiny_catalog().offered, "SP 1000": ()})
+    _, plan = run(tiny_program(), cat, [])
+    assert plan.terms, "the courses that do fit are still planned"
+    assert plan.projected_term is None and not plan.complete
