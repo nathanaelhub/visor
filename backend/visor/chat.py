@@ -19,7 +19,8 @@ import os
 import anthropic
 from flask import Blueprint, current_app, jsonify, request
 
-from .audit_api import AuditError, compute_audit, course_info, translate_transfer, catalog_and_programs
+from .audit_api import AuditError, compute_audit, course_code, course_info, translate_transfer, catalog_and_programs
+from .rules.grades import meets
 from .rules.terms import parse_term
 
 bp = Blueprint("chat", __name__, url_prefix="/api/chat")
@@ -45,6 +46,9 @@ Rules:
 requirements or plan, transfer_lookup for what a course from another school counts as, and \
 course_info for prerequisites, offerings and which requirements a course fills. If a tool does not \
 have the answer, say so.
+- Before saying a course is blocked, delayed or required by a prerequisite, call course_info for that \
+course and read `met_by` on each prerequisite. A prerequisite is satisfied by any one of its options; \
+never call a course necessary when the student already has another option.
 - You cannot change a plan, move a course, register a student, or confirm a transfer equivalency. \
 If asked, start your answer with "I can't edit your plan. Ask your advisor." and then explain why the \
 planner placed things where they are.
@@ -159,6 +163,28 @@ def _audit_digest(r: dict) -> dict:
     }
 
 
+def _prerequisite_status(info: dict, student: dict, r: dict) -> None:
+    """Mark each prerequisite of ``info`` with the option this student has met, if any: passed (at the
+    minimum grade), in progress, or planned before the course. Adds ``prerequisites_met``."""
+    grades = {course_code(t["code"]): t.get("grade") for t in student.get("taken", [])}
+    grades |= {t["counts_as"]: "TR" for t in r["transfer"] if t["counted"]}  # confirmed transfer credit
+    terms = (r["plan"] or {}).get("terms", [])
+    at = next((i for i, t in enumerate(terms) for c in t["courses"] if c["code"] == info["code"]), len(terms))
+    planned = {c["code"]: t["name"] for t in terms[:at] for c in t["courses"]}
+    for p in info["prerequisites"]:
+        p["met_by"] = None
+        for code in p["any_of"]:
+            if code in grades and grades[code] is None:
+                p["met_by"] = {"code": code, "how": "in progress"}
+            elif code in grades and meets(grades[code], p["min_grade"]):
+                p["met_by"] = {"code": code, "how": f"passed with {grades[code]}"}
+            elif code in planned:
+                p["met_by"] = {"code": code, "how": f"planned for {planned[code]}"}
+            if p["met_by"]:
+                break
+    info["prerequisites_met"] = all(p["met_by"] for p in info["prerequisites"])
+
+
 def _run_tool(name: str, args: dict, student: dict | None) -> tuple[dict, str, str]:
     """Returns (result for the model, one-line summary for the UI card, status for the UI pill)."""
     if name == "run_degree_audit":
@@ -187,6 +213,7 @@ def _run_tool(name: str, args: dict, student: dict | None) -> tuple[dict, str, s
                                          if c["code"] == info["code"]), None)
             info["student_has"] = next((u["code"] for g in r["groups"] for u in g["used"]
                                         if u["code"] == info["code"]), None)
+            _prerequisite_status(info, student, r)
         return info, f"Checked {info['code']} {info['title']} in the catalog", "ok"
     return {"error": f"unknown tool {name}"}, f"Unknown tool {name}", "error"
 
