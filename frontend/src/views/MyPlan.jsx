@@ -83,10 +83,11 @@ function Plan({ r, story }) {
         <div className="gradcard">
           <span className="small" style={{ color: 'var(--heroI2)' }}>Projected graduation</span>
           <span className="serif" style={{ fontSize: 34, lineHeight: 1 }}>
-            {plan?.complete ? 'Requirements met' : gradName(r.projected_term)}
+            {plan?.complete ? 'Requirements met' : r.projected_term ? gradName(r.projected_term) : 'Not yet known'}
           </span>
           <span className="sub"><span className="dot" />
             {plan?.complete ? 'Complete pending final grades'
+              : !r.projected_term ? 'Some courses could not be placed · Needs review'
               : `${after ?? '?'} term${after === 1 ? '' : 's'} after this one · ${r.needs_review ? 'Needs review' : 'On track'}`}
           </span>
         </div>
@@ -115,7 +116,7 @@ function Plan({ r, story }) {
             {r.in_progress.courses.length > 0 && <InProgress term={r.in_progress} />}
             {plan?.complete && <div className="card" style={{ padding: 20 }}>Every requirement is met or in progress. Nothing left to plan.</div>}
             {plan?.terms.map((t, i) => (
-              <Term key={t.term} t={t} next={t === next} last={i === plan.terms.length - 1} />
+              <Term key={t.term} t={t} next={t === next} last={!!r.projected_term && i === plan.terms.length - 1} />
             ))}
           </div>
           {plan?.free_elective_hours > 0 && (

@@ -77,7 +77,7 @@ export default function Students({ onOpen }) {
                   </td>
                   <td className="hidem">{s.program}</td>
                   <td>{hrs(s.hours_done + s.hours_in_progress)} of {s.hours_required}</td>
-                  <td>{s.complete ? 'Requirements met' : gradName(s.projected_term)}</td>
+                  <td>{s.complete ? 'Requirements met' : s.projected_term ? gradName(s.projected_term) : 'Not yet known'}</td>
                   <td className="hidem">
                     <span className="row" style={{ gap: 6 }}>
                       {s.flags.needs_review && <Pill status="review" />}
