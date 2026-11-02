@@ -59,11 +59,20 @@ Checks: `cd backend && ruff check . && pytest -q` and `cd frontend && npm run bu
 | `data/demo/` | Fictional students and sample equivalencies |
 | `frontend/src/` | React app (landing, My Plan, Students, Transfer, Ask Visor) |
 
+## Built on
+
+This is a standalone repository, not a fork. It starts from the team's history up to their commit
+[`ae99887`](https://github.com/Lunatic-Labs/Visor/commit/ae99887) (27 Oct 2026, their PR #14), and
+everything after that point is new work merged here through pull requests. Keeping their commits is
+why the team appears under Contributors.
+
+| From the original Visor project | Added in this repository |
+|---|---|
+| Transfer equivalencies (lookup, flag, review), SIS import, data model, specs 00–04, scheduling rules | Spec 05, degree audit and forecast engine (`backend/visor/rules/`), independent plan checker, 2026-27 catalog data, Ask Visor, the new UI, user-case testing |
+
 ## Credits
 
-- **Original Visor project** (transfer equivalencies, SIS import, data model, specs 00–04,
-  scheduling rules): Austin Patton, Gabriel Pop and Firas Adas, Lunatic Labs, Lipscomb University
-  Software Studio, with Dr. Steve Nordstrom. Their commit history is kept in this repository.
-- **Showcase extensions** (spec 05, degree audit and forecast engine, catalog data, Ask Visor, new UI):
-  Nathanael Johnson, with Claude.
+- **Original Visor project:** Austin Patton, Gabriel Pop and Firas Adas, Lunatic Labs, Lipscomb
+  University Software Studio, with Dr. Steve Nordstrom.
+- **Showcase extensions:** Nathanael Johnson, with Claude.
 - UI designed with Claude Design.
