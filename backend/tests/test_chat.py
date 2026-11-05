@@ -193,3 +193,90 @@ def test_history_must_end_with_the_user(make):
     r = c.post("/api/chat", headers={"X-Anthropic-Key": KEY},
                json={"messages": [{"role": "user", "text": "a"}, {"role": "assistant", "text": "b"}]})
     assert r.status_code == 400
+
+
+# --- US-5.6: one shared key with limits ------------------------------------------------------------
+
+SHARED = "sk-ant-shared-0123456789"
+SITE = "http://localhost"  # the Flask test client's host
+
+
+@pytest.fixture()
+def shared(make, monkeypatch):
+    monkeypatch.setenv("VISOR_ANTHROPIC_API_KEY", SHARED)
+    monkeypatch.setenv("VISOR_CHAT_PER_HOUR", "5")
+    monkeypatch.setenv("VISOR_CHAT_PER_DAY", "8")
+    monkeypatch.setenv("VISOR_CHAT_DAILY_UNITS", "100")
+    return make
+
+
+def shared_ask(client, question="hi", model="haiku", ip="203.0.113.7", origin=SITE, messages=None):
+    headers = {"X-Forwarded-For": ip}
+    if origin:
+        headers["Origin"] = origin
+    return client.post("/api/chat", headers=headers, json={
+        "model": model, "student": student(client),
+        "messages": messages or [{"role": "user", "text": question}]})
+
+
+def test_shared_key_ignores_a_key_from_the_browser(shared):
+    c, fake = shared([reply(text("ok"))])
+    r = c.post("/api/chat", headers={"X-Anthropic-Key": KEY, "Origin": SITE},
+               json={"model": "haiku", "messages": [{"role": "user", "text": "hi"}]})
+    assert r.status_code == 200 and fake.keys == [SHARED]
+
+
+def test_visitor_limit(shared):
+    c, fake = shared([reply(text("ok")) for _ in range(6)])
+    assert [shared_ask(c).status_code for _ in range(5)] == [200] * 5
+    r = shared_ask(c)
+    assert r.status_code == 429 and r.get_json()["error"] == "visitor_limit"
+    assert 0 < r.get_json()["retry_after"] <= 3600 and len(fake.calls) == 5
+    assert shared_ask(c, ip="198.51.100.9").status_code == 200  # another visitor is not blocked
+
+
+def test_opus_costs_more_of_the_allowance(shared):
+    c, _ = shared([reply(text("ok")) for _ in range(3)])
+    assert shared_ask(c, model="opus").status_code == 200       # 4 of 5 units this hour
+    r = shared_ask(c, model="sonnet")                          # 2 more would be 6
+    assert r.status_code == 429 and r.get_json()["error"] == "visitor_limit"
+    assert shared_ask(c, model="haiku").status_code == 200      # 1 more is exactly 5
+
+
+def test_site_limit(shared, monkeypatch):
+    monkeypatch.setenv("VISOR_CHAT_DAILY_UNITS", "2")
+    c, fake = shared([reply(text("ok")) for _ in range(3)])
+    assert shared_ask(c, ip="203.0.113.1").status_code == 200
+    assert shared_ask(c, ip="203.0.113.2").status_code == 200
+    r = shared_ask(c, ip="203.0.113.3")
+    assert r.status_code == 429 and r.get_json()["error"] == "site_limit" and len(fake.calls) == 2
+
+
+def test_request_caps(shared):
+    c, fake = shared([reply(text("ok"))])
+    assert shared_ask(c, "x" * 1001).status_code == 400
+    long = [{"role": "user" if i % 2 == 0 else "assistant", "text": "q"} for i in range(21)]
+    assert shared_ask(c, messages=long).status_code == 400
+    assert fake.calls == []
+    assert shared_ask(c, "x" * 1000).status_code == 200
+    assert fake.calls[0]["max_tokens"] == 2000
+
+
+def test_foreign_origin_refused(shared):
+    c, fake = shared([reply(text("ok"))])
+    assert shared_ask(c, origin="https://evil.example").status_code == 403
+    assert shared_ask(c, origin=None).status_code == 403
+    assert fake.calls == []
+
+
+def test_system_prompt_scopes_topics():
+    from visor.chat import SYSTEM
+    assert "Only help with" in SYSTEM and "decline in one sentence" in SYSTEM
+
+
+def test_usage_counters_hold_no_text_or_ip(shared):
+    from visor.models import ChatUsage
+    c, _ = shared([reply(text("ok"))])
+    shared_ask(c, "my secret question", ip="203.0.113.7")
+    rows = ChatUsage.query.all()
+    assert rows and all("203.0.113.7" not in r.visitor and "secret" not in r.visitor for r in rows)
