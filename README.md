@@ -9,6 +9,8 @@ transfer-credit lookup and an AI assistant that explains the plan using your own
 > by their graduate assistant to show one way the team's design can grow; any piece can be borrowed.
 > All student data is fictional. The course catalog is Lipscomb's public 2026-27 catalog.
 
+**Live demo:** https://visor-showcase.vercel.app (fictional students; Ask Visor needs your own Anthropic key)
+
 ## What it does
 
 - **My Plan (students):** progress toward the degree, projected graduation, a term-by-term plan
