@@ -75,12 +75,17 @@ I understand it without reading every chip — while the planner, not the AI, st
    read-only tools that call Visor's own code (`compute_audit`, the equivalency rows, the catalog), and
    each tool call is shown as a card with its source. [`test_transfer_question_uses_the_equivalency_table`,
    `test_audit_tool_returns_the_planners_plan`, `test_course_info_tool_reports_where_it_sits`]
-3. **Given** a request to change the plan, **then** the answer says it can't and explains why the
+3. **Given** a question about a course's prerequisites for the student in context, **then**
+   `course_info` marks each prerequisite with the option the student has met (`met_by`: passed at the
+   minimum grade, in progress, or planned earlier) and `prerequisites_met`, and the system prompt
+   requires that lookup before any claim that a course is blocked or delayed.
+   [`test_course_info_tool_says_which_prerequisites_the_student_has_met`]
+4. **Given** a request to change the plan, **then** the answer says it can't and explains why the
    planner placed the course there (system prompt; no write tool exists).
-4. **Given** a rejected key, rate limiting, or an API outage, **then** the response is one of the
+5. **Given** a rejected key, rate limiting, or an API outage, **then** the response is one of the
    designed states (`invalid_key` 401, `rate_limited` 429 with retry-after, `api_down` 503).
    [`test_errors_map_to_the_designed_states`]
-5. **Given** any chat, **then** nothing is stored — not the key, not the conversation, not unknown
+6. **Given** any chat, **then** nothing is stored — not the key, not the conversation, not unknown
    transfer courses. [`test_chat_stores_nothing`]
 
 Models: Claude Opus 5.5 (default), Sonnet 5.5, Haiku 5.5. Opus and Sonnet requests opt into
