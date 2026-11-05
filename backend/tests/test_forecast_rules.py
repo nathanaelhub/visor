@@ -13,6 +13,7 @@ import pytest
 from visor.catalog_files import load_catalog
 from visor.rules.audit import Catalog, Course, PrereqGroup, Program, ReqGroup, ReqItem, Taken, audit
 from visor.rules.forecast import Settings, project
+from visor.rules.grades import meets
 from visor.rules.terms import Offering, next_term, parse_term
 from visor.rules.verify import verify
 
@@ -218,6 +219,24 @@ def test_free_elective_hours_reported():
 
 
 # --- US-5.2 ------------------------------------------------------------------------------------
+
+@pytest.mark.parametrize("student", demo_students(), ids=lambda s: s["id"])
+def test_needs_reason_only_for_unmet_prerequisites(student):
+    """"Needs X" must not appear when the student already passed another option for that prerequisite
+    (Casey, demo-04: CS 3433 said "Needs MA 3213" though MA 2314 with a C already counts)."""
+    cat, programs = load_catalog()
+    _, plan = run(programs[student["program_id"]], cat, demo_taken(student, cat), student["start_term"])
+    passed = {t["code"]: t["grade"] for t in student["taken"] if t["grade"]}
+    for t in plan.terms:
+        for c in t.courses:
+            for r in c.reasons:
+                if r.kind != "needs":
+                    continue
+                need = r.text.removeprefix("Needs ")
+                group = next(pg for pg in cat.prereqs[c.code] if need in pg.any_of)
+                assert not any(o in passed and meets(passed[o], group.min_grade) for o in group.any_of), \
+                    f"{c.code}: {r.text}, but the prerequisite is already met"
+
 
 @pytest.mark.parametrize("student", demo_students(), ids=lambda s: s["id"])
 def test_every_planned_course_has_a_reason(student):
