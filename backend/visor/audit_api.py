@@ -21,6 +21,7 @@ from .equivalencies import _live_rows
 from .models import ExternalCourse, School, db
 from .rules.audit import Taken, audit, matches
 from .rules.forecast import Settings, project
+from .rules.grades import is_known
 from .rules.terms import describe_offerings, parse_term
 from .rules.verify import verify
 
@@ -116,9 +117,24 @@ def translate_transfer(rows: list[dict], catalog) -> tuple[list[Taken], list[dic
 # --- The audit -------------------------------------------------------------------------------------
 
 
+def _number(value, what: str, kind=float):
+    try:
+        return kind(value)
+    except (TypeError, ValueError):
+        raise AuditError(f"{what} must be a number, got {value!r}") from None
+
+
+def _grade(value, what: str):
+    if not is_known(value):
+        raise AuditError(f"{what}: grade {value!r} is not a letter grade (A to F), TR, P, CR, W or I")
+    return value or None
+
+
 def compute_audit(body: dict) -> dict:
     """Run transfer translation, the audit and (with a start term) the forecast. Raises AuditError."""
     catalog, programs = catalog_and_programs()
+    if not body.get("program_id"):
+        raise AuditError("program_id is required")
     program = programs.get(body.get("program_id"))
     if program is None:
         raise AuditError(f"program_id must be one of {', '.join(programs)}", 404)
@@ -134,13 +150,17 @@ def compute_audit(body: dict) -> dict:
         if not r.get("code"):
             raise AuditError("every taken course needs a code")
         code = course_code(r["code"])
-        taken.append(Taken(code, float(r.get("credits") or catalog.credits(code)), r.get("grade") or None))
+        credits = _number(r["credits"], f"{code} credits") if r.get("credits") else catalog.credits(code)
+        taken.append(Taken(code, credits, _grade(r.get("grade"), code)))
+    for r in body.get("transfer", []):
+        _grade(r.get("grade"), f"transfer {r.get('subject', '')} {r.get('number', '')}".strip())
     transfer_taken, transfer_report = translate_transfer(body.get("transfer", []), catalog)
     taken += transfer_taken
 
     s = body.get("settings") or {}
     settings = Settings(include_summer=bool(s.get("include_summer", False)),
-                        max_hours=int(s.get("max_hours", 18)), target_hours=int(s.get("target_hours", 15)))
+                        max_hours=_number(s.get("max_hours", 18), "settings.max_hours", int),
+                        target_hours=_number(s.get("target_hours", 15), "settings.target_hours", int))
     result = audit(program, catalog, taken)
     plan = project(program, catalog, taken, result, start_term, settings) if start_term else None
     if plan is not None:
@@ -160,10 +180,14 @@ def compute_audit(body: dict) -> dict:
             "start_term": plan.start_term, "complete": plan.complete,
             "free_elective_hours": plan.free_elective_hours,
             "terms": [asdict(t) for t in plan.terms]},
-        warnings=[] if plan is None else [asdict(w) for w in plan.warnings],
-        needs_review=bool(plan and plan.needs_review),
         unknown_codes=sorted({t.code for t in taken if t.code not in catalog.courses and not t.elective_only}),
     )
+    # A course the catalog doesn't know counts for hours only; an advisor should check the record.
+    unknown = [{"kind": "unknown_course", "code": c, "group": None,
+                "message": f"{c} is not in the {program.catalog_year} catalog; it counts toward hours only"}
+               for c in out["unknown_codes"]]
+    out["warnings"] = unknown + ([] if plan is None else [asdict(w) for w in plan.warnings])
+    out["needs_review"] = bool(unknown) or bool(plan and plan.needs_review)
     if plan is not None:
         violations = verify(plan, catalog, taken, settings.max_hours)
         out["checks"] = {

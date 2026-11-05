@@ -64,6 +64,35 @@ def test_audit_api_validation(demo_client):
     assert no_term["plan"] is None and no_term["projected_term"] is None
 
 
+def test_audit_api_rejects_empty_or_missing_program(demo_client):
+    empty = demo_client.post("/api/audit")
+    assert empty.status_code == 400 and "program_id is required" in empty.get_json()["error"]
+    assert demo_client.post("/api/audit", json={}).status_code == 400
+
+
+def test_audit_api_rejects_unknown_grades(demo_client):
+    r = demo_client.post("/api/audit", json={"program_id": "cs-bs-2026-27",
+                                             "taken": [{"code": "CS 1213", "grade": "Q"}]})
+    assert r.status_code == 400 and "CS 1213" in r.get_json()["error"]
+    ok = demo_client.post("/api/audit", json={"program_id": "cs-bs-2026-27", "taken": [
+        {"code": "CS 1213", "grade": "b+"}, {"code": "CS 1223", "grade": "W"}, {"code": "MA 1314", "grade": None}]})
+    assert ok.status_code == 200
+
+
+def test_audit_api_rejects_non_numeric_numbers(demo_client):
+    base = {"program_id": "cs-bs-2026-27", "start_term": "2027SP"}
+    assert demo_client.post("/api/audit", json={**base, "settings": {"max_hours": "lots"}}).status_code == 400
+    assert demo_client.post("/api/audit", json={**base, "taken": [
+        {"code": "CS 1213", "credits": "three", "grade": "A"}]}).status_code == 400
+
+
+def test_unknown_course_code_warns_and_needs_review(demo_client):
+    r = demo_client.post("/api/audit", json={"program_id": "cs-bs-2026-27", "start_term": "2027SP",
+                                             "taken": [{"code": "ZZ 9999", "credits": 3, "grade": "A"}]}).get_json()
+    assert r["unknown_codes"] == ["ZZ 9999"] and r["needs_review"] is True
+    assert any(w["kind"] == "unknown_course" and w["code"] == "ZZ 9999" for w in r["warnings"])
+
+
 def test_audit_api_normalizes_codes_and_fills_credits(demo_client):
     r = demo_client.post("/api/audit", json={"program_id": "cs-bs-2026-27", "start_term": "2027SP",
                                              "taken": [{"code": "cs1213", "grade": "A"}]}).get_json()
