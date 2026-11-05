@@ -282,3 +282,12 @@ def test_usage_counters_hold_no_text_or_ip(shared):
     shared_ask(c, "my secret question", ip="203.0.113.7")
     rows = ChatUsage.query.all()
     assert rows and all("203.0.113.7" not in r.visitor and "secret" not in r.visitor for r in rows)
+
+
+def test_shared_mode_offers_models_with_their_cost(shared):
+    c, fake = shared([reply(text("ok"))])
+    cfg = c.get("/api/chat/config").get_json()
+    assert cfg["default_model"] == "sonnet"
+    assert {m["key"]: m["units"] for m in cfg["models"]} == {"haiku": 1, "sonnet": 2, "opus": 4}
+    r = c.post("/api/chat", headers={"Origin": SITE}, json={"messages": [{"role": "user", "text": "hi"}]})
+    assert r.status_code == 200 and fake.calls[0]["model"] == "claude-sonnet-5-5"
