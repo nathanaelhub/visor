@@ -12,3 +12,5 @@ frontend/dist/
 
 # Real registrar data (SIS exports, transcripts). Never commit: the repo is public.
 data/private/
+.vercel
+.env*

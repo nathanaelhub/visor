@@ -6,3 +6,5 @@ backend/tests
 docs
 specs
 notes
+.vercel
+.env*
