@@ -185,7 +185,9 @@ def test_shared_key_mode(make, monkeypatch):
     monkeypatch.setenv("VISOR_ANTHROPIC_API_KEY", "sk-ant-shared-0123456789")
     c, fake = make([reply(text("ok"))])
     assert c.get("/api/chat/config").get_json()["shared_key"] is True
-    assert ask(c, "hi", key=None).status_code == 200 and fake.keys == ["sk-ant-shared-0123456789"]
+    r = c.post("/api/chat", headers={"Origin": "http://localhost"},
+               json={"model": "haiku", "messages": [{"role": "user", "text": "hi"}]})
+    assert r.status_code == 200 and fake.keys == ["sk-ant-shared-0123456789"]
 
 
 def test_history_must_end_with_the_user(make):

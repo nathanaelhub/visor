@@ -61,7 +61,9 @@ export function useChat(student) {
       setMsgs([...next, { role: 'bot', ...r }])
     } catch (e) {
       if (e.code === 'invalid_key' || e.code === 'no_key') { setStatus('invalid'); setStatusMsg(e.message) }
-      setMsgs([...next, { role: 'notice', kind: e.code === 'rate_limited' ? 'rate' : e.status === 503 ? 'down' : 'error',
+      const kind = e.code === 'rate_limited' ? 'rate' : e.code === 'visitor_limit' || e.code === 'site_limit' ? 'limit'
+        : e.status === 503 ? 'down' : 'error'
+      setMsgs([...next, { role: 'notice', kind,
         message: e.message, retryAfter: e.data?.retry_after }])
     } finally { setPending(false) }
   }
@@ -261,7 +263,7 @@ function Chat({ chat, student, role, onClose }) {
         )}
         <form className="composer" onSubmit={(e) => { e.preventDefault(); submit(input) }}>
           <label className="sr" htmlFor="ask">Ask Visor</label>
-          <textarea id="ask" rows={1} value={input} placeholder="Ask about your plan, a course or transfer credit"
+          <textarea id="ask" rows={1} maxLength={1000} value={input} placeholder="Ask about your plan, a course or transfer credit"
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); submit(input) } }} />
           <button type="submit" className="sendbtn" disabled={!input.trim() || chat.pending} aria-label="Send"><Icon name="send" size={18} /></button>
@@ -340,6 +342,7 @@ function BotMessage({ m }) {
 function Notice({ m, onRetry }) {
   const text = {
     rate: `Anthropic is rate limiting this key.${m.retryAfter ? ` Try again in about ${m.retryAfter} seconds.` : ''}`,
+    limit: m.message,
     down: 'Anthropic’s API didn’t respond. Your question wasn’t lost.',
     error: m.message,
   }[m.kind]

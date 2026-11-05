@@ -7,7 +7,8 @@ Rules this module keeps:
   a plan, and the system prompt tells it to say so.
 * **The key is never stored.** A key arrives per request in the ``X-Anthropic-Key`` header (the
   browser keeps it in session storage) and is used for that one request only. A deployment can set
-  ``VISOR_ANTHROPIC_API_KEY`` instead ("shared key" mode); then no key is sent from the browser.
+  ``VISOR_ANTHROPIC_API_KEY`` instead ("shared key" mode); then that key is always used, browser keys
+  are ignored, and the limits in ``chat_limits`` apply (US-5.6).
 * **Stateless.** The browser sends the text of earlier turns; tool calls and thinking from earlier
   turns are not replayed. Within one turn the tool loop appends Claude's content unchanged.
 """
@@ -19,6 +20,7 @@ import os
 import anthropic
 from flask import Blueprint, current_app, jsonify, request
 
+from . import chat_limits
 from .audit_api import AuditError, compute_audit, course_code, course_info, translate_transfer, catalog_and_programs
 from .rules.grades import meets
 from .rules.terms import parse_term
@@ -33,7 +35,6 @@ MODELS = {
 }
 DEFAULT_MODEL = "opus"
 MAX_TOOL_ROUNDS = 6
-MAX_HISTORY = 20
 
 SYSTEM = """You are Ask Visor, the assistant inside Visor, Lipscomb University's course-planning and \
 transfer-advising app.
@@ -55,6 +56,9 @@ planner placed things where they are.
 - Only `confirmed` transfer equivalencies count toward the degree; `proposed` ones wait for a person.
 - Be brief and concrete: course codes, terms, hours. Use a short markdown table when comparing \
 several requirements. No preamble.
+- Only help with Lipscomb course planning, transfer credit, the student's plan and how Visor works. \
+For anything else (homework, essays, code, general chat), decline in one sentence and say what you \
+can help with.
 - All students in this demo are fictional. Remind the user to check with their advisor before \
 registering when the answer affects what to register for."""
 
@@ -111,7 +115,15 @@ def _shared_key() -> str | None:
 
 
 def _key_from_request() -> str | None:
-    return (request.headers.get("X-Anthropic-Key") or "").strip() or _shared_key()
+    return _shared_key() or (request.headers.get("X-Anthropic-Key") or "").strip() or None
+
+
+@bp.before_request
+def _shared_key_origin():
+    """The shared key only answers the site's own pages (US-5.6)."""
+    if request.method == "POST" and _shared_key() and not chat_limits.origin_allowed():
+        return jsonify({"error": "forbidden_origin", "message": "Ask Visor only answers from this site."}), 403
+    return None
 
 
 def _client(key: str):
@@ -250,17 +262,21 @@ def chat():
     if not key:
         return jsonify({"error": "no_key", "message": "Connect an API key first."}), 401
     body = request.get_json(silent=True) or {}
-    model = MODELS.get(body.get("model") or DEFAULT_MODEL)
+    model_key = body.get("model") or DEFAULT_MODEL
+    model = MODELS.get(model_key)
     if model is None:
         return jsonify({"error": "bad_model", "message": "Unknown model."}), 400
 
     history = [m for m in body.get("messages", []) if m.get("role") in ("user", "assistant") and m.get("text")]
-    history = history[-MAX_HISTORY:]
+    if (too_big := chat_limits.size_error(history)) is not None:
+        return jsonify({"error": too_big[0], "message": too_big[1]}), 400
     while history and history[0]["role"] != "user":
         history.pop(0)
     if not history or history[-1]["role"] != "user":
         return jsonify({"error": "bad_request", "message": "The last message must be the user's."}), 400
     messages: list = [{"role": m["role"], "content": m["text"]} for m in history]
+    if _shared_key() and (limited := chat_limits.charge(model_key)) is not None:
+        return jsonify(limited), 429
 
     student = body.get("student")
     system = SYSTEM
@@ -269,7 +285,7 @@ def chat():
                    f"({student.get('program_id')}), planning from {student.get('start_term')}.")
 
     client = _client(key)
-    params: dict = dict(model=model["id"], max_tokens=16000, system=system, tools=TOOLS,
+    params: dict = dict(model=model["id"], max_tokens=chat_limits.MAX_OUTPUT_TOKENS, system=system, tools=TOOLS,
                         output_config={"effort": "medium"})
     if model["fallbacks"]:
         params.update(betas=["server-side-fallback-2026-07-01"], fallbacks="default")
