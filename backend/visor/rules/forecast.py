@@ -307,8 +307,10 @@ def project(program: Program, catalog: Catalog, taken: list[Taken], result: Audi
                 continue
             n = needs[code]
             deferred = first_ready.get(code)
-            # "Needs X": a prerequisite this plan places in an earlier term.
+            # "Needs X": a prerequisite this plan places in an earlier term, unless the student
+            # already has another option for it (then X is in the plan for its own reasons).
             needs_reasons = [Reason("needs", f"Needs {o}") for pg in catalog.prereqs.get(code, ())
+                             if not any(p in passed and grades.meets(passed[p], pg.min_grade) for p in pg.any_of)
                              for o in pg.any_of if o in done_before][:2]
             placed.append(PlannedCourse(code, catalog.courses[code].title, credits, list(n.counts_toward),
                                         list(n.reasons) + needs_reasons, deferred))
