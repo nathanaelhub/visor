@@ -201,13 +201,19 @@ def flag_lookup():
                              notes="Unknown at lookup; flagged for professor review")
         db.session.add(target)
         db.session.flush()
+    # The same reviewer flagging again while their review is still pending gets that review back
+    # (200) instead of a duplicate; a different reviewer still adds a second review.
+    pending = next((r for r in target.reviews if r.reviewer == reviewer and r.decision == "pending"), None)
+    if pending is not None:
+        return jsonify({"external_course": external_json(ext), "equivalency": equivalency_json(target),
+                        "review": review_json(pending), "already_pending": True})
     review = EquivalencyReview(equivalency_id=target.id, reviewer=reviewer,
                                requested_by=(body.get("requested_by") or "registrar").strip(),
                                notes=(body.get("notes") or "").strip())
     db.session.add(review)
     db.session.commit()
     return jsonify({"external_course": external_json(ext), "equivalency": equivalency_json(target),
-                    "review": review_json(review)}), 201
+                    "review": review_json(review), "already_pending": False}), 201
 
 
 def _apply(q: Equivalency, body: dict):
