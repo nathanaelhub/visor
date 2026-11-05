@@ -99,8 +99,9 @@ key with limits around it, **so that** visitors never paste a key and nobody can
 use it as a free general-purpose chatbot.
 
 1. **Given** `VISOR_ANTHROPIC_API_KEY` is set, **then** the key never leaves the server, the
-   connect card is not shown, the model picker stays, and a key sent from the browser is ignored.
-   [`test_shared_key_mode`]
+   connect card is not shown, the model picker stays (in the chat header, with each model's cost in
+   units), the default model is Sonnet, and a key sent from the browser is ignored.
+   [`test_shared_key_mode`, `test_shared_mode_offers_models_with_their_cost`]
 2. **Given** a visitor, **then** they get at most `VISOR_CHAT_PER_HOUR` (default 20) and
    `VISOR_CHAT_PER_DAY` (default 60) usage units, where one message costs 1 on Haiku, 2 on Sonnet and
    4 on Opus. Over the limit returns `429 {"error": "visitor_limit", "retry_after": <s>}` and

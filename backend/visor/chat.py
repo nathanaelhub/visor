@@ -33,7 +33,8 @@ MODELS = {
     "haiku": {"id": "claude-haiku-5-5", "label": "Claude Haiku 5.5", "blurb": "Fastest, lowest cost",
               "fallbacks": False},
 }
-DEFAULT_MODEL = "opus"
+DEFAULT_MODEL = "opus"         # your own key
+SHARED_DEFAULT_MODEL = "sonnet"  # the site's key: Opus costs 4 units a message (US-5.6)
 MAX_TOOL_ROUNDS = 6
 
 SYSTEM = """You are Ask Visor, the assistant inside Visor, Lipscomb University's course-planning and \
@@ -112,6 +113,10 @@ SOURCE = {"run_degree_audit": "Your plan", "transfer_lookup": "Equivalency table
 
 def _shared_key() -> str | None:
     return os.environ.get("VISOR_ANTHROPIC_API_KEY") or None
+
+
+def _default_model() -> str:
+    return SHARED_DEFAULT_MODEL if _shared_key() else DEFAULT_MODEL
 
 
 def _key_from_request() -> str | None:
@@ -235,9 +240,9 @@ def _run_tool(name: str, args: dict, student: dict | None) -> tuple[dict, str, s
 
 @bp.get("/config")
 def config():
-    return jsonify({"shared_key": bool(_shared_key()), "default_model": DEFAULT_MODEL,
-                    "models": [{"key": k, "id": m["id"], "label": m["label"], "blurb": m["blurb"]}
-                               for k, m in MODELS.items()]})
+    return jsonify({"shared_key": bool(_shared_key()), "default_model": _default_model(),
+                    "models": [{"key": k, "id": m["id"], "label": m["label"], "blurb": m["blurb"],
+                                "units": chat_limits.UNITS[k]} for k, m in MODELS.items()]})
 
 
 @bp.post("/verify")
@@ -246,7 +251,7 @@ def verify_key():
     key = _key_from_request()
     if not key:
         return jsonify({"error": "no_key", "message": "Enter an API key."}), 400
-    model = MODELS.get((request.get_json(silent=True) or {}).get("model") or DEFAULT_MODEL)
+    model = MODELS.get((request.get_json(silent=True) or {}).get("model") or _default_model())
     if model is None:
         return jsonify({"error": "bad_model", "message": "Unknown model."}), 400
     try:
@@ -262,7 +267,7 @@ def chat():
     if not key:
         return jsonify({"error": "no_key", "message": "Connect an API key first."}), 401
     body = request.get_json(silent=True) or {}
-    model_key = body.get("model") or DEFAULT_MODEL
+    model_key = body.get("model") or _default_model()
     model = MODELS.get(model_key)
     if model is None:
         return jsonify({"error": "bad_model", "message": "Unknown model."}), 400

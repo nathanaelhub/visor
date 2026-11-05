@@ -114,7 +114,7 @@ export default function AskVisor({ chat, student, role, mode, onClose, onOpenPla
   return (
     <div className="asklayout">
       <div className="chat chat-full"><Chat chat={chat} student={student} role={role} /></div>
-      <ContextPanel student={student} role={role} onOpenPlan={onOpenPlan} />
+      <ContextPanel chat={chat} student={student} role={role} onOpenPlan={onOpenPlan} />
     </div>
   )
 }
@@ -183,7 +183,7 @@ function CanDo() {
   )
 }
 
-function ContextPanel({ student, role, onOpenPlan }) {
+function ContextPanel({ chat, student, role, onOpenPlan }) {
   const [r, setR] = useState(null)
   useEffect(() => {
     setR(null)
@@ -213,7 +213,8 @@ function ContextPanel({ student, role, onOpenPlan }) {
           </>
         )}
       </div>
-      <p className="small muted" style={{ margin: 0 }}>Answers use the plan, the 2026-27 catalog and the equivalency table. Your key is held for this session only.</p>
+      <p className="small muted" style={{ margin: 0 }}>Answers use the plan, the 2026-27 catalog and the equivalency table.
+        {chat.shared ? ' Ask Visor only answers planning questions, with a limit per hour and per day.' : ' Your key is held for this session only.'}</p>
     </aside>
   )
 }
@@ -228,7 +229,15 @@ function Chat({ chat, student, role, onClose }) {
     <>
       <div className="chat-head">
         <h2>Ask Visor</h2>
-        <Pill status="ok">{chat.shared ? 'Connected · shared key' : `Connected · ${chat.modelLabel}`}</Pill>
+        {chat.shared
+          ? <label className="row small" style={{ gap: 6 }}><span className="muted">Model</span>
+              <select className="field" style={{ minHeight: 36, padding: '4px 8px', width: 'auto' }} value={chat.model}
+                onChange={(e) => { keyStore.setModel(e.target.value); chat.setModel(e.target.value) }}>
+                {(chat.config?.models ?? []).map((x) => (
+                  <option key={x.key} value={x.key}>{x.label.replace('Claude ', '')} · {x.blurb}{x.units ? ` · ${x.units} unit${x.units > 1 ? 's' : ''}` : ''}</option>
+                ))}
+              </select></label>
+          : <Pill status="ok">{`Connected · ${chat.modelLabel}`}</Pill>}
         <span className="spacer" />
         <button type="button" className="btn2" style={{ minHeight: 38 }} onClick={chat.newChat}>New chat</button>
         {!chat.shared && <button type="button" className="btn2" style={{ minHeight: 38 }} onClick={chat.disconnect}>Disconnect</button>}
