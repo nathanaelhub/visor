@@ -32,7 +32,10 @@ the courses in it, **so that** we both know the path and the graduation term.
    `light`. [`test_plan_respects_prereqs_offerings_and_load`, `test_verify_catches_broken_plans`]
 3. **Given** the same inputs twice, **then** the plan is identical. [`test_forecast_is_deterministic`]
 4. **Given** a start term, **then** the plan starts there, uses Fall and Spring only unless summer is
-   turned on, and reports the last planned term as the projected graduation term.
+   turned on, and reports the last planned term as the projected graduation term. If any
+   requirement couldn't be placed (a warning), there is no projected term (`null`) until an
+   advisor resolves it; the courses that fit are still planned.
+   [`test_no_graduation_term_while_a_course_cannot_be_placed`]
    [`test_start_term_and_summer`]
 5. **Given** a student with nothing left, **then** the plan is empty and says "complete pending final
    grades". [`test_nothing_left`]

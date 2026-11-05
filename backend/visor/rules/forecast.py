@@ -335,5 +335,8 @@ def project(program: Program, catalog: Catalog, taken: list[Taken], result: Audi
                                 f"{code} could not be placed: {why}"))
     planned_hours = sum(pt.hours for pt in terms)
     short = program.total_hours - (result.hours_done + result.hours_in_progress + planned_hours)
-    return Plan(start_term, terms, terms[-1].term if terms else None, complete=False, warnings=warnings,
+    # Every warning here is a requirement with no place in the plan, so its last term is not a
+    # graduation term; there is none until an advisor resolves the warnings.
+    projected = terms[-1].term if terms and not warnings else None
+    return Plan(start_term, terms, projected, complete=False, warnings=warnings,
                 free_elective_hours=max(0.0, short))
