@@ -92,6 +92,38 @@ Models: Claude Opus 5.5 (default), Sonnet 5.5, Haiku 5.5. Opus and Sonnet reques
 server-side refusal fallbacks (`fallbacks: "default"`). A deployment may set
 `VISOR_ANTHROPIC_API_KEY` to use one shared key instead of per-user keys. [`test_shared_key_mode`]
 
+### US-5.6 Site owner: one shared key that can't be run up
+
+**As** the person paying for the key, **I want** Ask Visor on the public demo to run on one server
+key with limits around it, **so that** visitors never paste a key and nobody can run up the bill or
+use it as a free general-purpose chatbot.
+
+1. **Given** `VISOR_ANTHROPIC_API_KEY` is set, **then** the key never leaves the server, the
+   connect card is not shown, the model picker stays, and a key sent from the browser is ignored.
+   [`test_shared_key_mode`]
+2. **Given** a visitor, **then** they get at most `VISOR_CHAT_PER_HOUR` (default 20) and
+   `VISOR_CHAT_PER_DAY` (default 60) usage units, where one message costs 1 on Haiku, 2 on Sonnet and
+   4 on Opus. Over the limit returns `429 {"error": "visitor_limit", "retry_after": <s>}` and
+   Anthropic is not called. Visitors are counted by a salted hash of their IP; the raw IP is never
+   stored. [`test_visitor_limit`]
+3. **Given** the whole site, **then** it spends at most `VISOR_CHAT_DAILY_UNITS` (default 600) a day
+   (UTC). Past that, `429 {"error": "site_limit"}` until midnight UTC, and the UI says Ask Visor is
+   resting for today. [`test_site_limit`]
+4. **Given** any request, **then** a message is at most 1,000 characters, a conversation at most 20
+   messages, a reply at most 2,000 output tokens, and at most 6 tool rounds; anything over the input
+   limits is `400` before Anthropic is called. [`test_request_caps`]
+5. **Given** a question unrelated to Lipscomb course planning, transfer credit or the student's plan,
+   **then** the system prompt has Claude decline in one sentence and point back to what it can help
+   with. [system prompt; `test_system_prompt_scopes_topics`]
+6. **Given** a request whose `Origin` is not the deployment's own site (`VISOR_ALLOWED_ORIGINS`),
+   **then** it is refused with `403` in shared-key mode. [`test_foreign_origin_refused`]
+7. **Given** the counters, **then** they live in one database table (`chat_usage`: window, visitor
+   hash, units) and hold no message text, so US-5.5 criterion 5 ("nothing stored") still holds for
+   conversations. Rows older than two days are deleted on write.
+
+Outside the app: the key is a **dedicated** Anthropic key in its own Console workspace with a
+monthly spend limit, so a bug in these limits can never cost more than that cap.
+
 ## UI
 
 The frontend follows the Claude Design package (October 2026): landing page, four role-based tabs
