@@ -143,3 +143,13 @@ class EquivalencyReview(db.Model):
     decision = db.Column(db.String(10), nullable=False, default="pending")
     decided_at = db.Column(db.DateTime(timezone=True))
     notes = db.Column(db.Text, nullable=False, default="")
+
+
+class ChatUsage(db.Model):
+    """Ask Visor usage on the shared key (spec 05, US-5.6). Counts only: no message text, no raw IPs."""
+    id = db.Column(db.Integer, primary_key=True)
+    period = db.Column(db.String(16), nullable=False)   # "2026-11-05T16" (an hour) or "2026-11-05" (a day), UTC
+    visitor = db.Column(db.String(64), nullable=False)  # salted SHA-256 of the IP, or "site" for the whole demo
+    day = db.Column(db.Date, nullable=False)            # for clearing old rows
+    units = db.Column(db.Integer, nullable=False, default=0)
+    __table_args__ = (UniqueConstraint("period", "visitor"),)
