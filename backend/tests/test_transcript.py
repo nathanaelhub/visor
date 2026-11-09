@@ -26,8 +26,8 @@ def read(**over):
                          "term": "Spring 2026"},
                         {"code": "CS 2243", "title": "Algorithms", "credits": 3, "grade": "IP",
                          "term": "Fall 2026"}],
-            "transfer": [{"school": "Nashville State Community College", "subject": "CISP", "number": "1020",
-                          "title": "Computer Science II", "credits": 4, "grade": "B"}],
+            "transfer": [{"school": "Nashville State Community College", "subject": "CISP", "number": "1010",
+                          "title": "Computer Science I", "credits": 4, "grade": "B"}],
             "unreadable": []}
     body.update(over)
     return SimpleNamespace(content=[SimpleNamespace(type="text", text=json.dumps(body))],
