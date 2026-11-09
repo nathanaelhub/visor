@@ -131,10 +131,10 @@ monthly spend limit, so a bug in these limits can never cost more than that cap.
 Ask Visor for that record, **so that** Visor works on a real-looking record without typing every
 course. (Spec 04 open question 6.)
 
-1. **Given** a PDF, PNG or JPG transcript (at most 5 MB and 6 pages), **when** it is uploaded,
-   **then** Claude reads it into a course list (`code`, `title`, `credits`, `grade`, `term`, and
-   transfer rows with `school`, `subject`, `number`) using structured output, and the response says
-   which lines it could not read. [`test_transcript_is_read_into_courses`]
+1. **Given** a PDF, PNG or JPG transcript (at most 5 MB and 6 pages), **when** it is read, **then**
+   Claude reads it into a course list (`code`, `title`, `credits`, `grade`, `term`, and transfer rows
+   with `school`, `subject`, `number`) using structured output, and the response says which lines it
+   could not read. [`test_transcript_is_read_into_courses`]
 2. **Given** the course list, **then** the user sees it as an editable table and must press
    **Use this record** before anything runs. Visor never acts on a transcript the user has not
    checked. Then the audit, plan and Ask Visor use that record exactly like a demo student.
@@ -147,10 +147,13 @@ course. (Spec 04 open question 6.)
 5. **Given** the shared key, **then** reading a transcript costs 4 units against the US-5.6
    allowance, and files over the size or page caps are `400` before Anthropic is called.
    [`test_transcript_limits`]
-6. **Given** the public demo, **then** the upload panel says **"Demo: upload fictional transcripts
-   only"** and offers three ready-made fictional transcripts to try (a freshman, a Nashville State
-   transfer student, a student with a retake) in `data/demo/transcripts/`. Real transcripts are FERPA
-   Level 4 and need IT sign-off (Brett Hanson) before any real deployment accepts them.
+6. **Given** the public demo, **then** only the three bundled fictional transcripts can be read
+   (a freshman, a Nashville State transfer student, a student with a retake, in
+   `data/demo/transcripts/`): the request names one (`{"demo": "<id>"}`) and the server reads the
+   file itself. Uploading your own file needs the write token (`X-Visor-Token`, KAN-46) or local dev;
+   otherwise it is `403 uploads_off` before Anthropic is called. The panel says **"Demo: fictional
+   transcripts only."** Real transcripts are FERPA Level 4 and need IT sign-off (Brett Hanson) before
+   any deployment accepts them. [`test_public_site_reads_demo_transcripts_only`]
 7. **Given** a file that isn't a transcript, **then** the reply says so and no record is made.
    [`test_non_transcript_is_refused`]
 
