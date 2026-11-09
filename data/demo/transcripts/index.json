@@ -1,0 +1,23 @@
+[
+  {
+    "id": "freshman",
+    "label": "First-year student, courses in progress",
+    "file": "freshman.pdf",
+    "student_id": "demo-01",
+    "name": "Riley Fresh (fictional)"
+  },
+  {
+    "id": "transfer",
+    "label": "Transfer student from Nashville State",
+    "file": "transfer.pdf",
+    "student_id": "demo-03",
+    "name": "Sam Okafor (fictional)"
+  },
+  {
+    "id": "retake",
+    "label": "Student who needs a retake",
+    "file": "retake.pdf",
+    "student_id": "demo-04",
+    "name": "Casey Lin (fictional)"
+  }
+]
