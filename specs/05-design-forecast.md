@@ -125,6 +125,38 @@ use it as a free general-purpose chatbot.
 Outside the app: the key is a **dedicated** Anthropic key in its own Console workspace with a
 monthly spend limit, so a bug in these limits can never cost more than that cap.
 
+### US-5.7 Student / advisor: start from a transcript instead of a demo student
+
+**As** a student or advisor, **I want** to upload an unofficial transcript and get the audit, plan and
+Ask Visor for that record, **so that** Visor works on a real-looking record without typing every
+course. (Spec 04 open question 6.)
+
+1. **Given** a PDF, PNG or JPG transcript (at most 5 MB and 6 pages), **when** it is read, **then**
+   Claude reads it into a course list (`code`, `title`, `credits`, `grade`, `term`, and transfer rows
+   with `school`, `subject`, `number`) using structured output, and the response says which lines it
+   could not read. [`test_transcript_is_read_into_courses`]
+2. **Given** the course list, **then** the user sees it as an editable table and must press
+   **Use this record** before anything runs. Visor never acts on a transcript the user has not
+   checked. Then the audit, plan and Ask Visor use that record exactly like a demo student.
+3. **Given** course codes Lipscomb's catalog doesn't have, **then** they are kept and flagged
+   (`unknown_course`, spec 05 API), never silently dropped or guessed.
+   [`test_transcript_unknown_codes_are_flagged`]
+4. **Given** any upload, **then** the file and the parsed record are **not stored or logged**. The
+   file goes to Anthropic for that one request and is dropped; the record lives in the browser tab.
+   [`test_transcript_stores_nothing`]
+5. **Given** the shared key, **then** reading a transcript costs 4 units against the US-5.6
+   allowance, and files over the size or page caps are `400` before Anthropic is called.
+   [`test_transcript_limits`]
+6. **Given** the public demo, **then** only the three bundled fictional transcripts can be read
+   (a freshman, a Nashville State transfer student, a student with a retake, in
+   `data/demo/transcripts/`): the request names one (`{"demo": "<id>"}`) and the server reads the
+   file itself. Uploading your own file needs the write token (`X-Visor-Token`, KAN-46) or local dev;
+   otherwise it is `403 uploads_off` before Anthropic is called. The panel says **"Demo: fictional
+   transcripts only."** Real transcripts are FERPA Level 4 and need IT sign-off (Brett Hanson) before
+   any deployment accepts them. [`test_public_site_reads_demo_transcripts_only`]
+7. **Given** a file that isn't a transcript, **then** the reply says so and no record is made.
+   [`test_non_transcript_is_refused`]
+
 ## UI
 
 The frontend follows the Claude Design package (October 2026): landing page, four role-based tabs
