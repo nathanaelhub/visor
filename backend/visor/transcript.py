@@ -21,7 +21,7 @@ import re
 from pathlib import Path
 
 import anthropic
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, jsonify, request, send_file
 
 from . import chat_limits
 from .audit_api import catalog_and_programs, course_code, current_term, find_school
@@ -147,6 +147,15 @@ def _record(read: dict, source: str) -> dict:
 @bp.get("/demos")
 def list_demos():
     return jsonify([{k: d[k] for k in ("id", "label", "name", "student_id")} for d in _demos()])
+
+
+@bp.get("/demos/<tid>.pdf")
+def demo_file(tid):
+    """The fictional PDF itself, so people can see what Visor is reading."""
+    demo = next((d for d in _demos() if d["id"] == tid), None)
+    if demo is None:
+        return _err("not_found", "There is no demo transcript with that name.", 404)
+    return send_file(DEMO_DIR / demo["file"], mimetype="application/pdf", download_name=demo["file"])
 
 
 @bp.post("")

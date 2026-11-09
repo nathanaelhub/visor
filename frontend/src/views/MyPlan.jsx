@@ -4,7 +4,7 @@ import { Bar, Chip, Icon, Pill, Spinner } from '../ui.jsx'
 
 // My Plan (student) and an advisee's plan (advisor). Everything on this page comes from
 // POST /api/audit — the planner's own output; nothing here is computed in the browser.
-export default function MyPlan({ student, mode, onAsk, onBack }) {
+export default function MyPlan({ student, mode, onAsk, onBack, onTranscript }) {
   const [r, setR] = useState(null)
   const [error, setError] = useState('')
 
@@ -35,6 +35,7 @@ export default function MyPlan({ student, mode, onAsk, onBack }) {
           </p>
         </div>
         {r && (r.needs_review ? <Pill status="review">Needs advisor review</Pill> : <Pill status="ok">Plan checks pass</Pill>)}
+        {onTranscript && <button type="button" className="btn2" onClick={onTranscript}><Icon name="book" />Start from a transcript</button>}
         <button type="button" className="btn2" onClick={onAsk}><Icon name="chat" />Ask about this plan</button>
       </div>
 

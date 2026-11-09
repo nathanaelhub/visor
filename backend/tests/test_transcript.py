@@ -81,6 +81,10 @@ def test_demo_transcripts_are_listed(make):
     demos = c.get("/api/transcript/demos").get_json()
     assert [d["id"] for d in demos] == ["freshman", "transfer", "retake"]
     assert all("(fictional)" in d["name"] for d in demos)
+    pdf_ = c.get("/api/transcript/demos/transfer.pdf")
+    assert pdf_.status_code == 200 and pdf_.mimetype == "application/pdf" and pdf_.data.startswith(b"%PDF")
+    pdf_.close()
+    assert c.get("/api/transcript/demos/nobody.pdf").status_code == 404
 
 
 def test_transcript_is_read_into_courses(make):

@@ -6,6 +6,7 @@ import MyPlan from './views/MyPlan.jsx'
 import Students from './views/Students.jsx'
 import Transfer from './views/Transfer.jsx'
 import AskVisor, { useChat } from './views/AskVisor.jsx'
+import Transcript from './views/Transcript.jsx'
 
 // Only the tabs each role needs (design brief): schedule and prerequisite checks live inside My Plan.
 const ROLE_TABS = { student: ['myplan', 'ask'], advisor: ['students', 'transfer', 'ask'], registrar: ['transfer', 'ask'] }
@@ -43,6 +44,7 @@ export default function App() {
   const [me, setMe] = useState(DEFAULT_STUDENT)
   const [opened, setOpened] = useState(null) // advisor: student id whose plan is open
   const [drawer, setDrawer] = useState(false)
+  const [reading, setReading] = useState(false) // student: "Start from a transcript" page (US-5.7)
 
   useEffect(() => {
     api('/api/demo/students').then(setStudents)
@@ -57,6 +59,7 @@ export default function App() {
     setTab(t ?? ROLE_TABS[r][0])
     setOpened(null)
     setDrawer(false)
+    setReading(false)
     setView('app')
     window.scrollTo(0, 0)
   }
@@ -69,11 +72,22 @@ export default function App() {
   const who = role === 'student' ? students.find((s) => s.id === me) : null
   const avatar = role === 'student' ? initials(who?.name) : role === 'advisor' ? 'RA' : 'RO'
 
+  function applyRecord(s) {
+    // The record lives in this tab only: replace any earlier transcript student, never save it.
+    setStudents((prev) => [...prev.filter((x) => !x.id.startsWith('transcript-')), s])
+    setMe(s.id)
+    setReading(false)
+    setTab('myplan')
+    window.scrollTo(0, 0)
+  }
+
   let body
-  if (tab === 'ask') {
+  if (role === 'student' && reading) {
+    body = <Transcript onUse={applyRecord} onCancel={() => setReading(false)} />
+  } else if (tab === 'ask') {
     body = <AskVisor chat={chat} student={contextStudent} role={role} mode="full" onOpenPlan={() => setTab(role === 'student' ? 'myplan' : 'students')} />
   } else if (tab === 'myplan' && who) {
-    body = <MyPlan student={who} mode="student" onAsk={() => setDrawer(true)} />
+    body = <MyPlan student={who} mode="student" onAsk={() => setDrawer(true)} onTranscript={() => setReading(true)} />
   } else if (tab === 'students') {
     const s = students.find((x) => x.id === opened)
     body = s
@@ -95,7 +109,7 @@ export default function App() {
           <nav className="tabs" aria-label="Main">
             {tabs.map((t) => (
               <button key={t} type="button" className="tab" aria-current={tab === t ? 'page' : undefined}
-                onClick={() => { setTab(t); setOpened(null) }}>
+                onClick={() => { setTab(t); setOpened(null); setReading(false) }}>
                 <Icon name={TAB[t].icon} />{TAB[t].label}
               </button>
             ))}
@@ -121,9 +135,11 @@ export default function App() {
             <label title="Which fictional student you are" style={{ position: 'relative' }}>
               <span className="sr">Demo student</span>
               <span className="avatar" aria-hidden="true">{avatar}</span>
-              <select value={me} onChange={(e) => setMe(e.target.value)} aria-label="Demo student"
+              <select value={reading ? 'transcript' : me} aria-label="Demo student"
+                onChange={(e) => { if (e.target.value === 'transcript') { setReading(true); setTab('myplan') } else { setMe(e.target.value); setReading(false) } }}
                 style={{ position: 'absolute', inset: 0, opacity: 0, cursor: 'pointer' }}>
                 {students.map((s) => <option key={s.id} value={s.id}>{cleanName(s.name)}</option>)}
+                <option value="transcript">Start from a transcript…</option>
               </select>
             </label>
           ) : <span className="avatar" aria-hidden="true">{avatar}</span>}
@@ -135,7 +151,7 @@ export default function App() {
       <nav className="botnav" aria-label="Main">
         {tabs.map((t) => (
           <button key={t} type="button" className="bn" aria-current={tab === t ? 'page' : undefined}
-            onClick={() => { setTab(t); setOpened(null) }}>
+            onClick={() => { setTab(t); setOpened(null); setReading(false) }}>
             <span className="bni"><Icon name={TAB[t].icon} size={20} /></span>{TAB[t].label}
           </button>
         ))}
