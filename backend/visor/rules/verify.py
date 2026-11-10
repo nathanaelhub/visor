@@ -15,16 +15,20 @@ from .terms import is_offered, parse_term
 
 @dataclass(frozen=True)
 class Violation:
-    rule: str  # prerequisite / offering / load / duplicate / unknown_course / standing
+    rule: str  # prerequisite / offering / load / duplicate / unknown_course / standing / hold
     code: str | None
     term: str | None
     message: str
 
 
-def verify(plan, catalog: Catalog, taken: list[Taken], max_hours: int = 18) -> list[Violation]:
+def verify(plan, catalog: Catalog, taken: list[Taken], max_hours: int = 18, holds=()) -> list[Violation]:
     """``plan`` is anything with ``.terms`` → ``.term``, ``.courses`` → ``.code`` (duck-typed on
-    purpose, so a hand-edited plan from the advisor UI can be checked the same way)."""
+    purpose, so a hand-edited plan from the advisor UI can be checked the same way).
+
+    ``holds`` are an advisor's ``(code, not_before)`` pairs (spec 06): a held course may not be planned
+    before that term. Pins need no special case: a pin that breaks a rule fails the same checks."""
     out: list[Violation] = []
+    not_before = {code: parse_term(term) for code, term in holds}
     # What the student already has, with grades; in-progress counts as a C-level pass.
     before: dict[str, str] = {}
     for t in taken:
@@ -56,6 +60,9 @@ def verify(plan, catalog: Catalog, taken: list[Taken], max_hours: int = 18) -> l
                     out.append(Violation("prerequisite", code, pt.term,
                                          f"{code} in {term.name} needs one of {', '.join(group.any_of)} "
                                          f"(at {group.min_grade or 'a passing grade'}) in an earlier term"))
+            if code in not_before and term < not_before[code]:
+                out.append(Violation("hold", code, pt.term,
+                                     f"{code} is held until {not_before[code].name} but planned in {term.name}"))
             need = catalog.min_hours.get(code, 0)
             if hours < need:
                 out.append(Violation("standing", code, pt.term,

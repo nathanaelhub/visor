@@ -9,6 +9,7 @@ the chat can never describe a plan the planner did not produce.
 """
 from __future__ import annotations
 
+import hashlib
 import json
 import os
 from dataclasses import asdict
@@ -20,7 +21,7 @@ from .catalog_files import DEFAULT_CATALOG, load_catalog
 from .equivalencies import _live_rows
 from .models import ExternalCourse, School, db
 from .rules.audit import Taken, audit, matches
-from .rules.forecast import Settings, project
+from .rules.forecast import Edits, Hold, Pin, Settings, project
 from .rules.grades import is_known
 from .rules.terms import describe_offerings, parse_term
 from .rules.verify import verify
@@ -130,6 +131,69 @@ def _grade(value, what: str):
     return value or None
 
 
+MIN_LOAD, MAX_LOAD, OVERLOAD = 12, 18, 21  # spec 06, US-6.1
+
+
+def parse_edits(raw: dict | None, start_term: str | None = None) -> tuple[dict, Edits, dict]:
+    """An advisor's edits (spec 06) -> (settings overrides, rules ``Edits``, the normalized edits to
+    echo back and store). Raises AuditError on anything the spec refuses."""
+    raw = raw or {}
+    if not isinstance(raw, dict):
+        raise AuditError("edits must be an object")
+    s = raw.get("settings") or {}
+    settings: dict = {}
+    if "include_summer" in s:
+        settings["include_summer"] = bool(s["include_summer"])
+    if s.get("max_hours") is not None:
+        settings["max_hours"] = _number(s["max_hours"], "edits.settings.max_hours", int)
+    if s.get("target_hours") is not None:
+        settings["target_hours"] = _number(s["target_hours"], "edits.settings.target_hours", int)
+    note = (raw.get("overload_note") or "").strip() or None
+    top = settings.get("max_hours", MAX_LOAD)
+    if not MIN_LOAD <= top <= OVERLOAD:
+        raise AuditError(f"max hours must be between {MIN_LOAD} and {OVERLOAD}")
+    if top > MAX_LOAD and not note:
+        raise AuditError(f"a maximum above {MAX_LOAD} hours is an overload: add a note saying why")
+    if not 1 <= settings.get("target_hours", min(15, top)) <= top:
+        raise AuditError("target hours must be between 1 and the maximum")
+
+    def term(value, what):
+        try:
+            return parse_term(str(value)).code
+        except ValueError as e:
+            raise AuditError(f"{what}: {e}") from e
+
+    pins, holds = [], []
+    for p in raw.get("pins") or []:
+        code, t = course_code(p.get("code", "")), term(p.get("term"), "pin term")
+        if not code:
+            raise AuditError("every pin needs a course code")
+        if start_term and parse_term(t) < parse_term(start_term):
+            raise AuditError(f"{code} can't be pinned to {parse_term(t).name}: the plan starts "
+                             f"{parse_term(start_term).name}")
+        pins.append({"code": code, "term": t})
+    for h in raw.get("holds") or []:
+        code = course_code(h.get("code", ""))
+        if not code:
+            raise AuditError("every hold needs a course code")
+        holds.append({"code": code, "not_before": term(h.get("not_before"), "hold term")})
+    normalized = {"settings": settings, "pins": pins, "holds": holds, "overload_note": note}
+    edits = Edits(tuple(Pin(**p) for p in pins), tuple(Hold(**h) for h in holds))
+    return settings, edits, normalized
+
+
+def fingerprint(body: dict, edits: dict, plan: dict | None) -> str:
+    """SHA-256 of the record, the edits and the planner's output (spec 06, US-6.4). Any change to
+    one of them changes the fingerprint, which is how an approval goes out of date."""
+    record = {"program_id": body.get("program_id"), "start_term": body.get("start_term"),
+              "taken": sorted((course_code(t.get("code", "")), t.get("grade") or "") for t in body.get("taken", [])),
+              "transfer": sorted((str(t.get("school") or t.get("school_id") or ""), str(t.get("subject", "")),
+                                  str(t.get("number", "")), t.get("grade") or "") for t in body.get("transfer", []))}
+    planned = [[t["term"], sorted(c["code"] for c in t["courses"])] for t in (plan or {}).get("terms", [])]
+    blob = json.dumps({"record": record, "edits": edits, "plan": planned}, sort_keys=True, default=str)
+    return hashlib.sha256(blob.encode()).hexdigest()
+
+
 def compute_audit(body: dict) -> dict:
     """Run transfer translation, the audit and (with a start term) the forecast. Raises AuditError."""
     catalog, programs = catalog_and_programs()
@@ -158,11 +222,16 @@ def compute_audit(body: dict) -> dict:
     taken += transfer_taken
 
     s = body.get("settings") or {}
-    settings = Settings(include_summer=bool(s.get("include_summer", False)),
-                        max_hours=_number(s.get("max_hours", 18), "settings.max_hours", int),
-                        target_hours=_number(s.get("target_hours", 15), "settings.target_hours", int))
+    overrides, edits, edits_out = parse_edits(body.get("edits"), start_term)
+    settings = Settings(include_summer=bool(overrides.get("include_summer", s.get("include_summer", False))),
+                        max_hours=overrides.get("max_hours", _number(s.get("max_hours", 18), "settings.max_hours", int)),
+                        target_hours=overrides.get("target_hours",
+                                                   _number(s.get("target_hours", 15), "settings.target_hours", int)))
+    if settings.target_hours > settings.max_hours:
+        settings = Settings(include_summer=settings.include_summer, max_hours=settings.max_hours,
+                            target_hours=settings.max_hours)
     result = audit(program, catalog, taken)
-    plan = project(program, catalog, taken, result, start_term, settings) if start_term else None
+    plan = project(program, catalog, taken, result, start_term, settings, edits) if start_term else None
     if plan is not None:
         result.projected_term = plan.projected_term
 
@@ -188,8 +257,19 @@ def compute_audit(body: dict) -> dict:
                for c in out["unknown_codes"]]
     out["warnings"] = unknown + ([] if plan is None else [asdict(w) for w in plan.warnings])
     out["needs_review"] = bool(unknown) or bool(plan and plan.needs_review)
+    out["edits"] = edits_out
+    out["fingerprint"] = fingerprint(body, edits_out, out["plan"])
     if plan is not None:
-        violations = verify(plan, catalog, taken, settings.max_hours)
+        violations = verify(plan, catalog, taken, settings.max_hours,
+                            holds=[(h.code, h.not_before) for h in edits.holds])
+        pinned = {p.code for p in edits.pins}
+        bad = [{"kind": "bad_pin", "code": v.code, "group": None, "message": f"Pinned by advisor: {v.message}"}
+               for v in violations if v.code in pinned]
+        if any(v.rule == "load" for v in violations) and pinned:
+            bad += [{"kind": "bad_pin", "code": None, "group": None, "message": f"Pinned by advisor: {v.message}"}
+                    for v in violations if v.rule == "load"]
+        out["warnings"] += bad
+        out["needs_review"] = out["needs_review"] or bool(violations)
         out["checks"] = {
             "prerequisites_ok": not any(v.rule in ("prerequisite", "standing") for v in violations),
             "offerings_ok": not any(v.rule == "offering" for v in violations),

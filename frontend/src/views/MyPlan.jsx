@@ -2,10 +2,11 @@ import { useEffect, useState } from 'react'
 import { api, cleanName, gradName, hrs, termName, termsAfter } from '../lib.js'
 import { Bar, Chip, Icon, Pill, Spinner } from '../ui.jsx'
 import { transferStatus } from '../transferStatus.js'
+import { AdjustPanel, ApprovalBanner, ApprovePanel, CourseAdjust } from './AdvisorEdits.jsx'
 
 // My Plan (student) and an advisee's plan (advisor). Everything on this page comes from
 // POST /api/audit — the planner's own output; nothing here is computed in the browser.
-export default function MyPlan({ student, mode, onAsk, onBack, onTranscript }) {
+export default function MyPlan({ student, mode, onAsk, onBack, onTranscript, edit }) {
   const [r, setR] = useState(null)
   const [error, setError] = useState('')
 
@@ -42,12 +43,12 @@ export default function MyPlan({ student, mode, onAsk, onBack, onTranscript }) {
 
       {error && <div className="notice err" role="alert"><Icon name="alert" />{error}</div>}
       {!r && !error && <p className="row muted"><Spinner /> Running the degree audit…</p>}
-      {r && <Plan r={r} story={student.story} />}
+      {r && <Plan r={r} story={student.story} mode={mode} edit={edit} />}
     </div>
   )
 }
 
-function Plan({ r, story }) {
+function Plan({ r, story, mode, edit }) {
   const plan = r.plan
   const counted = r.hours_done + r.hours_in_progress
   const after = termsAfter(r.in_progress.term, r.projected_term)
@@ -57,6 +58,7 @@ function Plan({ r, story }) {
   return (
     <>
       {story && <p className="small muted" style={{ margin: '-8px 0 0' }}><em>Demo: {story}</em></p>}
+      {edit && <ApprovalBanner edit={edit} r={r} mode={mode} />}
 
       {r.needs_review && (
         <div className="review" role="alert">
@@ -107,6 +109,9 @@ function Plan({ r, story }) {
         </section>
       )}
 
+      {mode === 'advisor' && edit && <AdjustPanel edit={edit} r={r} />}
+      {mode === 'advisor' && edit && <ApprovePanel edit={edit} r={r} />}
+
       {r.transfer.length > 0 && <TransferCredit rows={r.transfer} hours={r.transfer_hours} />}
 
       <div className="planlayout">
@@ -120,7 +125,10 @@ function Plan({ r, story }) {
             {r.in_progress.courses.length > 0 && <InProgress term={r.in_progress} />}
             {plan?.complete && <div className="card" style={{ padding: 20 }}>Every requirement is met or in progress. Nothing left to plan.</div>}
             {plan?.terms.map((t, i) => (
-              <Term key={t.term} t={t} next={t === next} last={!!r.projected_term && i === plan.terms.length - 1} />
+              <Term key={t.term} t={t} next={t === next} last={!!r.projected_term && i === plan.terms.length - 1}
+                adjust={mode === 'advisor' && edit ? (code) => (
+                  <CourseAdjust edit={edit} code={code} startTerm={plan.start_term}
+                    includeSummer={!!r.edits?.settings?.include_summer} />) : null} />
             ))}
           </div>
           {plan?.free_elective_hours > 0 && (
@@ -229,7 +237,7 @@ function InProgress({ term }) {
 }
 
 function reasonChips(c) {
-  const order = { unlocks: 0, retake: 1, offering: 2, needs: 3, standing: 4, prerequisite: 5, requirement: 6 }
+  const order = { pinned: -2, held: -1, unlocks: 0, retake: 1, offering: 2, needs: 3, standing: 4, prerequisite: 5, requirement: 6 }
   const chips = [...c.reasons].sort((a, b) => (order[a.kind] ?? 9) - (order[b.kind] ?? 9))
   if (c.deferred_from && !c.reasons.some((x) => x.kind === 'offering')) {
     chips.push({ kind: 'deferred', text: `Not offered ${termName(c.deferred_from)}` })
@@ -237,7 +245,7 @@ function reasonChips(c) {
   return chips
 }
 
-function Term({ t, next, last }) {
+function Term({ t, next, last, adjust }) {
   return (
     <article className={`card term${next ? ' next' : ''}`}>
       <div className="termhead">
@@ -256,7 +264,9 @@ function Term({ t, next, last }) {
               {reasonChips(c).map((x, k) => <Chip key={k} kind={x.kind}>{x.text}</Chip>)}
             </span>
           </div>
-          <span className="small muted">{hrs(c.credits)} hrs</span>
+          <span className="small muted" style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 6 }}>
+            {hrs(c.credits)} hrs{adjust && adjust(c.code)}
+          </span>
         </div>
       ))}
     </article>

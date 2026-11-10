@@ -70,7 +70,7 @@ export function Pill({ status, children }) {
 }
 
 const CHIP_ICON = { unlocks: 'right', retake: 'retake', offering: 'cal', needs: 'left', prerequisite: 'left',
-  requirement: 'fills', standing: 'cap', deferred: 'cal' }
+  requirement: 'fills', standing: 'cap', deferred: 'cal', pinned: 'lock', held: 'cal' }
 
 export function Chip({ kind, children }) {
   return <span className={`chip chip-${kind}`}><Icon name={CHIP_ICON[kind] ?? 'fills'} size={12} />{children}</span>

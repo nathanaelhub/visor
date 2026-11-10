@@ -18,6 +18,10 @@ transfer-credit lookup and an AI assistant that explains the plan (it can read t
   on every course ("Unlocks 6 later courses", "Offered Spring only", "Retake: earned D+, needs C").
 - **Students (advisors):** every advisee with flags for retakes and pending transfer credit; open any
   plan, with warnings when the planner can't place something.
+- **Adjust and approve (advisors, spec 06):** change a student's plan settings, pin a course to a term
+  or hold it back, then approve the plan. The planner re-plans around the changes, the independent
+  checker re-checks them, and an approval goes out of date when the plan changes. Saved on a staff
+  deployment; on the public demo they stay in the browser tab.
 - **Transfer (registrar):** what a course from another school counts as: Confirmed, Proposed (a person
   must confirm) or Unknown (flag it for a professor).
 - **Ask Visor:** Claude answers questions about the plan through read-only tools that call Visor's
