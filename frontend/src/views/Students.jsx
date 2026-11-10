@@ -82,7 +82,12 @@ export default function Students({ onOpen }) {
                     <span className="row" style={{ gap: 6 }}>
                       {s.flags.needs_review && <Pill status="review" />}
                       {s.flags.retake && <Pill status="retake" />}
-                      {s.flags.transfer_pending && <Pill status="pending" />}
+                      {s.flags.transfer_pending && (
+                        <span title={`Waiting: ${(s.pending_transfer ?? []).join(', ')}`}>
+                          <Pill status="pending" />
+                          {s.pending_transfer?.length > 0 && <span className="small muted mono" style={{ display: 'block', marginTop: 4 }}>{s.pending_transfer.join(', ')}</span>}
+                        </span>
+                      )}
                       {!Object.values(s.flags).some(Boolean) && <span className="small muted">No flags</span>}
                     </span>
                   </td>
