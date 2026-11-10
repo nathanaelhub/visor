@@ -9,7 +9,7 @@ transfer-credit lookup and an AI assistant that explains the plan using your own
 > by their graduate assistant to show one way the team's design can grow; any piece can be borrowed.
 > All student data is fictional. The course catalog is Lipscomb's public 2026-27 catalog.
 
-**Live demo:** https://visor-showcase.vercel.app (fictional students; Ask Visor needs your own Anthropic key)
+**Live demo:** https://visor-showcase.vercel.app (fictional students; Ask Visor runs on the site's key, with a per-visitor limit)
 
 ## What it does
 
@@ -23,6 +23,9 @@ transfer-credit lookup and an AI assistant that explains the plan using your own
 - **Ask Visor:** Claude answers questions about the plan through read-only tools that call Visor's
   own planner, catalog and equivalency table. It explains the plan; it can never change it. Bring your
   own Anthropic API key (kept in the browser session only) or set one key for the deployment.
+- **Start from a transcript:** Claude reads an unofficial transcript into a course list, you check and
+  edit it, and only then do the audit, plan and Ask Visor run on it. The public demo reads three
+  bundled fictional transcripts (`data/demo/transcripts/`); uploading your own needs the write token.
 
 The plan comes from a deterministic rules engine: the same record always gives the same plan, and
 an independent checker re-verifies every plan in the tests.

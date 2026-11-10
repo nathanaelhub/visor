@@ -60,14 +60,15 @@ def _until(when: datetime, now: datetime) -> int:
     return max(1, int((when - now).total_seconds()))
 
 
-def charge(model_key: str) -> dict | None:
-    """Count one message against the visitor's and the site's allowance. Returns the 429 body if it
+def charge(model_key: str, units: int | None = None) -> dict | None:
+    """Count one message (or ``units``) against the visitor's and the site's allowance. Returns the 429 body if it
     would go over (and counts nothing), else None."""
     now = datetime.now(timezone.utc)
     hour, day = now.strftime("%Y-%m-%dT%H"), now.strftime("%Y-%m-%d")
     next_hour = now.replace(minute=0, second=0, microsecond=0) + timedelta(hours=1)
     midnight = now.replace(hour=0, minute=0, second=0, microsecond=0) + timedelta(days=1)
-    units, who = UNITS.get(model_key, max(UNITS.values())), _visitor()
+    units = units if units is not None else UNITS.get(model_key, max(UNITS.values()))
+    who = _visitor()
 
     rows = {(r.period, r.visitor): r for r in ChatUsage.query.filter(
         ChatUsage.period.in_((hour, day)), ChatUsage.visitor.in_((who, "site")))}
