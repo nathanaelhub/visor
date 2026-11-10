@@ -106,6 +106,13 @@ def test_advisor_student_list(demo_client):
     assert rows["demo-02"]["projected_term"] == "2028FA" and rows["demo-02"]["student_number"] == "L00402115"
 
 
+def test_advisor_list_names_the_pending_transfer_courses(demo_client):
+    """#2: the advisee list says which transfer courses are waiting, not just that some are."""
+    rows = {r["id"]: r for r in demo_client.get("/api/students").get_json()}
+    assert rows["demo-03"]["pending_transfer"] == ["CIS 2350", "HIST 2010"]
+    assert rows["demo-02"]["pending_transfer"] == []
+
+
 def test_course_info(demo_client):
     info = demo_client.get("/api/courses/CS 2233/info").get_json()
     assert info["title"] == "Data Structures" and "CS 2623" in info["unlocks"]
