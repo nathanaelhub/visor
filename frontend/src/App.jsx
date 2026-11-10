@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { api, cleanName, initials } from './lib.js'
 import { Icon, Logo } from './ui.jsx'
 import Landing from './views/Landing.jsx'
@@ -7,6 +7,7 @@ import Students from './views/Students.jsx'
 import Transfer from './views/Transfer.jsx'
 import AskVisor, { useChat } from './views/AskVisor.jsx'
 import Transcript from './views/Transcript.jsx'
+import { isEmpty } from './planEdits.js'
 
 // Only the tabs each role needs (design brief): schedule and prerequisite checks live inside My Plan.
 const ROLE_TABS = { student: ['myplan', 'ask'], advisor: ['students', 'transfer', 'ask'], registrar: ['transfer', 'ask'] }
@@ -51,8 +52,58 @@ export default function App() {
       .catch(() => setLoadError('Could not reach the Visor API. Start the backend and seed the demo data.'))
   }, [])
 
-  const contextStudent = students.find((s) => s.id === (role === 'student' ? me : opened)) || null
+  // Advisor edits and approvals per student (spec 06). Loaded from the server; on the public demo
+  // they can't be saved there, so they stay in this tab (`local`).
+  const [plans, setPlans] = useState({})
+  const keyOf = (s) => s.student_number || s.id
+  const shownIds = [role === 'student' ? me : opened].filter(Boolean)
+  useEffect(() => {
+    for (const id of shownIds) {
+      const s = students.find((x) => x.id === id)
+      if (!s || plans[id]) continue
+      setPlans((p) => ({ ...p, [id]: { edits: null, approval: null, history: [], canSave: false, loading: true } }))
+      api(`/api/students/${encodeURIComponent(keyOf(s))}/plan-edits`)
+        .then((d) => setPlans((p) => ({ ...p, [id]: { edits: d.edits, approval: d.approval, history: d.history,
+          canSave: d.can_save, updatedBy: d.updated_by, updatedAt: d.updated_at, dirty: false } })))
+        .catch(() => setPlans((p) => ({ ...p, [id]: { edits: null, approval: null, history: [], canSave: false } })))
+    }
+  }, [shownIds.join(), students]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  const base = students.find((s) => s.id === (role === 'student' ? me : opened)) || null
+  const baseEdits = base ? plans[base.id]?.edits : null
+  const contextStudent = useMemo(() => (base && !isEmpty(baseEdits) ? { ...base, edits: baseEdits } : base),
+    [base, baseEdits])
   const chat = useChat(contextStudent)
+
+  function editFor(s) {
+    if (!s) return null
+    const st = plans[s.id] ?? {}
+    const patch = (o) => setPlans((p) => ({ ...p, [s.id]: { ...p[s.id], ...o } }))
+    const withEdits = { ...s, edits: st.edits ?? undefined }
+    return {
+      ...st,
+      setEdits: (edits) => patch({ edits, dirty: true, saveError: '' }),
+      save: async () => {
+        try {
+          const d = await api(`/api/students/${encodeURIComponent(keyOf(s))}/plan-edits`, { method: 'PUT',
+            body: { edits: st.edits ?? {}, updated_by: (() => { try { return sessionStorage.getItem('visor.advisorName') } catch { return null } })() } })
+          patch({ dirty: false, updatedBy: d.updated_by, updatedAt: d.updated_at, saveError: '' })
+        } catch (e) {
+          patch(e.status === 401 || e.status === 403 ? { canSave: false } : { saveError: e.message })
+        }
+      },
+      approve: async ({ fingerprint, approved_by: by, note }) => {
+        if (!st.canSave) { // public demo: keep the approval in this tab
+          const a = { fingerprint, approved_by: by, note: note || null, approved_at: new Date().toISOString(), local: true }
+          patch({ approval: a, history: [a, ...(st.history ?? [])] })
+          return
+        }
+        const d = await api(`/api/students/${encodeURIComponent(keyOf(s))}/approval`, { method: 'POST',
+          body: { student: withEdits, fingerprint, approved_by: by, note } })
+        patch({ approval: d.approval, history: d.history, dirty: false, updatedBy: d.updated_by, updatedAt: d.updated_at })
+      },
+    }
+  }
 
   function go(r, t) {
     setRole(r)
@@ -87,11 +138,11 @@ export default function App() {
   } else if (tab === 'ask') {
     body = <AskVisor chat={chat} student={contextStudent} role={role} mode="full" onOpenPlan={() => setTab(role === 'student' ? 'myplan' : 'students')} />
   } else if (tab === 'myplan' && who) {
-    body = <MyPlan student={who} mode="student" onAsk={() => setDrawer(true)} onTranscript={() => setReading(true)} />
+    body = <MyPlan student={contextStudent ?? who} mode="student" edit={editFor(who)} onAsk={() => setDrawer(true)} onTranscript={() => setReading(true)} />
   } else if (tab === 'students') {
     const s = students.find((x) => x.id === opened)
     body = s
-      ? <MyPlan student={s} mode="advisor" onBack={() => setOpened(null)} onAsk={() => setDrawer(true)} />
+      ? <MyPlan student={contextStudent ?? s} mode="advisor" edit={editFor(s)} onBack={() => setOpened(null)} onAsk={() => setDrawer(true)} />
       : <Students onOpen={setOpened} />
   } else if (tab === 'transfer') {
     body = <Transfer />
