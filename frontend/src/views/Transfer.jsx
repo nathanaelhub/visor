@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { api } from '../lib.js'
 import { parseCourseCode } from '../courseCode.js'
+import { flagMessage } from '../flagMessage.js'
 import { Icon, Pill, Spinner } from '../ui.jsx'
 
 // Registrar / advisor: what does a course from another school count as here?
@@ -59,7 +60,7 @@ export default function Transfer() {
         school_id: ext.school_id, subject: ext.subject, number: ext.number, reviewer: 'CS faculty', requested_by: 'registrar' } })
       setFlagMsg(r.already_pending ? 'Already flagged; waiting on professor review.' : 'Flagged for professor review.')
     } catch (e) {
-      setFlagMsg(e.status === 409 ? 'Already confirmed; nothing to review.' : `Could not flag: ${e.message}`)
+      setFlagMsg(flagMessage(e))
     }
   }
 
