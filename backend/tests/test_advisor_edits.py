@@ -72,8 +72,8 @@ def test_overload_needs_a_note(client):
 
 
 def test_checker_uses_the_advisors_maximum(client):
-    r = audit(client, jordan(client, settings={"max_hours": 20, "target_hours": 20}, overload_note="Final year"))
-    assert r["checks"]["load_limit"] == 20 and r["checks"]["max_load"] > 18
+    r = audit(client, jordan(client, settings={"max_hours": 21, "target_hours": 21}, overload_note="Final year"))
+    assert r["checks"]["load_limit"] == 21 and r["checks"]["max_load"] == 21  # all 3-hour courses here
     assert not [v for v in r["checks"]["violations"] if v["rule"] == "load"]
 
 

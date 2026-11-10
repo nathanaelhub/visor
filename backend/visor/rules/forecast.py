@@ -15,6 +15,10 @@ Takes the audit's "still needed" list and places each course in a future term:
 6. **Compaction**: if the whole last term fits into earlier terms (up to the maximum load), move it
    and graduate a term sooner. The plan also reports how many free-elective hours are still needed
    to reach the degree total.
+
+**Advisor edits (spec 06)** are inputs, not a hand-written plan: a **pin** puts a course in a term
+exactly as the advisor said, even if that breaks a rule (the independent checker then reports it);
+a **hold** keeps a course out of every term before ``not_before``. Everything else is placed as usual.
 """
 from __future__ import annotations
 
@@ -35,6 +39,25 @@ class Settings:
 
 
 @dataclass(frozen=True)
+class Pin:
+    code: str
+    term: str  # term code, e.g. 2027FA
+
+
+@dataclass(frozen=True)
+class Hold:
+    code: str
+    not_before: str  # term code
+
+
+@dataclass(frozen=True)
+class Edits:
+    """What an advisor changed (spec 06). Settings changes travel in ``Settings``."""
+    pins: tuple = ()  # tuple[Pin, ...], placed in this order
+    holds: tuple = ()  # tuple[Hold, ...]
+
+
+@dataclass(frozen=True)
 class Reason:
     kind: str  # requirement / unlocks / offering / retake / prerequisite / standing / needs
     text: str
@@ -48,6 +71,8 @@ class PlannedCourse:
     counts_toward: list  # group ids
     reasons: list  # list[Reason]
     deferred_from: str | None = None  # term code it could first have gone in
+    pinned: bool = False  # placed by an advisor's pin (spec 06)
+    held_until: str | None = None  # an advisor's hold: not before this term code
 
 
 @dataclass
@@ -61,7 +86,7 @@ class PlannedTerm:
 
 @dataclass(frozen=True)
 class Warning:
-    kind: str  # unplaceable / not_in_catalog
+    kind: str  # unplaceable / not_in_catalog / pin_ignored / bad_pin
     code: str | None
     group: str | None
     message: str
@@ -210,6 +235,8 @@ def _compact(terms: list, catalog: Catalog, passed: dict, hours_at_start: float,
         last, earlier = terms[-1], terms[:-1]
         moves: list[tuple[PlannedCourse, PlannedTerm]] = []
         load = {pt.term: pt.hours for pt in earlier}
+        if any(pc.pinned for pc in last.courses):
+            return terms  # an advisor put it there
         for pc in last.courses:
             target = None
             for i, pt in enumerate(earlier):
@@ -217,6 +244,8 @@ def _compact(terms: list, catalog: Catalog, passed: dict, hours_at_start: float,
                 before = {c.code for e in earlier[:i] for c in e.courses} | {m[0].code for m in moves
                                                                           if parse_term(m[1].term) < term}
                 hours_then = hours_at_start + sum(e.hours for e in earlier[:i])
+                if pc.held_until and term < parse_term(pc.held_until):
+                    continue
                 if (is_offered(catalog.offered.get(pc.code, ()), term)
                         and load[pt.term] + pc.credits <= settings.max_hours
                         and _prereqs_ok(pc.code, catalog, passed, before)
@@ -261,12 +290,20 @@ def _prereqs_ok(code: str, catalog: Catalog, passed: dict[str, str | None], plan
 
 
 def project(program: Program, catalog: Catalog, taken: list[Taken], result: AuditResult,
-            start_term: str, settings: Settings = Settings()) -> Plan:
+            start_term: str, settings: Settings = Settings(), edits: Edits = Edits()) -> Plan:
     warnings: list[Warning] = []
     needs = _outstanding(program, catalog, taken, result, warnings)
+    pins: dict[str, str] = {}
+    for p in edits.pins:
+        if p.code not in needs:
+            warnings.append(Warning("pin_ignored", p.code, None,
+                                    f"Pin ignored: {p.code} is not something this student still needs"))
+        else:
+            pins.setdefault(p.code, parse_term(p.term).code)
+    holds = {h.code: parse_term(h.not_before) for h in edits.holds}
     if not needs:
         short = program.total_hours - (result.hours_done + result.hours_in_progress)
-        return Plan(start_term, [], None, complete=not warnings, warnings=warnings,
+        return Plan(start_term, [], None, complete=all(w.kind == "pin_ignored" for w in warnings), warnings=warnings,
                     free_elective_hours=max(0.0, short))
 
     unlocks = {c: _unlocks(c, needs, catalog) for c in needs}
@@ -285,16 +322,27 @@ def project(program: Program, catalog: Catalog, taken: list[Taken], result: Audi
     passed = _passed_before(taken)
     done_before: set[str] = set()  # planned in an earlier term
     first_ready: dict[str, str] = {}
-    remaining = list(order)
+    remaining = [c for c in order if c not in pins]
+    pending_pins = [c for c in order if c in pins]
     terms: list[PlannedTerm] = []
     t: Term = parse_term(start_term)
     hours_before = result.hours_done + result.hours_in_progress  # grows as terms are planned
     for _ in range(settings.horizon):
-        if not remaining:
+        if not remaining and not pending_pins:
             break
         placed: list[PlannedCourse] = []
         hours = 0.0
+        for code in [c for c in pending_pins if pins[c] == t.code]:  # the advisor's pins come first
+            n = needs[code]
+            credits = catalog.credits(code)
+            placed.append(PlannedCourse(code, catalog.courses[code].title, credits, list(n.counts_toward),
+                                        list(n.reasons) + [Reason("pinned", "Pinned by your advisor")],
+                                        pinned=True))
+            hours += credits
+            pending_pins.remove(code)
         for code in list(remaining):
+            if code in holds and t < holds[code]:
+                continue
             if not _prereqs_ok(code, catalog, passed, done_before):
                 continue
             if hours_before < catalog.min_hours.get(code, 0):
@@ -312,16 +360,22 @@ def project(program: Program, catalog: Catalog, taken: list[Taken], result: Audi
             needs_reasons = [Reason("needs", f"Needs {o}") for pg in catalog.prereqs.get(code, ())
                              if not any(p in passed and grades.meets(passed[p], pg.min_grade) for p in pg.any_of)
                              for o in pg.any_of if o in done_before][:2]
+            held = [Reason("held", f"Held until {holds[code].name} by your advisor")] if code in holds else []
             placed.append(PlannedCourse(code, catalog.courses[code].title, credits, list(n.counts_toward),
-                                        list(n.reasons) + needs_reasons, deferred))
+                                        list(n.reasons) + held + needs_reasons, deferred,
+                                        held_until=holds[code].code if code in holds else None))
             hours += credits
             remaining.remove(code)
         if placed:
             terms.append(PlannedTerm(t.code, t.name, placed, hours, hours < settings.min_hours))
             done_before |= {p.code for p in placed}
             hours_before += hours
-        t = next_term(t, settings.include_summer)
+        nxt = next_term(t, settings.include_summer)
+        # A pin may name a term the plan would skip (a summer with summers off): visit it too.
+        between = [parse_term(pins[c]) for c in pending_pins if t < parse_term(pins[c]) < nxt]
+        t = min(between) if between else nxt
 
+    remaining += pending_pins  # pins past the horizon (or before the start term) are reported below
     terms = _compact(terms, catalog, passed, result.hours_done + result.hours_in_progress, settings)
 
     for code in remaining:
@@ -339,6 +393,6 @@ def project(program: Program, catalog: Catalog, taken: list[Taken], result: Audi
     short = program.total_hours - (result.hours_done + result.hours_in_progress + planned_hours)
     # Every warning here is a requirement with no place in the plan, so its last term is not a
     # graduation term; there is none until an advisor resolves the warnings.
-    projected = terms[-1].term if terms and not warnings else None
+    projected = terms[-1].term if terms and not any(w.kind == "unplaceable" for w in warnings) else None
     return Plan(start_term, terms, projected, complete=False, warnings=warnings,
                 free_elective_hours=max(0.0, short))

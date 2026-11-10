@@ -153,3 +153,26 @@ class ChatUsage(db.Model):
     day = db.Column(db.Date, nullable=False)            # for clearing old rows
     units = db.Column(db.Integer, nullable=False, default=0)
     __table_args__ = (UniqueConstraint("period", "visitor"),)
+
+
+def _now():
+    return datetime.now(timezone.utc)
+
+
+class PlanEdits(db.Model):
+    """An advisor's changes to one student's plan (spec 06): inputs to the planner, never a plan."""
+    id = db.Column(db.Integer, primary_key=True)
+    student_key = db.Column(db.String(32), nullable=False, unique=True)  # student number (or demo id)
+    edits = db.Column(db.JSON, nullable=False)  # {"settings", "pins", "holds", "overload_note"}
+    updated_by = db.Column(db.String(120))  # typed name until real login (KAN-30)
+    updated_at = db.Column(db.DateTime(timezone=True), nullable=False, default=_now)
+
+
+class PlanApproval(db.Model):
+    """One approval of one exact plan (spec 06, US-6.4). Rows are only added, never changed."""
+    id = db.Column(db.Integer, primary_key=True)
+    student_key = db.Column(db.String(32), nullable=False, index=True)
+    fingerprint = db.Column(db.String(64), nullable=False)
+    approved_by = db.Column(db.String(120), nullable=False)
+    approved_at = db.Column(db.DateTime(timezone=True), nullable=False, default=_now)
+    note = db.Column(db.Text)
