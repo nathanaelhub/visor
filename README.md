@@ -2,7 +2,7 @@
 
 Course planning and transfer advising for Lipscomb University: a degree audit and a
 semester-by-semester plan to graduation, with the reason every course sits where it does, plus
-transfer-credit lookup and an AI assistant that explains the plan using your own Anthropic key.
+transfer-credit lookup and an AI assistant that explains the plan (it can read the plan, never change it).
 
 > **Showcase build.** This repository extends the
 > [Lunatic Labs Visor](https://github.com/Lunatic-Labs/Visor) Software Studio project. It was built
