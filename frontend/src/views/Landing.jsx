@@ -149,7 +149,7 @@ export default function Landing({ onStart, dark, setDark }) {
           <h2>A planner you can check</h2>
           <div className="grid">
             {[['book', 'Built on Lipscomb’s published 2026-27 catalog', 'Every rule traces back to a catalog page, and every judgment call is written down.'],
-              ['advisor', 'Advisors approve every plan', 'AI never decides a plan. Ask Visor only explains it, using your own API key.'],
+              ['advisor', 'Advisors approve every plan', 'AI never decides a plan. Ask Visor only explains it, using read-only access to the plan and catalog.'],
               ['lock', 'Demo uses fictional students only', 'No real student records appear in demo mode.']].map(([ic, t, d]) => (
               <div className="item" key={t}><span className="ic"><Icon name={ic} size={18} /></span><div><strong>{t}</strong><p className="muted" style={{ margin: '4px 0 0' }}>{d}</p></div></div>
             ))}
