@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { api, cleanName, gradName, hrs, termName, termsAfter } from '../lib.js'
 import { Bar, Chip, Icon, Pill, Spinner } from '../ui.jsx'
+import { transferStatus } from '../transferStatus.js'
 
 // My Plan (student) and an advisee's plan (advisor). Everything on this page comes from
 // POST /api/audit — the planner's own output; nothing here is computed in the browser.
@@ -106,6 +107,8 @@ function Plan({ r, story }) {
         </section>
       )}
 
+      {r.transfer.length > 0 && <TransferCredit rows={r.transfer} hours={r.transfer_hours} />}
+
       <div className="planlayout">
         <Requirements groups={r.groups} />
         <section aria-label="Semester plan" className="stack">
@@ -133,6 +136,34 @@ function Plan({ r, story }) {
         </section>
       </div>
     </>
+  )
+}
+
+function TransferCredit({ rows, hours }) {
+  const counted = rows.filter((t) => t.counted).length
+  return (
+    <section className="card table-card" aria-label="Transfer credit">
+      <div className="row" style={{ justifyContent: 'space-between', alignItems: 'baseline', padding: '16px 16px 4px', flexWrap: 'wrap', gap: 8 }}>
+        <h2 className="serif" style={{ fontSize: 24 }}>Transfer credit</h2>
+        <span className="small muted">{counted} of {rows.length} course{rows.length === 1 ? '' : 's'} count · {hrs(hours)} hrs</span>
+      </div>
+      <table className="tbl">
+        <thead><tr><th>Course</th><th className="hidem">School</th><th>Status</th><th>Why</th></tr></thead>
+        <tbody>
+          {rows.map((t) => {
+            const st = transferStatus(t)
+            return (
+              <tr key={`${t.school}|${t.external}`}>
+                <td><span className="mono">{t.external}</span>{t.title && <div className="small muted">{t.title}</div>}</td>
+                <td className="hidem small">{(t.school ?? 'Unknown school').replace(' Community College', '')}</td>
+                <td><Pill status={st.pill}>{st.label}</Pill></td>
+                <td className="small">{st.why}</td>
+              </tr>
+            )
+          })}
+        </tbody>
+      </table>
+    </section>
   )
 }
 

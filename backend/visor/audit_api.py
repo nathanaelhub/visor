@@ -284,5 +284,6 @@ def advisor_students():
                 "transfer_pending": any(t["status"] in ("proposed", "unknown") for t in r["transfer"]),
             },
             "first_warning": r["warnings"][0]["message"] if r["warnings"] else None,
+            "pending_transfer": sorted(t["external"] for t in r["transfer"] if t["status"] in ("proposed", "unknown")),
         })
     return jsonify(rows)
