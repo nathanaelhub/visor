@@ -127,3 +127,10 @@ def test_plan_checks_and_in_progress(demo_client):
     assert r["in_progress"]["term"] == "2026FA" and {c["code"] for c in r["in_progress"]["courses"]} >= {"CS 2243"}
     core = next(g for g in r["groups"] if g["id"] == "major-core")
     assert 0 < core["done_hours"] <= core["counted_hours"] <= core["required_hours"]
+
+
+def test_course_info_accepts_an_encoded_code(demo_client):
+    """Vercel passes the path through still URL-encoded: 'CS%202233' (#48)."""
+    for path in ["/api/courses/CS%2520%32233/info", "/api/courses/CS%25202233/info", "/api/courses/CS+2233/info"]:
+        r = demo_client.get(path)
+        assert r.status_code == 200 and r.get_json()["code"] == "CS 2233", path
