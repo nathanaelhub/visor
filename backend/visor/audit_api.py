@@ -17,6 +17,7 @@ import os
 import re
 from dataclasses import asdict
 from pathlib import Path
+from urllib.parse import unquote_plus
 
 from flask import Blueprint, jsonify, request
 
@@ -360,6 +361,7 @@ def course_info(code: str) -> dict | None:
 
 @bp.get("/courses/<path:code>/info")
 def get_course_info(code):
+    code = unquote_plus(code)  # Vercel passes the path through still encoded ("CS%202233"), #48
     info = course_info(code)
     return jsonify(info) if info else _err(f"{course_code(code)} is not in the catalog", 404)
 
