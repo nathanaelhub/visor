@@ -12,6 +12,9 @@ How it was read (2026-11-11 and 12):
 - Raw pages are cached in `data/private/scrape-cache/` (git-ignored), so the CSVs can be rebuilt with
   `python3 tools/scrape_external/scrape.py --parse-only` without asking the sites again.
 
+UT Knoxville writes credits before the description ("<strong>3</strong> Credit Hours") and marks some
+course numbers with an asterisk ("CMST 201*"); both are handled.
+
 What is kept: undergraduate, college-credit courses with subject, number, title, credits (the upper
 value of a range), the first 400 characters of the description, catalog year and source page.
 What is left out: learning-support courses (numbered 0xxx), anything numbered 500+ at a university,
@@ -23,7 +26,7 @@ duplicates, and courses whose credits could not be read (never guessed).
 | Volunteer State Community College | 2026-2027 Undergraduate Catalog | 7 | 653 | 25 |
 | Columbia State Community College | 2026-2027 Catalog and Student Handbook | 6 | 473 | 11 |
 | University of Tennessee at Chattanooga | 2026-2027 Undergraduate Catalog | 26 | 2,467 | 33, plus ESC 1250, INTS 4500 and UHON 3640R (no readable credits) |
-| University of Tennessee, Knoxville | 2026-2027 Undergraduate Catalog | 50 | in progress | follows in a separate PR |
+| University of Tennessee, Knoxville | 2026-2027 Undergraduate Catalog | 50 | 4,996 | ENGL 263, WGS 425 (no readable credits) |
 
 Catalog home pages: https://nscc.catalog.acalog.com, https://catalog.volstate.edu,
 https://catalog.columbiastate.edu, https://utc.catalog.acalog.com, https://catalog.utk.edu

@@ -164,6 +164,12 @@ def run(client, jobs: list, out_csv: Path, poll: int = 30, log=print) -> dict:
             dropped.append((res.custom_id, why))
             continue
         rows.append({"school": ext["school"], "external": f"{ext['subject']} {ext['number']}", **row})
+    # A run for some schools replaces only their rows; other schools' proposals are kept.
+    new = list(rows)
+    asked = {j[1]["school"] for j in jobs}
+    if out_csv.exists():
+        with open(out_csv, newline="") as f:
+            rows += [r for r in csv.DictReader(f) if r["school"] not in asked]
     rows.sort(key=lambda r: (r["school"], r["external"]))
     with open(out_csv, "w", newline="") as f:
         w = csv.DictWriter(f, fieldnames=["school", "external", "lipscomb", "kind", "confidence", "reason"])
@@ -171,9 +177,9 @@ def run(client, jobs: list, out_csv: Path, poll: int = 30, log=print) -> dict:
         w.writerows(rows)
     for cid, why in dropped:
         log(f"  dropped {cid}: {why}")
-    return {"batch": batch.id, "proposals": len(rows), "dropped": len(dropped),
-            "direct": sum(r["kind"] == "direct" for r in rows), "elective": sum(r["kind"] == "elective" for r in rows),
-            "none": sum(r["kind"] == "none" for r in rows)}
+    return {"batch": batch.id, "proposals": len(new), "dropped": len(dropped),
+            "direct": sum(r["kind"] == "direct" for r in new), "elective": sum(r["kind"] == "elective" for r in new),
+            "none": sum(r["kind"] == "none" for r in new)}
 
 
 def client_from_env():
