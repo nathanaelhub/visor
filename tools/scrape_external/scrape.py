@@ -33,7 +33,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 OUT = ROOT / "data" / "external"
 CACHE = ROOT / "data" / "private" / "scrape-cache"
-BROWSER_HOSTS = {"nscc", "columbiastate", "utk", "utc"}  # their course pages answer with a challenge
+BROWSER_HOSTS = {"nscc", "columbiastate", "utk", "utc", "mtsu"}  # their course pages answer with a challenge
 BROWSER = ROOT / "tools" / "scrape_lipscomb" / "scrape.mjs"  # headless fetch for challenge pages
 AGENT = "VisorCatalogReader/0.1 (Lipscomb University student project; public course lists only)"
 
@@ -54,6 +54,7 @@ SCHOOLS = [
            "community_college"),
     School("utk", "University of Tennessee, Knoxville", "https://catalog.utk.edu", "university"),
     School("utc", "University of Tennessee at Chattanooga", "https://utc.catalog.acalog.com", "university"),
+    School("mtsu", "Middle Tennessee State University", "https://mtsu.catalog.acalog.com", "university"),
 ]
 
 
