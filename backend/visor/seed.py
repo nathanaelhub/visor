@@ -207,6 +207,7 @@ def load_external_catalogs(root: str | Path) -> dict[str, int]:
 
 
 def load_proposals(path: str | Path) -> int:
+    from .propose import clean
     """Load Claude's proposed equivalencies (data/external/proposed_equivalencies.csv, spec 07 US-7.2).
 
     Every row becomes ``status = proposed``, ``source = ai_proposed`` with no ``decided_by``: nothing
@@ -236,7 +237,7 @@ def load_proposals(path: str | Path) -> int:
             db.session.add(Equivalency(external_course_id=ext.id, course_id=course.id if course else None,
                                        kind=r["kind"], status="proposed", source="ai_proposed",
                                        confidence=float(r["confidence"]) if r["confidence"] else None,
-                                       decided_by=None, notes=f"Proposed by Claude: {r['reason']}"))
+                                       decided_by=None, notes=f"Proposed by Claude: {clean(r['reason'])}"))
             added += 1
     db.session.commit()
     return added
