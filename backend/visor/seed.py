@@ -164,3 +164,43 @@ def load_equivalencies(data_dir: str | Path) -> dict[str, int]:
 
     db.session.commit()
     return counts
+
+
+def load_external_catalogs(root: str | Path) -> dict[str, int]:
+    """Load the scraped course lists in data/external/<slug>/courses.csv (spec 07, US-7.1).
+
+    Schools come from data/external/schools.csv and are created if missing. A course already in the
+    database for the same school, code and catalog year is left alone, so this is idempotent and never
+    touches rows the demo or the SIS import added. Returns rows added per school slug."""
+    root = Path(root)
+    counts: dict[str, int] = {}
+    with open(root / "schools.csv", newline="") as f:
+        schools = list(csv.DictReader(f))
+    for s in schools:
+        path = root / s["slug"] / "courses.csv"
+        if not path.exists():
+            continue
+        school = School.query.filter_by(name=s["name"]).first()
+        if school is None:
+            school = School(name=s["name"], state=s["state"] or None, kind=s["kind"], catalog_url=s["catalog_url"])
+            db.session.add(school)
+            db.session.flush()
+        elif not school.catalog_url:
+            school.catalog_url = s["catalog_url"]
+        have = {(e.subject, e.number, e.catalog_year)
+                for e in ExternalCourse.query.filter_by(school_id=school.id).all()}
+        added = 0
+        with open(path, newline="") as f:
+            for r in csv.DictReader(f):
+                key = (r["subject"], r["number"], r["catalog_year"])
+                if key in have:
+                    continue
+                have.add(key)
+                db.session.add(ExternalCourse(school_id=school.id, subject=r["subject"], number=r["number"],
+                                              title=r["title"][:160], credits=float(r["credits"]) if r["credits"] else None,
+                                              description=r["description"] or None, catalog_year=r["catalog_year"],
+                                              source_url=r["source_url"] or None))
+                added += 1
+        counts[s["slug"]] = added
+    db.session.commit()
+    return counts

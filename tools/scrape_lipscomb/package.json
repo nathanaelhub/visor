@@ -1,0 +1,9 @@
+{
+  "name": "visor-scrape-lipscomb",
+  "private": true,
+  "type": "module",
+  "description": "Reads catalog.lipscomb.edu pages with a headless browser (the site serves a JavaScript challenge). See scrape.mjs.",
+  "dependencies": {
+    "playwright-core": "1.48.2"
+  }
+}
