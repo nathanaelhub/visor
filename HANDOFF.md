@@ -1,6 +1,6 @@
 # Handoff: Visor showcase
 
-Updated: 2026-11-06
+Updated: 2026-11-12
 
 ## What this is
 
@@ -65,35 +65,39 @@ issue → `type/desc` branch → failing-test commit → fix commit → PR (temp
   prompt-extraction attempts. The guards (403 for a foreign or missing origin, 400 for an oversized
   question) and the model picker were checked in a browser.
 
+## Finished since 2026-11-06
+
+- **Transcript upload (US-5.7)**: spec #30, code #33. The public site reads only bundled fictional transcripts.
+- **Small fixes**: landing page and README (#35); flag message (#36); every transfer course shown on the plan (#37); course info failing live because Vercel passes the path encoded (#49).
+- **Spec 06, advisor edits and approval** (#38, #39): advisors change settings, pin or hold courses, and approve. Approvals are tied to a fingerprint and go stale when the plan changes. Edits save with the write token; on the public demo they stay in the tab.
+- **Spec 07** (#41–#45, #47, #50):
+  - **Majors**: Biology, Management (B.B.A., standing in for "Business Administration"), Nursing (BSN) and Psychology, with 8 more fictional students (13 in total). There are 35 judgment calls at the end of `data/catalog/2026-27/notes.md` to confirm with the department.
+  - **Planner**: free-elective slots so students reach class standing; Nursing's admission gate is shown as a notice, not enforced.
+  - **Transfer schools**: course lists for Nashville State, Vol State, Columbia State, UT Chattanooga and UT Knoxville, 9,183 courses in `data/external/`. They come from public catalogs, read at each site's 120-second crawl-delay.
+  - **Claude-proposed equivalencies**: 2,983 answers (Batches API), stored only as `proposed / ai_proposed`, and shown on the Transfer page as "Proposed by Claude · needs a person to confirm".
+  - **Transcripts from other schools**: the transfer blocks keep their own schools, rows stream live as Claude reads, and a file picker appears only where uploads are open. There are 6 fictional test transcripts (scanned style) in `data/test-transcripts/`; the eval read 57/57 rows exactly.
+  - **The real MTSU sample** lives only in `data/private/transcripts/` (git-ignored, never committed or deployed).
+
 ## In progress / unfinished
 
-- **PR #30: spec US-5.7, transcript upload** (issue #29). It is open and waiting for Nathanael's
-  approval. **Decision needed:** should the public site accept any uploaded file (labelled
-  "fictional only"), or only the three bundled demo transcripts? Real transcripts are FERPA Level 4
-  and need IT sign-off from Brett Hanson. No code is written yet.
-- **Open issues:**
-  - #20: on the live site, "Flag for review" shows a token error. Writes are correctly closed; the
-    message needs fixing.
-  - #2: the plan page hides transfer courses that don't count. Needs a layout decision.
-  - #8: spec 06, advisor editing and approval. Needs Nathanael's decisions.
-- **The Ask Visor key expires around 2026-12-05.** Get a replacement before then. The old key was
-  pasted in chat, so it lives in that session's transcript.
+- No open issues.
+- **The Ask Visor key expires around 2026-12-05.** Replace `VISOR_ANTHROPIC_API_KEY` in Vercel production before then.
+- The browser can't send the write token yet, so advisor saves and uploads from the UI only work in local dev until real login exists (KAN-30).
+- Most Claude proposals are "elective" because Visor's catalog holds only the five majors' Lipscomb courses. Adding more Lipscomb prefixes would turn many into direct matches.
 
 ## Next steps
 
-1. Get the US-5.7 decision, merge PR #30, then build transcript upload test-first. That includes the
-   three fictional transcripts in `data/demo/transcripts/`.
-2. Fix #20, so the live site says flagging is turned off in the public demo.
-3. Before about 2026-12-05, replace `VISOR_ANTHROPIC_API_KEY` in Vercel production. Suggest a
-   dedicated key in its own Console workspace with a monthly spend cap.
-4. Decide and do #2 and #8 (spec 06).
+1. Get the department or advising office to confirm the judgment calls in `data/catalog/2026-27/notes.md` (the four new majors).
+2. Replace the Ask Visor key before about 2026-12-05.
+3. Optional: read more Lipscomb course prefixes, then rerun `flask propose-equivalencies --school <slug>` (it replaces only that school's rows).
+4. Optional: the next schools on Ms. Hood's list (Harding, Tennessee State, MTSU …) with `tools/scrape_external/scrape.py`.
 
 ## Run and test
 
 ```bash
 # backend (venv at backend/.venv)
 cd backend
-.venv/bin/ruff check . && .venv/bin/python -m pytest -q          # 141 tests
+.venv/bin/ruff check . && .venv/bin/python -m pytest -q          # 238 tests
 DATABASE_URL=sqlite:///visor-demo.db VISOR_DATA_DIR=../data/catalog/2026-27 \
   VISOR_EQUIV_DATA_DIR=../data/demo .venv/bin/flask --app wsgi seed
 .venv/bin/flask --app wsgi run --debug --port 5050                # macOS: 5000 is AirPlay
@@ -105,8 +109,24 @@ VITE_API_URL=http://localhost:5050 npm run dev
 ```
 
 Deploying: merging to `main` deploys automatically. By hand, from the repo root on `main`:
-`vercel deploy --prod`. To re-seed Neon, pull the production env to a file outside the repo, then run
-`flask seed` with `DATABASE_URL` set to `DATABASE_URL_UNPOOLED` from that file.
+`vercel deploy --prod`.
+
+Production data is seeded by hand after data changes. Pull the production env to a file outside the
+repo, then run `flask --app wsgi seed` from `backend/` with `DATABASE_URL` set to
+`DATABASE_URL_UNPOOLED` from that file, plus `VISOR_DATA_DIR=../data/catalog/2026-27` and
+`VISOR_EQUIV_DATA_DIR=../data/demo`. It is idempotent: it loads the external catalogs and Claude's
+proposals too.
+
+Data tools (all read caches in git-ignored `data/private/scrape-cache/`; `--parse-only` makes no requests):
+
+```bash
+python3 tools/scrape_external/scrape.py [slug ...] [--parse-only]   # transfer schools
+cd tools/scrape_lipscomb && npm install && node scrape.mjs name=URL ...  # Lipscomb pages (headless)
+python3 tools/scrape_lipscomb/build_programs.py                      # the four new majors
+python3 data/test-transcripts/build.py                               # fictional test transcripts
+cd backend && flask --app wsgi propose-equivalencies [--school s] [--dry-run]   # Batches API, costs money
+cd backend && flask --app wsgi transcript-eval ../data/test-transcripts         # real API, costs cents
+```
 
 ## Outside the repo
 
