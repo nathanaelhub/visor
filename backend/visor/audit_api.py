@@ -12,6 +12,7 @@ from __future__ import annotations
 import hashlib
 import json
 import os
+import re
 from dataclasses import asdict
 from pathlib import Path
 
@@ -60,12 +61,26 @@ def course_code(raw: str) -> str:
 # --- Transfer --------------------------------------------------------------------------------------
 
 
+_ABBREV = {"st": "state", "cmty": "community", "comm": "community", "coll": "college", "univ": "university",
+           "u": "university", "tech": "technical", "cc": "community college", "&": "and"}
+
+
+def school_key(name: str) -> str:
+    """'COLUMBIA ST. CMTY COLL.' -> 'columbia state community college': how scans abbreviate names."""
+    words = re.sub(r"[^a-z& ]", " ", name.lower().replace(",", " ")).split()
+    return " ".join(_ABBREV.get(w, w) for w in words)
+
+
 def find_school(school_id=None, name: str | None = None) -> School | None:
     if isinstance(school_id, int):
         return db.session.get(School, school_id)
     if name:
-        n = name.strip().lower()
-        return next((s for s in School.query.all() if s.name.lower() == n or n in s.name.lower()), None)
+        n = school_key(name)
+        if not n:
+            return None
+        schools = School.query.all()
+        return (next((s for s in schools if school_key(s.name) == n), None)
+                or next((s for s in schools if n in school_key(s.name)), None))
     return None
 
 

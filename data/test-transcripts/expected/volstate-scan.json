@@ -1,0 +1,47 @@
+{
+  "issuing_school": "Volunteer State Community College",
+  "student_name": "Marisol D. Achterberg",
+  "courses": [
+    {
+      "code": "BIOL 1110",
+      "grade": "B",
+      "credits": 4
+    },
+    {
+      "code": "ENGL 1010",
+      "grade": "A",
+      "credits": 3
+    },
+    {
+      "code": "MATH 1530",
+      "grade": "C",
+      "credits": 3
+    },
+    {
+      "code": "PSYC 1030",
+      "grade": "B",
+      "credits": 3
+    },
+    {
+      "code": "BIOL 1120",
+      "grade": "C+",
+      "credits": 4
+    },
+    {
+      "code": "CHEM 1110",
+      "grade": "D",
+      "credits": 4
+    },
+    {
+      "code": "SOCI 1010",
+      "grade": "A",
+      "credits": 3
+    },
+    {
+      "code": "CHEM 1110",
+      "grade": "B",
+      "credits": 4
+    }
+  ],
+  "transfer": []
+}

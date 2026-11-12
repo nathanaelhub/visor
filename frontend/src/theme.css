@@ -304,3 +304,11 @@ select.field { padding-right: 32px; }
 .chat-drawer .chat-head { flex-wrap: nowrap; padding: 10px 12px 10px 20px; }
 .chat-drawer .chat-head .pill { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
 .chat-drawer .chat-head .btn2 { padding: 0 12px; }
+
+/* Watching a transcript being read (spec 07, US-7.4) */
+.live-read { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 20px; align-items: start; }
+.live-rows { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; font-size: 14px; max-height: 420px; overflow: auto; }
+.live-rows li { padding: 6px 10px; border: 1px solid var(--ln); border-radius: 8px; animation: rowin .25s ease-out; }
+@keyframes rowin { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .live-rows li { animation: none; } }
+@media (max-width: 760px) { .live-read { grid-template-columns: minmax(0, 1fr); } }

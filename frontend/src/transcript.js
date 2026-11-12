@@ -29,3 +29,40 @@ export function toStudent(record, taken, transfer) {
   })
   return { student: { ...record, taken: outTaken, transfer: outTransfer }, problems }
 }
+
+/** Split streamed NDJSON text into complete lines and the unfinished rest (spec 07, US-7.4). */
+export function ndjsonLines(buffer) {
+  const parts = buffer.split('\n')
+  const rest = parts.pop()
+  return [parts.filter((l) => l.trim()).map((l) => JSON.parse(l)), rest]
+}
+
+/** POST a transcript read with ?stream=1 and call onRow for each row as Claude reads it.
+ *  Resolves to the final result; rejects with { message, code, status } like api(). */
+export async function streamRead(body, headers, onRow) {
+  const isForm = typeof FormData !== 'undefined' && body instanceof FormData
+  const r = await fetch('/api/transcript?stream=1', {
+    method: 'POST', body: isForm ? body : JSON.stringify(body),
+    headers: isForm ? headers : { 'Content-Type': 'application/json', ...headers },
+  })
+  if (!r.ok) {
+    let data = null
+    try { data = await r.json() } catch { /* empty */ }
+    throw Object.assign(new Error(data?.message || `HTTP ${r.status}`), { status: r.status, code: data?.error, data })
+  }
+  const reader = r.body.getReader()
+  const dec = new TextDecoder()
+  let buf = ''
+  for (;;) {
+    const { done, value } = await reader.read()
+    if (value) buf += dec.decode(value, { stream: true })
+    const [events, rest] = ndjsonLines(done ? `${buf}\n` : buf)
+    buf = rest
+    for (const e of events) {
+      if (e.type === 'row') onRow(e)
+      if (e.type === 'done') return e.result
+      if (e.type === 'error') throw Object.assign(new Error(e.message || 'Could not read that transcript'), { status: e.status, code: e.error })
+    }
+    if (done) throw new Error('The read ended before Claude finished.')
+  }
+}

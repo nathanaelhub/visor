@@ -23,3 +23,14 @@ test('emptied rows are dropped, bad ones are reported', () => {
   assert.equal(student.taken.length, 1)
   assert.equal(problems.length, 3)
 })
+
+import { ndjsonLines } from './transcript.js'
+
+test('streamed lines are parsed only once complete', () => {
+  const [a, rest] = ndjsonLines('{"type":"row","row":{"code":"ENGL 1010"}}\n{"type":"ro')
+  assert.equal(a.length, 1)
+  assert.equal(a[0].row.code, 'ENGL 1010')
+  const [b, rest2] = ndjsonLines(`${rest}w","row":{"code":"MATH 1910"}}\n`)
+  assert.equal(b[0].row.code, 'MATH 1910')
+  assert.equal(rest2, '')
+})
