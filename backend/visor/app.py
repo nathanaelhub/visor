@@ -81,9 +81,12 @@ def create_app(config: dict | None = None) -> Flask:
     @app.cli.command("seed")
     def seed_cmd():
         """Load the sample CSVs in data/sample into the database."""
-        from .seed import load, load_equivalencies
+        from .seed import load, load_equivalencies, load_external_catalogs
         print(load(os.environ.get("VISOR_DATA_DIR", DEFAULT_DATA)))
         print(load_equivalencies(os.environ.get("VISOR_EQUIV_DATA_DIR", DEFAULT_EQUIV_DATA)))
+        external = Path(os.environ.get("VISOR_EXTERNAL_DIR", Path(__file__).resolve().parents[2] / "data" / "external"))
+        if (external / "schools.csv").exists():
+            print(load_external_catalogs(external))
 
     @app.cli.command("import-sis")
     @click.argument("path", type=click.Path(exists=True, dir_okay=False))
