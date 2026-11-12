@@ -135,3 +135,24 @@ def test_ai_proposals_never_count(app, tmp_path):
     t = r["transfer"][0]
     assert t["status"] == "proposed" and t["counts_as"] == "CS 2233" and not t["counted"]
     assert "CS 2233" not in {u["code"] for g in r["groups"] for u in g["used"]}
+
+
+def test_reasons_lose_control_characters(app, tmp_path):
+    """Postgres rejects NUL bytes in text; one of Claude's reasons had one (#46)."""
+    row, _ = checked({"kind": "elective", "lipscomb_code": None, "confidence": 0.5, "reason": "versus L\x00ipscomb\x07"}, [])
+    assert row["reason"] == "versus Lipscomb"
+    nscc = School.query.filter_by(name="Nashville State Community College").one()
+    db.session.add(ExternalCourse(school_id=nscc.id, subject="CISP", number="2410", title="Java II", credits=4,
+                                  catalog_year="2026"))
+    db.session.commit()
+    p = tmp_path / "p.csv"
+    write_proposals(p, [{"school": nscc.name, "external": "CISP 2410", "lipscomb": "CS 2233", "kind": "direct",
+                         "confidence": "0.7", "reason": "bad\x00byte"}])
+    load_proposals(p)
+    assert "\x00" not in Equivalency.query.filter_by(source="ai_proposed").one().notes
+
+
+def test_committed_proposals_are_clean():
+    import re
+    text = (ROOT / "data" / "external" / "proposed_equivalencies.csv").read_text()
+    assert not re.search(r"[\x00-\x08\x0b\x0c\x0e-\x1f]", text)
