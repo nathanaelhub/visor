@@ -28,7 +28,7 @@ def test_external_catalogs_are_clean(slug):
     for c in courses:
         assert re.fullmatch(r"[A-Z][A-Z&]{1,5}", c["subject"]) and re.match(r"\d", c["number"]), c
         assert not c["number"].startswith("0"), "learning-support courses are not college credit"
-        assert c["title"] and c["credits"] and float(c["credits"]) > 0, c
+        assert c["title"] and c["credits"] and float(c["credits"]) >= 0, c  # 0-credit courses exist (portfolio reviews)
         assert re.fullmatch(r"20\d\d", c["catalog_year"]) and c["source_url"].startswith("https://"), c
         assert len(c["description"]) <= 400
 
@@ -56,8 +56,8 @@ def test_seed_loads_external_catalogs(app):
 
 def test_lookup_shows_scraped_title(app):
     load_external_catalogs(EXTERNAL)
-    school = School.query.filter_by(name="University of Tennessee, Knoxville").one()
-    course = rows("utk")[0]
+    school = School.query.filter_by(name="University of Tennessee at Chattanooga").one()
+    course = rows("utc")[0]
     r = app.test_client().post("/api/equivalencies/lookup", json={
         "school_id": school.id, "subject": course["subject"], "number": course["number"]})
     body = r.get_json()

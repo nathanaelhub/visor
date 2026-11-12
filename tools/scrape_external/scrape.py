@@ -33,6 +33,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 OUT = ROOT / "data" / "external"
 CACHE = ROOT / "data" / "private" / "scrape-cache"
+BROWSER_HOSTS = {"nscc", "columbiastate", "utk", "utc"}  # their course pages answer with a challenge
 BROWSER = ROOT / "tools" / "scrape_lipscomb" / "scrape.mjs"  # headless fetch for challenge pages
 AGENT = "VisorCatalogReader/0.1 (Lipscomb University student project; public course lists only)"
 
@@ -65,6 +66,7 @@ class Fetcher:
         self.cache.mkdir(parents=True, exist_ok=True)
         self.robots = urllib.robotparser.RobotFileParser(f"{school.base}/robots.txt")
         self.delay = 0.0
+        self.browser_only = school.slug in BROWSER_HOSTS
         if not offline:
             self.robots.read()
             self.delay = float(self.robots.crawl_delay("*") or 1)
@@ -83,15 +85,19 @@ class Fetcher:
         if wait > 0:
             print(f"  waiting {wait:.0f}s (crawl-delay {self.delay:g}s)", flush=True)
             time.sleep(wait)
-        req = urllib.request.Request(url, headers={"User-Agent": AGENT})
-        with urllib.request.urlopen(req, timeout=90) as r:
-            body = r.read().decode("utf-8", errors="replace") if r.status == 200 else ""
-        self.last = time.monotonic()
+        body = ""
+        if not self.browser_only:
+            req = urllib.request.Request(url, headers={"User-Agent": AGENT})
+            with urllib.request.urlopen(req, timeout=90) as r:
+                body = r.read().decode("utf-8", errors="replace") if r.status == 200 else ""
+            self.last = time.monotonic()
         if not body.strip():
-            # An empty 202 is a JavaScript challenge: load the page in a headless browser instead,
-            # after another full crawl-delay, since that counts as a second request.
-            print(f"  {url} needs a browser; waiting {self.delay:g}s", flush=True)
-            time.sleep(self.delay)
+            # An empty 202 is a JavaScript challenge: load the page in a headless browser instead.
+            # Once a host has challenged us, go straight to the browser (one request per page, not two).
+            if not self.browser_only:
+                print(f"  {url} needs a browser; waiting {self.delay:g}s", flush=True)
+                time.sleep(self.delay)
+                self.browser_only = True
             subprocess.run(["node", str(BROWSER), f"{name}={url}"], check=True, capture_output=True,
                            env={**os.environ, "CACHE_DIR": str(self.cache)})
             self.last = time.monotonic()
@@ -143,9 +149,24 @@ def parse_courses(page: str) -> list[dict]:
         body = re.split(r"<h3>|</li>", rest)[0]
         cred = re.search(r"Credit(?:s| Hours| Hour\(s\))?:?\s*(?:</strong>)?\s*(?:<strong>)?\s*\(?\s*"
                          r"(\d+(?:\.\d+)?)(?:\s*(?:-|–|to|or)\s*(\d+(?:\.\d+)?))?", body)
-        desc = _text(re.split(r"<strong>", body.split("<hr>", 1)[-1])[0])
-        out.append({"subject": m[1], "number": m[2], "title": m[3].strip(" *"),
-                    "credits": (cred[2] or cred[1]) if cred else "", "description": desc[:400]})
+        after = body.split("<hr>", 1)[-1]
+        if cred is None:  # "(Honors Option Offered)<br>3 Credits *<br>2 Class Hours<br><br>description" (Nashville State)
+            cred = re.search(r"\(?(\d+(?:\.\d+)?)(?:\s*(?:-|–|to)\s*(\d+(?:\.\d+)?))?\)?\s*Credits?\b",
+                             _text(after[:300]))
+            lines = re.split(r"<br\s*/?>", after)
+            header = re.compile(r"\(.*\)(?:\s*Credits?\b.*)?|\d[\d.\s*–-]*(?:to\s*\d+\s*)?(?:Credits?\b.*)?|"
+                                r"\d.*\bHours?\b.*|")
+            while lines and len(_text(lines[0])) < 70 and header.fullmatch(_text(lines[0])):
+                bare = re.fullmatch(r"(\d+(?:\.\d+)?)", _text(lines[0]))
+                if cred is None and bare:  # "2<br>15 private lesson hours" (applied music)
+                    cred = bare
+                lines.pop(0)
+            # The description is the longest paragraph before the prerequisites, not an availability note.
+            paras = [x for x in re.split(r"<br\s*/?>", re.split(r"<strong>", "<br>".join(lines))[0]) if _text(x)]
+            after = max(paras, key=lambda x: len(_text(x))) if paras else ""
+        desc = _text(re.split(r"<strong>", after)[0])
+        out.append({"subject": m[1], "number": m[2], "title": m[3].strip(" *^"),
+                    "credits": ((cred.re.groups > 1 and cred[2]) or cred[1]) if cred else "", "description": desc[:400]})
     return out
 
 
@@ -169,11 +190,14 @@ def scrape(school: School, offline: bool) -> dict:
                      f"courses-{catoid}-{n}")
         courses += parse_courses(page)
     year = re.search(r"(20\d\d)", title)
-    seen, rows, skipped = set(), [], 0
+    seen, rows, skipped, no_credits = set(), [], 0, []
     for c in courses:
         key = (c["subject"], c["number"])
         if key in seen or not undergraduate(c, school.kind):
             skipped += 1
+            continue
+        if not c["credits"]:
+            no_credits.append(f"{c['subject']} {c['number']}")  # never guessed; listed in sources.md
             continue
         seen.add(key)
         rows.append({**c, "catalog_year": year[1] if year else "", "source_url": urllib.parse.urljoin(school.base, path)})
@@ -184,7 +208,7 @@ def scrape(school: School, offline: bool) -> dict:
         w.writeheader()
         w.writerows(sorted(rows, key=lambda r: (r["subject"], r["number"])))
     return {"school": school.name, "catalog": title, "pages": pages, "courses": len(rows), "skipped": skipped,
-            "no_credits": sum(1 for r in rows if not r["credits"])}
+            "no_credits": no_credits}
 
 
 def main(argv: list[str]) -> None:
