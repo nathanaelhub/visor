@@ -80,7 +80,22 @@ equivalencies for them (people confirm), and read realistic, messy, fictional tr
    with its answer (codes, grades, credits, schools), with accuracy printed per transcript. It costs
    cents and is run by a person, never in CI.
 
-## Design
+### US-7.6 Student / advisor: start from a transcript inside Ask Visor
+
+Added 2026-11-12 (Nathanael: "upload and ask questions on it, going straight there").
+
+1. **Given** Ask Visor, **then** a 📎 button in the composer offers the same transcripts as "Start from
+   a transcript": the bundled fictional ones everywhere, and a file picker only where uploads are open
+   (US-7.4). No new server route; it uses `POST /api/transcript?stream=1`.
+2. **Given** a transcript being read, **then** its rows appear in the chat as Claude reads them, then the
+   same editable review (major picker included). Nothing is used until **Use this record** is pressed
+   (US-5.7: Visor never acts on a transcript nobody checked).
+3. **Given** **Use this record**, **then** the chat's student becomes that record (for an advisor, the
+   advisee in context), a new conversation starts with a note "Using <name>'s transcript", and every
+   answer comes from the planner run on that record, as for a demo student.
+4. **Given** the chat, **then** nothing about the transcript is stored on the server (US-5.7, criterion 4).
+   Saved chats and an admin-readable conversation log need login first (planned spec 08 and spec 09).
+
 
 ### Data layout
 
