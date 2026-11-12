@@ -1,0 +1,64 @@
+{
+  "id": "demo-07",
+  "student_number": "L00462218",
+  "name": "Grant Whitfield (fictional)",
+  "story": "Transferring from Vol State with a year of biology and chemistry. Most of his transfer credit has no Lipscomb equivalent on file yet.",
+  "program_id": "bio-bs-2026-27",
+  "start_term": "2027SP",
+  "taken": [
+    {
+      "code": "LU 1303",
+      "grade": null
+    },
+    {
+      "code": "BY 2114",
+      "grade": null
+    },
+    {
+      "code": "CM 2113",
+      "grade": null
+    },
+    {
+      "code": "CM 2211",
+      "grade": null
+    }
+  ],
+  "transfer": [
+    {
+      "school": "Volunteer State Community College",
+      "subject": "BIOL",
+      "number": "1110",
+      "grade": "B"
+    },
+    {
+      "school": "Volunteer State Community College",
+      "subject": "BIOL",
+      "number": "1120",
+      "grade": "B+"
+    },
+    {
+      "school": "Volunteer State Community College",
+      "subject": "CHEM",
+      "number": "1110",
+      "grade": "B"
+    },
+    {
+      "school": "Volunteer State Community College",
+      "subject": "CHEM",
+      "number": "1120",
+      "grade": "C+"
+    },
+    {
+      "school": "Volunteer State Community College",
+      "subject": "ENGL",
+      "number": "1010",
+      "grade": "A"
+    },
+    {
+      "school": "Volunteer State Community College",
+      "subject": "MATH",
+      "number": "1130",
+      "grade": "B"
+    }
+  ]
+}

@@ -1,6 +1,23 @@
 course,min_hours,why
 ENGR 3993,60,"Core page: Virtue, Flourishing & Vocation is taken during the junior or senior year"
-CCT 395V,60,"Catalog prerequisite: junior standing and permission of the program director"
-CCT 405V,90,"Catalog prerequisite: senior standing and 30 hours of Computer Science courses"
-IT 4423,60,"Catalog prerequisite: junior standing and IT 3413"
-PS 4613,90,"Catalog prerequisite: senior standing"
+CCT 395V,60,Catalog prerequisite: junior standing and permission of the program director
+CCT 405V,90,Catalog prerequisite: senior standing and 30 hours of Computer Science courses
+IT 4423,60,Catalog prerequisite: junior standing and IT 3413
+PS 4613,90,Catalog prerequisite: senior standing
+BY 2114,30,Catalog prerequisite: BY 1134 with a minimum grade of “C” and sophomore standing (minimum 30 hours in progress or completed at time of enrollm
+BY 3114,30,Catalog prerequisite: BY 1134 with a minimum grade of “C” and sophomore standing (minimum 30 hours in progress or completed at time of enrollm
+BY 4803,90,Catalog prerequisite: senior standing and a minimum grade of “C” in all major core courses
+BY 3323,60,Catalog prerequisite: BY 2114 with a minimum grade of “C” and junior standing or permission of instructor
+BY 3903,60,"Catalog prerequisite: Junior standing, completion of at least 19 hours of biology course work, and permission of the academic chair"
+BI 3433,60,"Core page: the Virtue, Flourishing & Vocation course is taken in the junior or senior year"
+NURS 3553,90,"Catalog prerequisite: BY2434 or BY3514 *This course satisfies the NURS 46nV Special Topics in Nursing requirement, typically completed the las"
+AC 2503,30,Catalog prerequisite: Sophomore standing. For students planning on majoring in accounting a “B” or better in AC 2503 is required for AC 3503
+BA 3703,30,"Catalog prerequisite: ( EN 1113 or EN 1223 , ( CO 1223 or LU 1023 and Sophomore standing"
+BA 4503,90,"Catalog prerequisite: Senior standing, FI 3503"
+DS 3403,30,"Catalog prerequisite: DS 2503 , MA 2183 , Sophomore standing"
+FI 3503,30,"Catalog prerequisite: Sophomore standing, AC 2503 , and successful completion of the college of business spreadsheet pre-test"
+MG 3503,30,Catalog prerequisite: Sophomore standing
+MG 3613,30,Catalog prerequisite: Sophomore standing
+MK 3503,30,Catalog prerequisite: Sophomore standing
+OSCM 3503,30,"Catalog prerequisite: Sophomore standing and ( MA 2183 , MG2013 or MG 3013)"
+BA 3603,30,Catalog prerequisite: Sophomore standing

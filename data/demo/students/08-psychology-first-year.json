@@ -1,0 +1,31 @@
+{
+  "id": "demo-08",
+  "student_number": "L00470356",
+  "name": "Harper Delacroix (fictional)",
+  "story": "First-year Psychology major, first semester in progress.",
+  "program_id": "psych-bs-2026-27",
+  "start_term": "2027SP",
+  "taken": [
+    {
+      "code": "LU 1303",
+      "grade": null
+    },
+    {
+      "code": "PS 1113",
+      "grade": null
+    },
+    {
+      "code": "LU 1013",
+      "grade": null
+    },
+    {
+      "code": "BI 1093",
+      "grade": null
+    },
+    {
+      "code": "MA 1113",
+      "grade": null
+    }
+  ],
+  "transfer": []
+}

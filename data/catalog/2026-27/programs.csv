@@ -1,2 +1,6 @@
 id,name,degree,catalog_year,total_hours,source,reviewed_on
 cs-bs-2026-27,Computer Science,B.S.,2026-27,127,https://catalog.lipscomb.edu/preview_program.php?catoid=33&poid=11188,2026-09-27
+bio-bs-2026-27,Biology,B.S.,2026-27,126,https://catalog.lipscomb.edu/preview_program.php?catoid=33&poid=11055,2026-11-12
+psych-bs-2026-27,Psychology,B.S.,2026-27,126,https://catalog.lipscomb.edu/preview_program.php?catoid=33&poid=10973,2026-11-12
+nursing-bsn-2026-27,Nursing,B.S.N.,2026-27,128,https://catalog.lipscomb.edu/preview_program.php?catoid=33&poid=11170,2026-11-12
+mgmt-bba-2026-27,Management,B.B.A.,2026-27,126,https://catalog.lipscomb.edu/preview_program.php?catoid=33&poid=11132,2026-11-12

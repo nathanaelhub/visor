@@ -32,7 +32,7 @@ export default function MyPlan({ student, mode, onAsk, onBack, onTranscript, edi
         <div style={{ flex: '1 1 420px' }}>
           <h1 className="h1">{mode === 'advisor' ? `${name}’s plan` : 'My Plan'}</h1>
           <p className="muted" style={{ margin: '6px 0 0' }}>
-            {name} · {r?.program_name ?? 'B.S. Computer Science'} · Catalog {r?.catalog_year ?? '2026-27'}
+            {name} · {r?.program_name ?? '…'} · Catalog {r?.catalog_year ?? '2026-27'}
             {student.student_number && <> · <span className="mono">{student.student_number}</span></>}
           </p>
         </div>
@@ -255,9 +255,9 @@ function Term({ t, next, last, adjust }) {
         <span className="spacer" />
         {next && <span className="pill pill-next">Register next</span>}
       </div>
-      {t.courses.map((c) => (
-        <div className="courserow" key={c.code}>
-          <span className="mono">{c.code}</span>
+      {t.courses.map((c, i) => (
+        <div className="courserow" key={`${c.code}-${i}`}>
+          <span className="mono">{c.placeholder ? '—' : c.code}</span>
           <div>
             <span className="title">{c.title}</span>
             <span className="chips" style={{ display: 'inline-flex', flexWrap: 'wrap', gap: 6, verticalAlign: 'middle' }}>
@@ -265,7 +265,7 @@ function Term({ t, next, last, adjust }) {
             </span>
           </div>
           <span className="small muted" style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 6 }}>
-            {hrs(c.credits)} hrs{adjust && adjust(c.code)}
+            {hrs(c.credits)} hrs{adjust && !c.placeholder && adjust(c.code)}
           </span>
         </div>
       ))}
