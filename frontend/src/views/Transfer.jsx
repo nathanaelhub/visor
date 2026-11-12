@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { api } from '../lib.js'
 import { parseCourseCode } from '../courseCode.js'
 import { flagMessage } from '../flagMessage.js'
+import { sourceLabel } from '../sourceLabel.js'
 import { Icon, Pill, Spinner } from '../ui.jsx'
 
 // Registrar / advisor: what does a course from another school count as here?
@@ -124,9 +125,8 @@ export default function Transfer() {
               </div>
               <div className="result-meta">
                 <div><span className="small muted">What this means</span><div>{MEANING[result.status]}</div></div>
-                <div><span className="small muted">Source</span><div>
-                  {result.equivalency?.decided_by ? `${result.equivalency.decided_by}${result.equivalency.decided_at ? `, ${result.equivalency.decided_at}` : ''}`
-                    : result.equivalency?.source ? `Equivalency table (${result.equivalency.source})` : 'No row on file'}</div></div>
+                <div><span className="small muted">Source</span><div>{sourceLabel(result.equivalency).text}</div>
+                  {sourceLabel(result.equivalency).reason && <div className="small muted">{sourceLabel(result.equivalency).reason}</div>}</div>
                 <div><span className="small muted">Requirement</span><div>{fills === null ? (lip ? '…' : '—') : fills[0]?.name ?? 'Elective credit'}</div></div>
               </div>
               <div className="result-foot">
