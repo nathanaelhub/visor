@@ -35,7 +35,7 @@ SUBJECT_FAMILIES = {
     "PHYS": ["PH"], "ART": ["ARTS"], "ARTH": ["ARTS"], "PHIL": ["PL"], "POLS": ["PO"], "PSCI": ["PO"],
     "COM": ["CO", "LU"], "NRSG": ["NURS"], "HMGT": ["MG"], "HCMT": ["MG"], "LOGI": ["OSCM", "MG"],
     "SPAN": ["SN"], "FREN": ["FR"], "GERM": ["GE"], "PHED": ["KIN"], "EDUC": ["ED"], "ECED": ["ED"],
-    "MKTG": ["MK"], "ENTR": ["MG"], "INFO": ["IT", "DS"], "DATA": ["DS"],
+    "ENTR": ["MG"], "INFO": ["IT", "DS"], "DATA": ["DS"],
 }
 
 SCHEMA = {
