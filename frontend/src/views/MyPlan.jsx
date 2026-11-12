@@ -63,9 +63,14 @@ function Plan({ r, story, mode, edit }) {
       {r.needs_review && (
         <div className="review" role="alert">
           <strong><Icon name="alert" />Needs advisor review</strong>
-          <span style={{ flex: '1 1 280px' }}>{r.warnings.map((w) => w.message).join(' · ')}</span>
+          <span style={{ flex: '1 1 280px' }}>{r.warnings.filter((w) => w.kind !== 'gate').map((w) => w.message).join(' · ')}</span>
         </div>
       )}
+      {r.warnings.filter((w) => w.kind === 'gate').map((w) => (
+        <div className="notice warn" role="note" key={w.message}>
+          <Icon name="alert" /><span style={{ flex: '1 1 0', minWidth: 220 }}><strong>Admission required.</strong> {w.message}</span>
+        </div>
+      ))}
 
       <section className="summary" aria-label="Progress summary">
         <div className="card hours">
