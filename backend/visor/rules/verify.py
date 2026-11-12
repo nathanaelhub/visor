@@ -46,6 +46,8 @@ def verify(plan, catalog: Catalog, taken: list[Taken], max_hours: int = 18, hold
         for pc in pt.courses:
             code = pc.code
             load += pc.credits
+            if getattr(pc, "placeholder", False):
+                continue  # a free-elective slot: its hours count, but it names no course to check
             if code not in catalog.courses:
                 out.append(Violation("unknown_course", code, pt.term, f"{code} is not in the catalog"))
                 continue

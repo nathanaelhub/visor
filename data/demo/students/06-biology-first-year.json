@@ -1,0 +1,35 @@
+{
+  "id": "demo-06",
+  "student_number": "L00451203",
+  "name": "Nia Castellanos (fictional)",
+  "story": "First semester in Biology. Six courses in progress, nothing finished yet.",
+  "program_id": "bio-bs-2026-27",
+  "start_term": "2027SP",
+  "taken": [
+    {
+      "code": "LU 1303",
+      "grade": null
+    },
+    {
+      "code": "BY 1001",
+      "grade": null
+    },
+    {
+      "code": "BY 1134",
+      "grade": null
+    },
+    {
+      "code": "CM 1113",
+      "grade": null
+    },
+    {
+      "code": "CM 1211",
+      "grade": null
+    },
+    {
+      "code": "MA 1113",
+      "grade": null
+    }
+  ],
+  "transfer": []
+}

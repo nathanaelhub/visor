@@ -73,6 +73,7 @@ class PlannedCourse:
     deferred_from: str | None = None  # term code it could first have gone in
     pinned: bool = False  # placed by an advisor's pin (spec 06)
     held_until: str | None = None  # an advisor's hold: not before this term code
+    placeholder: bool = False  # a free-elective slot (spec 07): hours toward class standing, any course
 
 
 @dataclass
@@ -323,6 +324,9 @@ def project(program: Program, catalog: Catalog, taken: list[Taken], result: Audi
     done_before: set[str] = set()  # planned in an earlier term
     first_ready: dict[str, str] = {}
     remaining = [c for c in order if c not in pins]
+    # Free-elective room: degree hours not taken up by finished, in-progress or still-required courses.
+    room = program.total_hours - (result.hours_done + result.hours_in_progress) - \
+        sum(catalog.credits(c) for c in needs)
     pending_pins = [c for c in order if c in pins]
     terms: list[PlannedTerm] = []
     t: Term = parse_term(start_term)
@@ -340,12 +344,14 @@ def project(program: Program, catalog: Catalog, taken: list[Taken], result: Audi
                                         pinned=True))
             hours += credits
             pending_pins.remove(code)
+        waiting_on_standing: list[str] = []
         for code in list(remaining):
             if code in holds and t < holds[code]:
                 continue
             if not _prereqs_ok(code, catalog, passed, done_before):
                 continue
             if hours_before < catalog.min_hours.get(code, 0):
+                waiting_on_standing.append(code)
                 continue
             credits = catalog.credits(code)
             if not is_offered(catalog.offered.get(code, ()), t):
@@ -366,6 +372,18 @@ def project(program: Program, catalog: Catalog, taken: list[Taken], result: Audi
                                         held_until=holds[code].code if code in holds else None))
             hours += credits
             remaining.remove(code)
+        # A course held back only by class standing, with free-elective room left: fill this term's spare
+        # capacity with free electives so the student actually reaches the hours (spec 07).
+        while waiting_on_standing and room >= 1 and hours < settings.target_hours:
+            n = min(3.0, room, settings.target_hours - hours, settings.max_hours - hours)
+            if n < 1:
+                break
+            need = min(waiting_on_standing, key=lambda c: catalog.min_hours[c])
+            placed.append(PlannedCourse("Free elective", "Free elective (your choice)", n, [],
+                                        [Reason("standing", f"Hours toward {catalog.min_hours[need]:g} for {need}")],
+                                        placeholder=True))
+            hours += n
+            room -= n
         if placed:
             terms.append(PlannedTerm(t.code, t.name, placed, hours, hours < settings.min_hours))
             done_before |= {p.code for p in placed}

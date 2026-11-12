@@ -10,3 +10,59 @@ core-history,cs-bs-2026-27,Core: Great Ideas in History,all,,,,0,8
 core-social-inquiry,cs-bs-2026-27,Core: Social Inquiry,hours,,3,,0,9
 core-artistic-inquiry,cs-bs-2026-27,Core: Artistic Inquiry,all,,,,0,10
 core-diverse-perspectives,cs-bs-2026-27,Core: Diverse Perspectives,hours,,3,,1,11
+bio-major-core,bio-bs-2026-27,Biology core,all,,,C,0,1
+bio-electives,bio-bs-2026-27,Biology electives,choose_n,5,,C,0,2
+bio-chemistry,bio-bs-2026-27,Chemistry,all,,,,0,3
+bio-math,bio-bs-2026-27,Core: Quantitative Inquiry (MA 1113 or higher),all,,,,0,4
+bio-core-compass,bio-bs-2026-27,Core: Compass first-year seminar,all,,,,0,5
+bio-core-powers,bio-bs-2026-27,Core: POWERS (writing and speaking),all,,,,0,6
+bio-core-bible-story,bio-bs-2026-27,Core: Seek through scripture,all,,,,0,7
+bio-core-christianity-society,bio-bs-2026-27,Core: Christianity & Society,choose_n,1,,,0,8
+bio-core-literature,bio-bs-2026-27,Core: Literary inquiry,choose_n,1,,,0,9
+bio-core-history,bio-bs-2026-27,Core: Great Ideas in History,all,,,,0,10
+bio-core-great-ideas,bio-bs-2026-27,Core: Great Ideas in Politics or Philosophy,choose_n,1,,,0,11
+bio-core-vfv,bio-bs-2026-27,"Core: Virtue, Flourishing & Vocation",choose_n,1,,,0,12
+bio-core-social-inquiry,bio-bs-2026-27,Core: Social Inquiry,hours,,3,,0,13
+bio-core-artistic-inquiry,bio-bs-2026-27,Core: Artistic Inquiry,all,,,,0,14
+bio-core-diverse-perspectives,bio-bs-2026-27,Core: Diverse Perspectives,hours,,3,,1,15
+psych-required,psych-bs-2026-27,Psychology required courses,all,,,C,0,1
+psych-electives,psych-bs-2026-27,Psychology electives,hours,,9,C,0,2
+psych-math,psych-bs-2026-27,Core: Quantitative Inquiry,choose_n,1,,,0,3
+psych-core-compass,psych-bs-2026-27,Core: Compass first-year seminar,all,,,,0,4
+psych-core-powers,psych-bs-2026-27,Core: POWERS (writing and speaking),all,,,,0,5
+psych-core-bible-story,psych-bs-2026-27,Core: Seek through scripture,all,,,,0,6
+psych-core-christianity-society,psych-bs-2026-27,Core: Christianity & Society,choose_n,1,,,0,7
+psych-core-literature,psych-bs-2026-27,Core: Literary inquiry,choose_n,1,,,0,8
+psych-core-history,psych-bs-2026-27,Core: Great Ideas in History,all,,,,0,9
+psych-core-great-ideas,psych-bs-2026-27,Core: Great Ideas in Politics or Philosophy,choose_n,1,,,0,10
+psych-core-vfv,psych-bs-2026-27,"Core: Virtue, Flourishing & Vocation",choose_n,1,,,0,11
+psych-core-science,psych-bs-2026-27,Core: Scientific Inquiry,choose_n,1,,,0,12
+psych-core-social-inquiry,psych-bs-2026-27,Core: Social Inquiry,hours,,3,,0,13
+psych-core-artistic-inquiry,psych-bs-2026-27,Core: Artistic Inquiry,all,,,,0,14
+psych-core-diverse-perspectives,psych-bs-2026-27,Core: Diverse Perspectives,hours,,3,,1,15
+nursing-major,nursing-bsn-2026-27,Nursing courses,all,,,C,0,1
+nursing-support,nursing-bsn-2026-27,Science and support courses,all,,,C,0,2
+nursing-stats,nursing-bsn-2026-27,Statistics,choose_n,1,,,0,3
+nursing-elective,nursing-bsn-2026-27,Nursing elective,hours,,3,,0,4
+nursing-math,nursing-bsn-2026-27,Core: Quantitative Inquiry,all,,,,0,5
+nursing-core-compass,nursing-bsn-2026-27,Core: Compass first-year seminar,all,,,,0,6
+nursing-core-powers,nursing-bsn-2026-27,Core: POWERS (writing and speaking),all,,,,0,7
+nursing-core-bible-story,nursing-bsn-2026-27,Core: Seek through scripture,all,,,,0,8
+nursing-core-literature,nursing-bsn-2026-27,Core: Literary inquiry,choose_n,1,,,0,9
+nursing-core-history,nursing-bsn-2026-27,Core: Great Ideas in History,all,,,,0,10
+nursing-core-artistic-inquiry,nursing-bsn-2026-27,Core: Artistic Inquiry,all,,,,0,11
+nursing-core-diverse-perspectives,nursing-bsn-2026-27,Core: Diverse Perspectives,hours,,3,,1,12
+mgmt-bba-core,mgmt-bba-2026-27,Business core (B.B.A.),all,,,C,0,1
+mgmt-international,mgmt-bba-2026-27,International business,choose_n,1,,,0,2
+mgmt-major,mgmt-bba-2026-27,Management major,all,,,C,0,3
+mgmt-upper-electives,mgmt-bba-2026-27,Upper-division business electives,hours,,15,,0,4
+mgmt-core-compass,mgmt-bba-2026-27,Core: Compass first-year seminar,all,,,,0,5
+mgmt-core-powers,mgmt-bba-2026-27,Core: POWERS (writing and speaking),all,,,,0,6
+mgmt-core-bible-story,mgmt-bba-2026-27,Core: Seek through scripture,all,,,,0,7
+mgmt-core-christianity-society,mgmt-bba-2026-27,Core: Christianity & Society,choose_n,1,,,0,8
+mgmt-core-literature,mgmt-bba-2026-27,Core: Literary inquiry,choose_n,1,,,0,9
+mgmt-core-history,mgmt-bba-2026-27,Core: Great Ideas in History,all,,,,0,10
+mgmt-core-great-ideas,mgmt-bba-2026-27,Core: Great Ideas in Politics or Philosophy,choose_n,1,,,0,11
+mgmt-core-science,mgmt-bba-2026-27,Core: Scientific Inquiry,choose_n,1,,,0,12
+mgmt-core-artistic-inquiry,mgmt-bba-2026-27,Core: Artistic Inquiry,all,,,,0,13
+mgmt-core-diverse-perspectives,mgmt-bba-2026-27,Core: Diverse Perspectives,hours,,3,,1,14

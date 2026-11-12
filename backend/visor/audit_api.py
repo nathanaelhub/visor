@@ -9,6 +9,8 @@ the chat can never describe a plan the planner did not produce.
 """
 from __future__ import annotations
 
+import csv
+import functools
 import hashlib
 import json
 import os
@@ -21,7 +23,7 @@ from flask import Blueprint, jsonify, request
 from .catalog_files import DEFAULT_CATALOG, load_catalog
 from .equivalencies import _live_rows
 from .models import ExternalCourse, School, db
-from .rules.audit import Taken, audit, matches
+from .rules.audit import ReqItem, Taken, audit, matches
 from .rules.forecast import Edits, Hold, Pin, Settings, project
 from .rules.grades import is_known
 from .rules.terms import describe_offerings, parse_term
@@ -44,6 +46,21 @@ def _err(message: str, status: int = 400):
 
 def catalog_and_programs():
     return load_catalog(os.environ.get("VISOR_CATALOG_DIR", str(DEFAULT_CATALOG)))
+
+
+@functools.cache
+def _gates_from(path: str) -> dict[str, list[tuple[ReqItem, str]]]:
+    out: dict[str, list[tuple[ReqItem, str]]] = {}
+    f = Path(path) / "program_gates.csv"
+    if f.exists():
+        for r in csv.DictReader(open(f, newline="")):
+            out.setdefault(r["program"], []).append((ReqItem(course=None, pattern=r["pattern"], tag=None), r["message"]))
+    return out
+
+
+def program_gates(program_id: str) -> list[tuple[ReqItem, str]]:
+    """Admission gates a program has (spec 07: nursing). Shown as warnings, never enforced."""
+    return _gates_from(os.environ.get("VISOR_CATALOG_DIR", str(DEFAULT_CATALOG))).get(program_id, [])
 
 
 def current_term() -> str:
@@ -271,6 +288,12 @@ def compute_audit(body: dict) -> dict:
                 "message": f"{c} is not in the {program.catalog_year} catalog; it counts toward hours only"}
                for c in out["unknown_codes"]]
     out["warnings"] = unknown + ([] if plan is None else [asdict(w) for w in plan.warnings])
+    if plan is not None:  # an admission gate is a heads-up for the student, not a reason for review
+        planned = [c.code for t in plan.terms for c in t.courses]
+        for item, message in program_gates(program.id):
+            hit = [c for c in planned if matches(item, c, catalog)]
+            if hit:
+                out["warnings"].append({"kind": "gate", "code": hit[0], "group": None, "message": message})
     out["needs_review"] = bool(unknown) or bool(plan and plan.needs_review)
     out["edits"] = edits_out
     out["fingerprint"] = fingerprint(body, edits_out, out["plan"])

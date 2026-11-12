@@ -1,15 +1,66 @@
 subject,number,title,credits
+AC,2503,Financial Accounting,3
+AC,2513,Managerial Accounting,3
+AC,4803,"Global Business, Culture, and Travel to [insert destination]",3
 ARTS,2303,Artistic Inquiry and the Human Experience,3
+BA,2103,Introduction to Business,3
+BA,2601,Connect to a Successful Career,1
+BA,3603,Fundamentals of International Business,3
+BA,3703,Business Communication,3
+BA,390V,Internship in Business,10
+BA,3993,"Business Values: Virtue, Flourishing and Vocation",3
+BA,4503,Business Strategy,3
 BI,1003,Introduction to the Bible and Christianity,3
 BI,1073,The Story of Jesus,3
 BI,1083,The Story of the Church,3
 BI,1093,The Story of Israel,3
 BI,3213,Faith and Culture,3
+BI,3433,Practices for Spiritual Formation,3
 BI,4213,Christian Ethics,3
+BY,1001,Biology Cornerstone: Orientation to the Major,1
+BY,1134,Principles of Biology: Cell and Genetics,4
+BY,1144,Principles of Biology: Diversity and Ecology,4
+BY,2114,Cell Biology,4
+BY,2133,Companion Animal Sciences,3
+BY,2213,Introductory Human Anatomy and Physiology,3
+BY,2424,Introductory Microbiology,4
+BY,2434,Anatomy and Physiology I,4
+BY,2444,Anatomy and Physiology II,4
+BY,2623,Field Botany,3
+BY,3033,Neuroanatomy,3
+BY,3043,Neurophysiology,3
+BY,3114,Genetics,4
+BY,3123,Animal Nutrition,3
+BY,3214,Microbiology,4
+BY,3223,Virology,3
+BY,3323,Immunology,3
+BY,3333,Molecular Basis of Human Disease,3
+BY,3413,Limnology,3
+BY,3514,Human Anatomy and Physiology I,4
+BY,3524,Human Anatomy and Physiology II,4
 BY,3553,"The Art of Anatomy, Culture, and Healthcare",3
+BY,3903,Internship in Biology,3
+BY,4014,Molecular Biology,4
+BY,4023,Cancer Biology,3
+BY,4044,Ecology,4
+BY,4213,Developmental Genetics,3
+BY,4323,Histology,3
+BY,4413,Vertebrate Zoology,3
+BY,4703,Human Gross Anatomy,3
+BY,4803,Biology Capstone,3
+BY,4901,Biology Keystone,1
 CCT,1133,Introduction to Computing,3
 CCT,395V,Internship,3
 CCT,405V,Senior Seminar,3
+CM,1024,Chemistry for Health Sciences,4
+CM,1113,General Chemistry I,3
+CM,1123,General Chemistry II,3
+CM,1211,General Chemistry I Laboratory,1
+CM,1221,General Chemistry II Laboratory,1
+CM,2113,Organic Chemistry I,3
+CM,2123,Organic Chemistry II,3
+CM,2211,Organic Chemistry I Laboratory,1
+CM,2221,Organic Chemistry II Laboratory,1
 CO,1223,Communicating: Rhetorical Techniques,3
 CS,1013,Scripting I,3
 CS,1213,Introduction to Computer Programming,3
@@ -34,6 +85,9 @@ CS,4413,Fundamentals of Automata and Formal Language Theory,3
 CS,4423,Computability and Complexity Theory,3
 CS,4433,Algorithmic Graph Theory,3
 CS,4443,Database Theory and Applications,3
+DS,2503,Introduction to Analytics,3
+DS,3403,Visual Analytics and Enterprise Systems,3
+DS,4813,Data Driven Decision Making,3
 EC,2403,Principles of Macroeconomics,3
 EC,2413,Principles of Microeconomics,3
 ED,2313,Introduction to Education,3
@@ -52,6 +106,9 @@ EN,3143,Technical Writing,3
 ENGR,3613,Humanitarian Engineering,3
 ENGR,3943,Engineering Economy and Planning,3
 ENGR,3993,"Engineering / Computing Ethics: Virtue, Flourishing and Vocation",3
+FI,3503,Principles of Finance,3
+FI,3603,International Economics and Finance,3
+FI,4803,"Global Business, Culture and Travel to [insert destination]",3
 FR,1114,Elementary French I,4
 FR,1124,Elementary French II,4
 FS,1013,Introduction to Family Science,3
@@ -87,7 +144,9 @@ KIN,2013,Sport Sociology,3
 LJS,2103,Society and the Law,3
 LJS,3533,Women and the Law,3
 LU,1013,POWERS: Writing to Discover,3
+LU,1023,POWERS: Communicating to Influence,3
 LU,1303,Compass: First Year Seminar,3
+MA,1113,College Algebra,3
 MA,1314,Calculus I,4
 MA,2103,Discrete Mathematics,3
 MA,2183,Elementary Statistics,3
@@ -95,17 +154,61 @@ MA,2314,Calculus II,4
 MA,2903,"Logic, Proof, and Mathematical Modeling",3
 MA,3123,Mathematical Theory of Statistics,3
 MA,3213,Linear Algebra,3
+MG,3503,Leading and Managing People,3
+MG,3613,Legal Aspects of Business I,3
+MG,4253,Project Management,3
+MG,4403,Organizational Behavior,3
+MG,4453,Human Resource Management,3
+MG,4803,"Global Business, Culture and Travel to [insert destination]",3
+MK,3503,Principles of Marketing,3
+MK,4803,"Global Business, Culture and Travel to [insert destination]",3
 ML,2103,How Language Works,3
+NURS,2103,Pathophysiology Concepts of Disease,3
+NURS,3003,Strategies for Nursing Success,3
+NURS,3013,Health Assessment,3
+NURS,3024,Mental Health Nursing,4
+NURS,3033,Pharmacology for Nursing,3
+NURS,3045,Foundations of Professional Nursing,5
+NURS,3056,Comprehensive Adult Health Nursing I,6
+NURS,3063,Evidenced-Based Practice & Nursing Theory,3
+NURS,3074,Family Nursing Infant to Adolescent,4
+NURS,3084,Family Nursing and Women’s Health,4
+NURS,3553,"The Art of Anatomy, Culture, & Healthcare",3
+NURS,3993,"Virtue, Flourishing, & Vocation in Nursing",3
+NURS,4016,Comprehensive Adult Health Nursing II,6
+NURS,4026,Advanced Medical Surgical Nursing,6
+NURS,4033,Nursing Leadership and Management,3
+NURS,4042,Nursing Capstone,2
+NURS,4054,Community Health Nursing,4
+NURS,4653,Special Topics in Nursing: Nursing in Practice,3
+NUTR,2613,Principles of Nutrition,3
+OSCM,3503,Operations and Supply Chain Management,3
 PH,2414,General Physics I,4
+PL,1003,Great Ideas in Philosophy,3
+PO,1003,Great Ideas in Politics,3
 PO,3153,African Politics,3
 PS,1113,Introduction to Psychology,3
+PS,2313,Behavior Modification,3
 PS,2423,Life Span Development,3
+PS,2503,Behavioral Statistics,3
+PS,2603,Introduction to Psychological Research,3
 PS,3243,Human Development and Learning,3
+PS,3323,Business and Industrial Psychology,3
 PS,3413,Social Psychology,3
+PS,3453,Death and Dying,3
+PS,3463,Personality Theories,3
 PS,3483,Human Sexuality,3
+PS,3513,Drugs and Behavior,3
+PS,3543,Psychological Measurement,3
 PS,4113,"Mindfulness: History, Science & Practice",3
+PS,4213,Substance Abuse Counseling I,3
+PS,4223,Substance Abuse Counseling II,3
+PS,4303,Clinical Neuropsychology,3
 PS,4423,Abnormal Psychology,3
+PS,4523,Cognitive Psychology,3
+PS,4543,Biological Psychology,3
 PS,4613,History and Systems of Psychology,3
+SCI,2304,Scientific Inquiry: The Practice of Progress,4
 SEC,3113,Fundamentals of Information Security,3
 SEC,3313,Introduction to Policy and Procedures,3
 SEC,3323,Cryptography,3

@@ -34,3 +34,19 @@ See `notes:` in `programs/bs-computer-science.yaml`. The ones that change foreca
 - The archived **2025-2026** catalog (students who declared before Fall 2026 may be on it).
 - The department's advising sheet / recommended semester sequence, if one exists — it would
   refine the elective recommendation order.
+
+## Added 2026-11-12 (spec 07, US-7.3)
+
+Read with a headless browser (`tools/scrape_lipscomb/scrape.mjs`), waiting the site's 120-second
+crawl-delay between pages; parsed by `tools/scrape_lipscomb/parse.py` and written by
+`tools/scrape_lipscomb/build_programs.py`. Judgment calls are at the end of `notes.md`.
+
+| What | URL |
+| --- | --- |
+| Biology, B.S., B.A. | https://catalog.lipscomb.edu/preview_program.php?catoid=33&poid=11055 |
+| Management, B.B.A. | https://catalog.lipscomb.edu/preview_program.php?catoid=33&poid=11132 |
+| Traditional BSN Program (pre-licensure) | https://catalog.lipscomb.edu/preview_program.php?catoid=33&poid=11170 |
+| Psychology, B.S. or B.A. | https://catalog.lipscomb.edu/preview_program.php?catoid=33&poid=10973 |
+| College of Business (B.B.A. business core) | https://catalog.lipscomb.edu/content.php?catoid=33&navoid=2700 |
+| The Core, Journey | https://catalog.lipscomb.edu/content.php?catoid=33&navoid=2779 |
+| Course descriptions by prefix: BY, CM, NURS, NUTR, PS, MG, OSCM, DS, FS, AC, FI, MK, BA, PO, PL | https://catalog.lipscomb.edu/content.php?catoid=33&navoid=2729 |

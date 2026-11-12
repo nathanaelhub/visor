@@ -1,0 +1,60 @@
+{
+  "id": "demo-11",
+  "student_number": "L00502694",
+  "name": "Isaiah Pembrook (fictional)",
+  "story": "Transferring from Columbia State with anatomy and microbiology; nursing admission still ahead.",
+  "program_id": "nursing-bsn-2026-27",
+  "start_term": "2027SP",
+  "taken": [
+    {
+      "code": "LU 1303",
+      "grade": null
+    },
+    {
+      "code": "BI 1093",
+      "grade": null
+    },
+    {
+      "code": "PS 2423",
+      "grade": null
+    }
+  ],
+  "transfer": [
+    {
+      "school": "Columbia State Community College",
+      "subject": "BIOL",
+      "number": "2010",
+      "grade": "B"
+    },
+    {
+      "school": "Columbia State Community College",
+      "subject": "BIOL",
+      "number": "2020",
+      "grade": "B"
+    },
+    {
+      "school": "Columbia State Community College",
+      "subject": "BIOL",
+      "number": "2230",
+      "grade": "B+"
+    },
+    {
+      "school": "Columbia State Community College",
+      "subject": "ENGL",
+      "number": "1010",
+      "grade": "A"
+    },
+    {
+      "school": "Columbia State Community College",
+      "subject": "PSYC",
+      "number": "1030",
+      "grade": "A"
+    },
+    {
+      "school": "Columbia State Community College",
+      "subject": "MATH",
+      "number": "1530",
+      "grade": "B"
+    }
+  ]
+}
