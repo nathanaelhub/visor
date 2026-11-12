@@ -98,6 +98,11 @@ def custom_id(slug: str, external: dict) -> str:
     return re.sub(r"[^A-Za-z0-9_-]", "_", f"{slug}-{external['subject']}-{external['number']}")[:64]
 
 
+def clean(text: str) -> str:
+    """Drop control characters: Postgres rejects NUL bytes in text, and none belong in a reason (#46)."""
+    return re.sub(r"[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]", "", text).strip()
+
+
 def checked(answer: dict, cands: list[dict]) -> tuple[dict | None, str | None]:
     """(row fields, None) for a usable answer, or (None, why it was dropped)."""
     codes = {f"{c['subject']} {c['number']}" for c in cands}
@@ -111,7 +116,7 @@ def checked(answer: dict, cands: list[dict]) -> tuple[dict | None, str | None]:
         return None, f"unknown kind {kind!r}"
     conf = max(0.0, min(1.0, float(answer.get("confidence") or 0)))
     return {"lipscomb": code or "", "kind": kind, "confidence": round(conf, 2),
-            "reason": (answer.get("reason") or "").strip()[:300]}, None
+            "reason": clean(answer.get("reason") or "")[:300]}, None
 
 
 def plan(external_root: Path, lipscomb_courses: Path, slugs: list[str] | None = None) -> list[tuple[str, dict, dict, list]]:
