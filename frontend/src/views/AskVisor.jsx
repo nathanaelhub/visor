@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { api, cleanName, gradName, hrs, keyStore } from '../lib.js'
 import Markdown from '../Markdown.jsx'
 import { Icon, Logo, Pill, Spinner } from '../ui.jsx'
+import { LiveRead, TranscriptReview, useTranscriptRead } from './TranscriptRead.jsx'
 
 // Ask Visor: Claude, with the user's own Anthropic key, answering from Visor's planner, catalog and
 // equivalency table (POST /api/chat). The key lives in sessionStorage and goes only to Visor's
@@ -25,7 +26,11 @@ export function useChat(student) {
     }).catch(() => setConfig({ shared_key: false, models: [], default_model: 'opus' }))
   }, [])
 
-  useEffect(() => { setMsgs([]) }, [studentId]) // a new student is a new conversation
+  const pendingNote = useRef(null) // shown first in the conversation that starts after a switch (US-7.6)
+  useEffect(() => { // a new student is a new conversation
+    setMsgs(pendingNote.current ? [{ role: 'note', text: pendingNote.current }] : [])
+    pendingNote.current = null
+  }, [studentId])
 
   const headers = useCallback(() => (key && !config?.shared_key ? { 'X-Anthropic-Key': key } : {}), [key, config])
 
@@ -75,7 +80,8 @@ export function useChat(student) {
 
   const modelLabel = config?.models.find((m) => m.key === model)?.label ?? model
   return { config, key, model, setModel, status, statusMsg, msgs, pending, connect, disconnect, send, retry,
-    newChat: () => setMsgs([]), modelLabel, shared: !!config?.shared_key }
+    newChat: () => setMsgs([]), modelLabel, shared: !!config?.shared_key,
+    announce: (text) => { pendingNote.current = text } }
 }
 
 const SUGGEST = {
@@ -87,12 +93,12 @@ const SUGGEST = {
     'What are the prerequisites for CS 3633?'],
 }
 
-export default function AskVisor({ chat, student, role, mode, onClose, onOpenPlan }) {
+export default function AskVisor({ chat, student, role, mode, onClose, onOpenPlan, onUseRecord }) {
   const connected = chat.status === 'on' || chat.shared
   if (mode === 'drawer') {
     return (
       <aside className="chat chat-drawer" aria-label="Ask Visor">
-        {connected ? <Chat chat={chat} student={student} role={role} onClose={onClose} />
+        {connected ? <Chat chat={chat} student={student} role={role} onClose={onClose} onUseRecord={onUseRecord} />
           : <div style={{ overflowY: 'auto', padding: 20 }}>
               <div className="row" style={{ justifyContent: 'space-between' }}>
                 <h2 className="serif" style={{ fontSize: 22 }}>Ask Visor</h2>
@@ -113,7 +119,7 @@ export default function AskVisor({ chat, student, role, mode, onClose, onOpenPla
   }
   return (
     <div className="asklayout">
-      <div className="chat chat-full"><Chat chat={chat} student={student} role={role} /></div>
+      <div className="chat chat-full"><Chat chat={chat} student={student} role={role} onUseRecord={onUseRecord} /></div>
       <ContextPanel chat={chat} student={student} role={role} onOpenPlan={onOpenPlan} />
     </div>
   )
@@ -219,8 +225,9 @@ function ContextPanel({ chat, student, role, onOpenPlan }) {
   )
 }
 
-function Chat({ chat, student, role, onClose }) {
+function Chat({ chat, student, role, onClose, onUseRecord }) {
   const [input, setInput] = useState('')
+  const [attach, setAttach] = useState(false) // the 📎 panel: read a transcript into the chat (US-7.6)
   const bodyRef = useRef(null)
   useEffect(() => { bodyRef.current?.scrollTo({ top: bodyRef.current.scrollHeight, behavior: 'smooth' }) }, [chat.msgs, chat.pending])
 
@@ -254,7 +261,8 @@ function Chat({ chat, student, role, onClose }) {
           </div>
         )}
         {chat.msgs.map((m, i) => (
-          m.role === 'user' ? <div key={i} className="ubub">{m.text}</div>
+          m.role === 'note' ? <p key={i} className="chat-note small muted"><Icon name="book" size={14} /> {m.text}</p>
+            : m.role === 'user' ? <div key={i} className="ubub">{m.text}</div>
             : m.role === 'bot' ? <BotMessage key={i} m={m} />
               : <Notice key={i} m={m} onRetry={chat.retry} />
         ))}
@@ -270,7 +278,18 @@ function Chat({ chat, student, role, onClose }) {
             {SUGGEST[role].slice(0, 2).map((s) => <button key={s} type="button" className="sug" onClick={() => submit(s)} disabled={chat.pending}>{s}</button>)}
           </div>
         )}
+        {attach && onUseRecord && (
+          <AttachTranscript onClose={() => setAttach(false)} onUse={(rec) => {
+            chat.announce(`Using ${cleanName(rec.name).replace(' (from transcript)', '')}’s transcript. Ask anything about it.`)
+            onUseRecord(rec)
+            setAttach(false)
+          }} />
+        )}
         <form className="composer" onSubmit={(e) => { e.preventDefault(); submit(input) }}>
+          {onUseRecord && (
+            <button type="button" className="attachbtn" aria-label="Start from a transcript" aria-expanded={attach}
+              title="Start from a transcript" onClick={() => setAttach(!attach)}>📎</button>
+          )}
           <label className="sr" htmlFor="ask">Ask Visor</label>
           <textarea id="ask" rows={1} maxLength={1000} value={input} placeholder="Ask about your plan, a course or transfer credit"
             onChange={(e) => setInput(e.target.value)}
@@ -361,5 +380,38 @@ function Notice({ m, onRetry }) {
       <span style={{ flex: '1 1 200px' }}>{text}</span>
       <button type="button" className="btn2" style={{ minHeight: 38 }} onClick={onRetry}>Try again</button>
     </div>
+  )
+}
+
+// The 📎 panel (spec 07, US-7.6): same transcripts and the same check-before-use review as the
+// "Start from a transcript" page. The chat switches to the record only after "Use this record".
+function AttachTranscript({ onUse, onClose }) {
+  const t = useTranscriptRead()
+  return (
+    <section className="attach card" aria-label="Start from a transcript">
+      <div className="row" style={{ justifyContent: 'space-between', alignItems: 'baseline' }}>
+        <strong>Start from a transcript</strong>
+        <button type="button" className="icon" onClick={onClose} aria-label="Close"><Icon name="close" /></button>
+      </div>
+      {!t.read && !t.busy && (
+        <>
+          <p className="small muted" style={{ margin: 0 }}>Demo: fictional transcripts only. Claude reads it; you check it before the chat uses it.
+            {t.shared ? ' Each read uses 4 units of your allowance.' : ''}</p>
+          <div className="row" style={{ gap: 8, flexWrap: 'wrap' }}>
+            {t.demos.map((d) => (
+              <button key={d.id} type="button" className="sug" onClick={() => t.readDemo(d)}>{cleanName(d.name)}</button>
+            ))}
+          </div>
+          {t.uploadsOpen && (
+            <label className="small">Or upload one (PDF, PNG or JPG):{' '}
+              <input type="file" accept="application/pdf,image/png,image/jpeg" aria-label="Transcript file"
+                onChange={(e) => t.readFile(e.target.files?.[0])} /></label>
+          )}
+        </>
+      )}
+      {t.error && <div className="notice err" role="alert"><Icon name="alert" />{t.error}</div>}
+      <LiveRead t={t} />
+      <TranscriptReview t={t} onUse={onUse} />
+    </section>
   )
 }

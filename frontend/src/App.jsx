@@ -123,6 +123,12 @@ export default function App() {
   const who = role === 'student' ? students.find((s) => s.id === me) : null
   const avatar = role === 'student' ? initials(who?.name) : role === 'advisor' ? 'RA' : 'RO'
 
+  function adoptRecordInChat(s) { // from the 📎 in Ask Visor: stay in the chat (US-7.6)
+    setStudents((prev) => [...prev.filter((x) => !x.id.startsWith('transcript-')), s])
+    if (role === 'student') setMe(s.id)
+    else setOpened(s.id)
+  }
+
   function applyRecord(s) {
     // The record lives in this tab only: replace any earlier transcript student, never save it.
     setStudents((prev) => [...prev.filter((x) => !x.id.startsWith('transcript-')), s])
@@ -136,7 +142,7 @@ export default function App() {
   if (role === 'student' && reading) {
     body = <Transcript onUse={applyRecord} onCancel={() => setReading(false)} />
   } else if (tab === 'ask') {
-    body = <AskVisor chat={chat} student={contextStudent} role={role} mode="full" onOpenPlan={() => setTab(role === 'student' ? 'myplan' : 'students')} />
+    body = <AskVisor chat={chat} student={contextStudent} role={role} mode="full" onUseRecord={adoptRecordInChat} onOpenPlan={() => setTab(role === 'student' ? 'myplan' : 'students')} />
   } else if (tab === 'myplan' && who) {
     body = <MyPlan student={contextStudent ?? who} mode="student" edit={editFor(who)} onAsk={() => setDrawer(true)} onTranscript={() => setReading(true)} />
   } else if (tab === 'students') {
@@ -211,7 +217,7 @@ export default function App() {
       {drawer && (
         <>
           <button type="button" className="scrim" aria-label="Close Ask Visor" onClick={() => setDrawer(false)} />
-          <AskVisor chat={chat} student={contextStudent} role={role} mode="drawer" onClose={() => setDrawer(false)} />
+          <AskVisor chat={chat} student={contextStudent} role={role} mode="drawer" onUseRecord={adoptRecordInChat} onClose={() => setDrawer(false)} />
         </>
       )}
     </div>

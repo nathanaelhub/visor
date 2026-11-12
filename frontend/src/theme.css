@@ -312,3 +312,10 @@ select.field { padding-right: 32px; }
 @keyframes rowin { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
 @media (prefers-reduced-motion: reduce) { .live-rows li { animation: none; } }
 @media (max-width: 760px) { .live-read { grid-template-columns: minmax(0, 1fr); } }
+
+/* 📎 in Ask Visor (spec 07, US-7.6) */
+.attachbtn { border: 0; background: none; font-size: 20px; cursor: pointer; padding: 0 6px; align-self: center; }
+.attach { padding: 14px; display: flex; flex-direction: column; gap: 10px; max-height: 60vh; overflow: auto; }
+.attach .live-read { grid-template-columns: minmax(0, 1fr); padding: 12px !important; }
+.attach .live-file iframe, .attach .live-file img { max-height: 220px; object-fit: contain; }
+.chat-note { display: flex; gap: 6px; align-items: center; margin: 0; }
