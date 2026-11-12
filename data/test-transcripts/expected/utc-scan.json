@@ -1,0 +1,42 @@
+{
+  "issuing_school": "University of Tennessee at Chattanooga",
+  "student_name": "Ezekiel M. Fairweather",
+  "courses": [
+    {
+      "code": "BIOL 2010",
+      "grade": "B",
+      "credits": 4
+    },
+    {
+      "code": "CHEM 1010",
+      "grade": "C+",
+      "credits": 4
+    },
+    {
+      "code": "ENGL 1010",
+      "grade": "B",
+      "credits": 3
+    },
+    {
+      "code": "PSY 1010",
+      "grade": "A",
+      "credits": 3
+    },
+    {
+      "code": "BIOL 2020",
+      "grade": "B-",
+      "credits": 4
+    },
+    {
+      "code": "BIOL 2060",
+      "grade": "C",
+      "credits": 4
+    },
+    {
+      "code": "MATH 1010",
+      "grade": "B",
+      "credits": 3
+    }
+  ],
+  "transfer": []
+}

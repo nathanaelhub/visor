@@ -96,6 +96,16 @@ def create_app(config: dict | None = None) -> Flask:
         else:
             print(load_sis_equivalencies(path))
 
+    @app.cli.command("transcript-eval")
+    @click.argument("folder", type=click.Path(exists=True, file_okay=False))
+    def transcript_eval_cmd(folder):
+        """Read the fictional test transcripts with the real API and score them (spec 07, US-7.5)."""
+        from .transcript_eval import client_from_env, run
+        results = run(Path(folder), client_from_env())
+        total = sum(r.get("expected", 0) for r in results)
+        hit = sum(r.get("matched", 0) for r in results)
+        print(f"{hit}/{total} course rows read exactly ({hit / total:.0%})" if total else "no transcripts found")
+
     @app.get("/api/health")
     def health():
         return {"status": "ok"}

@@ -1,0 +1,57 @@
+{
+  "issuing_school": "Nashville State Community College",
+  "student_name": "Avery T. Lindqvist",
+  "courses": [
+    {
+      "code": "CISP 1010",
+      "grade": "A",
+      "credits": 4
+    },
+    {
+      "code": "ENGL 1010",
+      "grade": "B",
+      "credits": 3
+    },
+    {
+      "code": "MATH 1130",
+      "grade": "B+",
+      "credits": 3
+    },
+    {
+      "code": "PSYC 1030",
+      "grade": "A-",
+      "credits": 3
+    },
+    {
+      "code": "CISP 1020",
+      "grade": "B",
+      "credits": 4
+    },
+    {
+      "code": "ENGL 1020",
+      "grade": "B",
+      "credits": 3
+    },
+    {
+      "code": "MATH 1910",
+      "grade": "C+",
+      "credits": 4
+    },
+    {
+      "code": "HIST 2010",
+      "grade": "A",
+      "credits": 3
+    },
+    {
+      "code": "CITC 1301",
+      "grade": null,
+      "credits": 3
+    },
+    {
+      "code": "ECON 2010",
+      "grade": null,
+      "credits": 3
+    }
+  ],
+  "transfer": []
+}

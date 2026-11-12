@@ -134,3 +134,17 @@ def test_streamed_read_matches_the_plain_read(make):
     done = events[-1]
     assert done["type"] == "done" and done["result"] == plain
     assert [k for k, _ in fake.calls] == ["create", "stream"]
+
+
+def test_eval_scores_rows_by_school_code_and_grade():
+    from visor.transcript_eval import score
+    exp = json.loads((ROOT / "data" / "test-transcripts" / "expected" / "mtsu-multi-scan.json").read_text())
+    perfect = {"issuing_school": "MIDDLE TENNESSEE STATE UNIVERSITY",
+               "courses": [{"code": c["code"].replace(" ", ""), "grade": c["grade"]} for c in exp["courses"]],
+               "transfer": [{"school": t["school"].replace("Community College", "Cmty College"),
+                             "subject": t["code"].split()[0], "number": t["code"].split()[1], "grade": t["grade"]}
+                            for t in exp["transfer"]]}
+    s = score(exp, perfect)
+    assert s["issuer_ok"] and s["matched"] == s["expected"] and not s["missed"] and not s["extra"]
+    perfect["transfer"] = perfect["transfer"][1:]  # drop the failed first attempt of MATH 1130... or any row
+    assert score(exp, perfect)["matched"] == s["expected"] - 1

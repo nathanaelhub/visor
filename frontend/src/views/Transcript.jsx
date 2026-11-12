@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { api, cleanName, keyStore, termName } from '../lib.js'
-import { toStudent } from '../transcript.js'
+import { streamRead, toStudent } from '../transcript.js'
 import { Icon, Spinner } from '../ui.jsx'
 
 // Start from a transcript (spec 05, US-5.7). Claude reads one of the fictional transcripts into a
@@ -14,27 +14,45 @@ export default function Transcript({ onUse, onCancel }) {
   const [read, setRead] = useState(null) // { record, unreadable, unknown_codes }
   const [taken, setTaken] = useState([])
   const [transfer, setTransfer] = useState([])
+  const [uploadsOpen, setUploadsOpen] = useState(false)
+  const [programs, setPrograms] = useState([])
+  const [programId, setProgramId] = useState('')
+  const [live, setLive] = useState([]) // rows as Claude reads them (streamed)
+  const [preview, setPreview] = useState(null) // { url, kind } of the file being read
 
   useEffect(() => {
     api('/api/transcript/demos').then(setDemos).catch(() => setError('Could not reach the Visor API.'))
     api('/api/chat/config').then((c) => setShared(c.shared_key)).catch(() => setShared(false))
+    api('/api/transcript/config').then((c) => setUploadsOpen(c.uploads_open)).catch(() => setUploadsOpen(false))
+    api('/api/programs').then(setPrograms).catch(() => setPrograms([]))
   }, [])
 
-  async function readDemo(id) {
-    setBusy(id); setError(''); setRead(null)
+  async function readWith(label, body, previewOf) {
+    setBusy(label); setError(''); setRead(null); setLive([]); setPreview(previewOf)
     const key = keyStore.get()
     try {
-      const r = await api('/api/transcript', { method: 'POST', body: { demo: id },
-        headers: key && !shared ? { 'X-Anthropic-Key': key } : {} })
+      const r = await streamRead(body, key && !shared ? { 'X-Anthropic-Key': key } : {},
+        (e) => setLive((rows) => [...rows, { section: e.section, ...e.row }]))
       setRead(r)
       setTaken(r.record.taken)
       setTransfer(r.record.transfer)
+      setProgramId(r.record.program_id)
     } catch (e) {
       setError(e.code === 'no_key' ? 'Reading a transcript uses Claude. Connect a key on the Ask Visor tab first.' : e.message)
     } finally { setBusy('') }
   }
 
-  const { student, problems } = read ? toStudent(read.record, taken, transfer) : { student: null, problems: [] }
+  const readDemo = (id) => readWith(id, { demo: id }, { url: `/api/transcript/demos/${id}.pdf`, kind: 'pdf' })
+
+  function readFile(file) {
+    if (!file) return
+    const form = new FormData()
+    form.append('file', file)
+    readWith('upload', form, { url: URL.createObjectURL(file), kind: file.type === 'application/pdf' ? 'pdf' : 'image' })
+  }
+
+  const { student, problems } = read ? toStudent({ ...read.record, program_id: programId || read.record.program_id }, taken, transfer)
+    : { student: null, problems: [] }
   const unknown = new Set(read?.unknown_codes ?? [])
   const edit = (setRows) => (i, field) => (e) => setRows((rows) => rows.map((r, k) => (k === i ? { ...r, [field]: e.target.value } : r)))
   const editTaken = edit(setTaken)
@@ -79,7 +97,34 @@ export default function Transcript({ onUse, onCancel }) {
         </div>
       </section>
 
+      {uploadsOpen && (
+        <section className="card" style={{ padding: 20, display: 'flex', flexDirection: 'column', gap: 8 }} aria-label="Upload a transcript">
+          <h2 style={{ margin: 0, fontSize: 18 }}>Or upload one (local and staff deployments only)</h2>
+          <p className="small muted" style={{ margin: 0 }}>PDF, PNG or JPG, up to 5 MB and 6 pages. Use fictional transcripts unless IT has signed off.</p>
+          <input type="file" accept="application/pdf,image/png,image/jpeg" disabled={!!busy}
+            aria-label="Transcript file" onChange={(e) => readFile(e.target.files?.[0])} />
+        </section>
+      )}
+
       {error && <div className="notice err" role="alert"><Icon name="alert" />{error}</div>}
+
+      {(busy || (live.length > 0 && !read)) && preview && (
+        <section className="card live-read" style={{ padding: 20 }} aria-label="Reading the transcript" aria-busy={!!busy}>
+          <div className="live-file">
+            {preview.kind === 'image'
+              ? <img src={preview.url} alt="The transcript being read" style={{ width: '100%', borderRadius: 8 }} />
+              : <iframe src={preview.url} title="The transcript being read" style={{ width: '100%', height: 420, border: 0, borderRadius: 8 }} />}
+          </div>
+          <div>
+            <p className="row small" style={{ margin: '0 0 8px', gap: 8 }}><Spinner /> Claude is reading it… {live.length} row{live.length === 1 ? '' : 's'} so far</p>
+            <ul className="live-rows" aria-live="polite">
+              {live.map((r, i) => (
+                <li key={i}><span className="mono">{r.code}</span> {r.title} <span className="muted">· {r.grade || 'IP'}{r.school ? ` · ${r.school}` : ''}</span></li>
+              ))}
+            </ul>
+          </div>
+        </section>
+      )}
 
       {read && (
         <section className="card" style={{ padding: 20, display: 'flex', flexDirection: 'column', gap: 16 }} aria-label="Check the course list">
@@ -89,6 +134,16 @@ export default function Transcript({ onUse, onCancel }) {
               Fix anything that's wrong. Clear a row to remove it. Leave the grade blank (or IP) for a course in progress.
             </p>
           </div>
+          {programs.length > 0 && (
+            <label style={{ maxWidth: 420 }}><span className="lbl">Plan for which Lipscomb major?{read.needs_program ? ' (this transcript is from another school)' : ''}</span>
+              <select className="field" value={programId} onChange={(e) => setProgramId(e.target.value)}>
+                {programs.map((p) => <option key={p.id} value={p.id}>{p.degree} {p.name}</option>)}
+              </select>
+            </label>
+          )}
+          {read.issuing_school && read.needs_program && (
+            <p className="small muted" style={{ margin: 0 }}>Issued by {read.issuing_school}. Everything taken there is listed as transfer credit from {read.issuing_school}.</p>
+          )}
           {(read.unreadable.length > 0 || unknown.size > 0) && (
             <div className="notice warn" role="status">
               <Icon name="alert" />
@@ -99,7 +154,7 @@ export default function Transcript({ onUse, onCancel }) {
             </div>
           )}
 
-          <div className="table-card">
+          {(taken.length > 0 || !read.needs_program) && <div className="table-card">
             <table className="tbl">
               <caption className="sr">Lipscomb courses</caption>
               <thead><tr><th>Course</th><th>Title</th><th>Hours</th><th>Grade</th><th>Term</th></tr></thead>
@@ -116,7 +171,7 @@ export default function Transcript({ onUse, onCancel }) {
                 ))}
               </tbody>
             </table>
-          </div>
+          </div>}
           <button type="button" className="linkbtn small" style={{ alignSelf: 'flex-start' }}
             onClick={() => setTaken((rows) => [...rows, { code: '', title: '', credits: '', grade: '', term: null }])}>Add a course</button>
 

@@ -1,0 +1,97 @@
+{
+  "issuing_school": "Middle Tennessee State University",
+  "student_name": "Theodora J. Brightwater",
+  "courses": [
+    {
+      "code": "ENGL 1020",
+      "grade": "B",
+      "credits": 3
+    },
+    {
+      "code": "CSCI 1170",
+      "grade": "B-",
+      "credits": 4
+    },
+    {
+      "code": "PSY 1410",
+      "grade": "A",
+      "credits": 3
+    },
+    {
+      "code": "COMM 2200",
+      "grade": "A",
+      "credits": 3
+    },
+    {
+      "code": "CSCI 2170",
+      "grade": "C",
+      "credits": 4
+    },
+    {
+      "code": "MATH 1910",
+      "grade": "D",
+      "credits": 4
+    },
+    {
+      "code": "HIST 2020",
+      "grade": "B",
+      "credits": 3
+    }
+  ],
+  "transfer": [
+    {
+      "code": "ENGL 1010",
+      "grade": "B",
+      "credits": 3,
+      "school": "Columbia State Community College"
+    },
+    {
+      "code": "PSYC 1030",
+      "grade": "A",
+      "credits": 3,
+      "school": "Columbia State Community College"
+    },
+    {
+      "code": "SOCI 1010",
+      "grade": "B",
+      "credits": 3,
+      "school": "Columbia State Community College"
+    },
+    {
+      "code": "MATH 1130",
+      "grade": "F",
+      "credits": 3,
+      "school": "Columbia State Community College"
+    },
+    {
+      "code": "MATH 1130",
+      "grade": "C",
+      "credits": 3,
+      "school": "Columbia State Community College"
+    },
+    {
+      "code": "HIST 2010",
+      "grade": "A",
+      "credits": 3,
+      "school": "Columbia State Community College"
+    },
+    {
+      "code": "BIOL 2010",
+      "grade": "C",
+      "credits": 4,
+      "school": "Columbia State Community College"
+    },
+    {
+      "code": "CISP 1010",
+      "grade": "B",
+      "credits": 4,
+      "school": "Nashville State Community College"
+    },
+    {
+      "code": "ECON 2010",
+      "grade": "C",
+      "credits": 3,
+      "school": "Nashville State Community College"
+    }
+  ]
+}

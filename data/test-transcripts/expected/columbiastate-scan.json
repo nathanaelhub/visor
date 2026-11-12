@@ -1,0 +1,47 @@
+{
+  "issuing_school": "Columbia State Community College",
+  "student_name": "Desmond R. Okonkwo-Hale",
+  "courses": [
+    {
+      "code": "ACCT 1010",
+      "grade": "B",
+      "credits": 3
+    },
+    {
+      "code": "ECON 2010",
+      "grade": "B",
+      "credits": 3
+    },
+    {
+      "code": "ENGL 1010",
+      "grade": "A",
+      "credits": 3
+    },
+    {
+      "code": "MATH 1630",
+      "grade": "C",
+      "credits": 3
+    },
+    {
+      "code": "ACCT 1020",
+      "grade": "C",
+      "credits": 3
+    },
+    {
+      "code": "ECON 2020",
+      "grade": "B+",
+      "credits": 3
+    },
+    {
+      "code": "BUSN 1305",
+      "grade": "A",
+      "credits": 3
+    },
+    {
+      "code": "COMM 2025",
+      "grade": "A-",
+      "credits": 3
+    }
+  ],
+  "transfer": []
+}
