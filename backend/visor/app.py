@@ -87,6 +87,9 @@ def create_app(config: dict | None = None) -> Flask:
         external = Path(os.environ.get("VISOR_EXTERNAL_DIR", Path(__file__).resolve().parents[2] / "data" / "external"))
         if (external / "schools.csv").exists():
             print(load_external_catalogs(external))
+        if (external / "proposed_equivalencies.csv").exists():
+            from .seed import load_proposals
+            print({"ai_proposals": load_proposals(external / "proposed_equivalencies.csv")})
 
     @app.cli.command("import-sis")
     @click.argument("path", type=click.Path(exists=True, dir_okay=False))
@@ -108,6 +111,18 @@ def create_app(config: dict | None = None) -> Flask:
         total = sum(r.get("expected", 0) for r in results)
         hit = sum(r.get("matched", 0) for r in results)
         print(f"{hit}/{total} course rows read exactly ({hit / total:.0%})" if total else "no transcripts found")
+
+    @app.cli.command("propose-equivalencies")
+    @click.option("--school", "schools", multiple=True, help="School slug(s) from data/external/schools.csv; all if omitted.")
+    @click.option("--dry-run", is_flag=True, help="Count the requests and estimate the cost; call nothing.")
+    def propose_cmd(schools, dry_run):
+        """Ask Claude (Batches API) what scraped transfer courses count as. Writes proposals only (spec 07)."""
+        from .propose import client_from_env, estimate, plan, run
+        root = Path(__file__).resolve().parents[2] / "data"
+        jobs = plan(root / "external", root / "catalog" / "2026-27" / "courses.csv", list(schools) or None)
+        print(f"{len(jobs)} courses to ask about, about ${estimate(jobs):.2f}")
+        if not dry_run and jobs:
+            print(run(client_from_env(), jobs, root / "external" / "proposed_equivalencies.csv"))
 
     @app.get("/api/health")
     def health():

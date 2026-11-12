@@ -204,3 +204,39 @@ def load_external_catalogs(root: str | Path) -> dict[str, int]:
         counts[s["slug"]] = added
     db.session.commit()
     return counts
+
+
+def load_proposals(path: str | Path) -> int:
+    """Load Claude's proposed equivalencies (data/external/proposed_equivalencies.csv, spec 07 US-7.2).
+
+    Every row becomes ``status = proposed``, ``source = ai_proposed`` with no ``decided_by``: nothing
+    here confirms anything. "none" answers are not stored, and neither is a row whose external or
+    Lipscomb course isn't in the database. Idempotent. Returns rows added."""
+    added = 0
+    with open(path, newline="") as f:
+        for r in csv.DictReader(f):
+            if r["kind"] not in ("direct", "elective"):
+                continue
+            school = School.query.filter_by(name=r["school"]).first()
+            subject, _, number = r["external"].partition(" ")
+            ext = school and (ExternalCourse.query.filter_by(school_id=school.id, subject=subject, number=number)
+                              .order_by(ExternalCourse.catalog_year.desc()).first())
+            if not ext:
+                continue
+            course = None
+            if r["kind"] == "direct":
+                subj, _, num = r["lipscomb"].partition(" ")
+                course = Course.query.filter_by(subject=subj, number=num).first()
+                if course is None:
+                    continue
+            exists = Equivalency.query.filter_by(external_course_id=ext.id, course_id=course.id if course else None,
+                                                 kind=r["kind"], source="ai_proposed").first()
+            if exists:
+                continue
+            db.session.add(Equivalency(external_course_id=ext.id, course_id=course.id if course else None,
+                                       kind=r["kind"], status="proposed", source="ai_proposed",
+                                       confidence=float(r["confidence"]) if r["confidence"] else None,
+                                       decided_by=None, notes=f"Proposed by Claude: {r['reason']}"))
+            added += 1
+    db.session.commit()
+    return added
