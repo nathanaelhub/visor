@@ -33,6 +33,9 @@ SUBJECT_FAMILIES = {
     "MGT": ["MG"], "MGMT": ["MG"], "MKTG": ["MK"], "MKT": ["MK"], "FIN": ["FI"], "NURS": ["NURS"],
     "NUR": ["NURS"], "NUTR": ["NUTR"], "COMM": ["CO", "LU"], "SPCH": ["CO", "LU"], "CMST": ["CO", "LU"],
     "PHYS": ["PH"], "ART": ["ARTS"], "ARTH": ["ARTS"], "PHIL": ["PL"], "POLS": ["PO"], "PSCI": ["PO"],
+    "COM": ["CO", "LU"], "NRSG": ["NURS"], "HMGT": ["MG"], "HCMT": ["MG"], "LOGI": ["OSCM", "MG"],
+    "SPAN": ["SN"], "FREN": ["FR"], "GERM": ["GE"], "PHED": ["KIN"], "EDUC": ["ED"], "ECED": ["ED"],
+    "MKTG": ["MK"], "ENTR": ["MG"], "INFO": ["IT", "DS"], "DATA": ["DS"],
 }
 
 SCHEMA = {
