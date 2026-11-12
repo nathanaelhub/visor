@@ -156,3 +156,19 @@ def test_committed_proposals_are_clean():
     import re
     text = (ROOT / "data" / "external" / "proposed_equivalencies.csv").read_text()
     assert not re.search(r"[\x00-\x08\x0b\x0c\x0e-\x1f]", text)
+
+
+def test_a_run_for_one_school_keeps_the_others(tmp_path):
+    out = tmp_path / "proposed.csv"
+    write_proposals(out, [{"school": "Other College", "external": "MATH 1130", "lipscomb": "MA 1113", "kind": "direct",
+                           "confidence": "0.9", "reason": "kept"},
+                          {"school": "Demo Community College", "external": "OLD 1000", "lipscomb": "", "kind": "elective",
+                           "confidence": "0.5", "reason": "replaced"}])
+    ext = {"subject": "CISP", "number": "1010", "title": "Computer Science I", "credits": "4", "description": "",
+           "school": "Demo Community College"}
+    jobs = [("demo-CISP-1010", ext, {}, LIPSCOMB[:1])]
+    batches = FakeBatches({"demo-CISP-1010": {"kind": "direct", "lipscomb_code": "CS 1213", "confidence": 0.9, "reason": "r"}})
+    run(SimpleNamespace(messages=SimpleNamespace(batches=batches)), jobs, out, poll=0, log=lambda *_: None)
+    rows = list(csv.DictReader(open(out)))
+    assert [(r["school"], r["external"]) for r in rows] == [("Demo Community College", "CISP 1010"),
+                                                            ("Other College", "MATH 1130")]

@@ -135,7 +135,7 @@ def find_courses_page(f: Fetcher) -> tuple[str, str, str]:
     return catoid, ranked[0][0], title
 
 
-CODE = re.compile(r"^([A-Z][A-Z&]{1,5})\s+(\d{2,4}[A-Z]{0,2})\s*[-–]\s*(.+)$")
+CODE = re.compile(r"^([A-Z][A-Z&]{1,5})\s+(\d{2,4}[A-Z]{0,2})\*?\s*[-–]\s*(.+)$")  # "201*": UT Knoxville marks some courses
 
 
 def parse_courses(page: str) -> list[dict]:
@@ -150,6 +150,9 @@ def parse_courses(page: str) -> list[dict]:
         cred = re.search(r"Credit(?:s| Hours| Hour\(s\))?:?\s*(?:</strong>)?\s*(?:<strong>)?\s*\(?\s*"
                          r"(\d+(?:\.\d+)?)(?:\s*(?:-|–|to|or)\s*(\d+(?:\.\d+)?))?", body)
         after = body.split("<hr>", 1)[-1]
+        if cred is None and "<hr>" in body:  # "<strong>3</strong> <em>Credit Hours</em> <hr>" (UT Knoxville)
+            cred = re.search(r"(\d+(?:\.\d+)?)(?:\s*(?:-|–|to)\s*(\d+(?:\.\d+)?))?\s*Credit\s*Hours?\b",
+                             _text(body.split("<hr>", 1)[0]))
         if cred is None:  # "(Honors Option Offered)<br>3 Credits *<br>2 Class Hours<br><br>description" (Nashville State)
             cred = re.search(r"\(?(\d+(?:\.\d+)?)(?:\s*(?:-|–|to)\s*(\d+(?:\.\d+)?))?\)?\s*Credits?\b",
                              _text(after[:300]))
