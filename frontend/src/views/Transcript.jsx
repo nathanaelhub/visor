@@ -42,7 +42,7 @@ export default function Transcript({ onUse, onCancel }) {
     } finally { setBusy('') }
   }
 
-  const readDemo = (id) => readWith(id, { demo: id }, { url: `/api/transcript/demos/${id}.pdf`, kind: 'pdf' })
+  const readDemo = (d) => readWith(d.id, { demo: d.id }, { url: `/api/transcript/demos/${d.id}/file`, kind: d.kind ?? 'pdf' })
 
   function readFile(file) {
     if (!file) return
@@ -87,10 +87,10 @@ export default function Transcript({ onUse, onCancel }) {
               <strong>{cleanName(d.name)}</strong>
               <span className="small muted">{d.label}</span>
               <div className="row" style={{ gap: 12, marginTop: 'auto' }}>
-                <button type="button" className="btn" disabled={!!busy} onClick={() => readDemo(d.id)}>
+                <button type="button" className="btn" disabled={!!busy} onClick={() => readDemo(d)}>
                   {busy === d.id ? <><Spinner /> Reading…</> : 'Read it'}
                 </button>
-                <a className="small" href={`/api/transcript/demos/${d.id}.pdf`} target="_blank" rel="noreferrer">View PDF</a>
+                <a className="small" href={`/api/transcript/demos/${d.id}/file`} target="_blank" rel="noreferrer">{d.kind === 'image' ? 'View scan' : 'View PDF'}</a>
               </div>
             </div>
           ))}

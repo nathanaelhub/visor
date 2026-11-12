@@ -148,3 +148,12 @@ def test_eval_scores_rows_by_school_code_and_grade():
     assert s["issuer_ok"] and s["matched"] == s["expected"] and not s["missed"] and not s["extra"]
     perfect["transfer"] = perfect["transfer"][1:]  # drop the failed first attempt of MATH 1130... or any row
     assert score(exp, perfect)["matched"] == s["expected"] - 1
+
+
+@pytest.mark.parametrize("printed", ["Columbia St Cmty College", "COLUMBIA STATE COMM. COLL.", "Columbia State CC",
+                                     "columbia state community college"])
+def test_scan_abbreviations_still_find_the_school(make, printed):
+    from visor.audit_api import find_school
+    make()
+    assert find_school(name=printed).name == "Columbia State Community College"
+    assert find_school(name="Western Kentucky University") is None  # not in the table: no guess

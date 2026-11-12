@@ -19,5 +19,19 @@
     "file": "retake.pdf",
     "student_id": "demo-04",
     "name": "Casey Lin (fictional)"
+  },
+  {
+    "id": "mtsu-multi",
+    "label": "Scanned university transcript with transfer blocks from two community colleges",
+    "file": "mtsu-multi-scan.jpeg",
+    "student_id": null,
+    "name": "Theodora J. Brightwater (fictional)"
+  },
+  {
+    "id": "volstate-scan",
+    "label": "Scanned community-college transcript with a repeated course",
+    "file": "volstate-scan.jpeg",
+    "student_id": null,
+    "name": "Marisol D. Achterberg (fictional)"
   }
 ]

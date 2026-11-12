@@ -139,6 +139,13 @@ def main() -> None:
             index.append({"id": tid, "label": label, "file": out.name, "student_id": student["id"],
                           "name": student["name"]})
             print(f"Wrote {out}")
+    # Scanned look-alikes from data/test-transcripts (built by its own build.py), copied here for the demo.
+    index += [{"id": "mtsu-multi", "label": "Scanned university transcript with transfer blocks from two community colleges",
+               "file": "mtsu-multi-scan.jpeg", "student_id": None, "name": "Theodora J. Brightwater (fictional)"},
+              {"id": "volstate-scan", "label": "Scanned community-college transcript with a repeated course",
+               "file": "volstate-scan.jpeg", "student_id": None, "name": "Marisol D. Achterberg (fictional)"}]
+    for d in index[-2:]:
+        shutil.copy(HERE.parent.parent / "test-transcripts" / d["file"], HERE / d["file"])
     (HERE / "index.json").write_text(json.dumps(index, indent=2) + "\n")
 
 

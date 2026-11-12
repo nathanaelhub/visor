@@ -65,7 +65,7 @@ equivalencies for them (people confirm), and read realistic, messy, fictional tr
    because the transcript can't say. [`test_major_choice_reaches_the_audit`]
 3. **Given** the public demo, **then** it still reads only bundled fictional transcripts (US-5.7). A
    file picker appears only where uploads are open (local dev or the write token); the server says
-   so with `uploads_open`. [`test_uploads_open_only_when_writes_are`]
+   so with `uploads_open` from `GET /api/transcript/config`. [`test_uploads_open_only_when_writes_are`]
 4. **Given** a transcript being read, **then** the page can show rows appearing as Claude reads them
    (streamed), ending in the same record as the non-streamed read.
    [`test_streamed_read_matches_the_plain_read`]

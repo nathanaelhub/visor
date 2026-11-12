@@ -79,7 +79,10 @@ def pdf(pages=1, pad=0):
 def test_demo_transcripts_are_listed(make):
     c, _ = make()
     demos = c.get("/api/transcript/demos").get_json()
-    assert [d["id"] for d in demos] == ["freshman", "transfer", "retake"]
+    assert [d["id"] for d in demos] == ["freshman", "transfer", "retake", "mtsu-multi", "volstate-scan"]
+    scan = c.get("/api/transcript/demos/mtsu-multi/file")
+    assert scan.status_code == 200 and scan.mimetype == "image/jpeg" and next(d for d in demos if d["id"] == "mtsu-multi")["kind"] == "image"
+    scan.close()
     assert all("(fictional)" in d["name"] for d in demos)
     pdf_ = c.get("/api/transcript/demos/transfer.pdf")
     assert pdf_.status_code == 200 and pdf_.mimetype == "application/pdf" and pdf_.data.startswith(b"%PDF")

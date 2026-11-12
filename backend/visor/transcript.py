@@ -174,16 +174,19 @@ def _record(read: dict, source: str) -> dict:
 
 @bp.get("/demos")
 def list_demos():
-    return jsonify([{k: d[k] for k in ("id", "label", "name", "student_id")} for d in _demos()])
+    return jsonify([{**{k: d[k] for k in ("id", "label", "name", "student_id")},
+                     "kind": "pdf" if d["file"].endswith(".pdf") else "image"} for d in _demos()])
 
 
+@bp.get("/demos/<tid>/file")
 @bp.get("/demos/<tid>.pdf")
 def demo_file(tid):
-    """The fictional PDF itself, so people can see what Visor is reading."""
+    """The fictional transcript itself (PDF or scan), so people can see what Visor is reading."""
     demo = next((d for d in _demos() if d["id"] == tid), None)
     if demo is None:
         return _err("not_found", "There is no demo transcript with that name.", 404)
-    return send_file(DEMO_DIR / demo["file"], mimetype="application/pdf", download_name=demo["file"])
+    media = "application/pdf" if demo["file"].endswith(".pdf") else "image/jpeg"
+    return send_file(DEMO_DIR / demo["file"], mimetype=media, download_name=demo["file"])
 
 
 @bp.get("/config")
