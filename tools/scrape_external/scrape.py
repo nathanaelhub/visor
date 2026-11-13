@@ -33,7 +33,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 OUT = ROOT / "data" / "external"
 CACHE = ROOT / "data" / "private" / "scrape-cache"
-BROWSER_HOSTS = {"nscc", "columbiastate", "utk", "utc"}  # their course pages answer with a challenge
+BROWSER_HOSTS = {"nscc", "columbiastate", "utk", "utc", "mtsu"}  # their course pages answer with a challenge
 BROWSER = ROOT / "tools" / "scrape_lipscomb" / "scrape.mjs"  # headless fetch for challenge pages
 AGENT = "VisorCatalogReader/0.1 (Lipscomb University student project; public course lists only)"
 
@@ -54,6 +54,7 @@ SCHOOLS = [
            "community_college"),
     School("utk", "University of Tennessee, Knoxville", "https://catalog.utk.edu", "university"),
     School("utc", "University of Tennessee at Chattanooga", "https://utc.catalog.acalog.com", "university"),
+    School("mtsu", "Middle Tennessee State University", "https://mtsu.catalog.acalog.com", "university"),
 ]
 
 
@@ -152,7 +153,7 @@ def parse_courses(page: str) -> list[dict]:
         after = body.split("<hr>", 1)[-1]
         if cred is None and "<hr>" in body:  # "<strong>3</strong> <em>Credit Hours</em> <hr>" (UT Knoxville)
             cred = re.search(r"(\d+(?:\.\d+)?)(?:\s*(?:-|–|to)\s*(\d+(?:\.\d+)?))?\s*Credit\s*Hours?\b",
-                             _text(body.split("<hr>", 1)[0]))
+                             _text(body.split("<hr>", 1)[0]), re.I)  # "3 Credit Hours" (UTK), "1 credit hour" (MTSU)
         if cred is None:  # "(Honors Option Offered)<br>3 Credits *<br>2 Class Hours<br><br>description" (Nashville State)
             cred = re.search(r"\(?(\d+(?:\.\d+)?)(?:\s*(?:-|–|to)\s*(\d+(?:\.\d+)?))?\)?\s*Credits?\b",
                              _text(after[:300]))
