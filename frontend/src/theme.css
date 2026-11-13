@@ -323,3 +323,5 @@ select.field { padding-right: 32px; }
 /* Signed-in account area (spec 08) */
 @media (max-width: 760px) { .account .btn2 { padding: 0 10px; min-width: 0; } .account .admin-label { display: none; } }
 @media (min-width: 761px) { .account .admin-icon { display: none; } }
+
+.pill-partial { background: var(--goS); color: var(--rvF); } /* F10: started, not met */
