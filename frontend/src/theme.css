@@ -319,3 +319,7 @@ select.field { padding-right: 32px; }
 .attach .live-read { grid-template-columns: minmax(0, 1fr); padding: 12px !important; }
 .attach .live-file iframe, .attach .live-file img { max-height: 220px; object-fit: contain; }
 .chat-note { display: flex; gap: 6px; align-items: center; margin: 0; }
+
+/* Signed-in account area (spec 08) */
+@media (max-width: 760px) { .account .btn2 { padding: 0 10px; min-width: 0; } .account .admin-label { display: none; } }
+@media (min-width: 761px) { .account .admin-icon { display: none; } }

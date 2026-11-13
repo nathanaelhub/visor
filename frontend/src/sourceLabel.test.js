@@ -13,3 +13,9 @@ test('people and the table keep their labels', () => {
   assert.equal(sourceLabel({ source: 'manual' }).text, 'Equivalency table (manual)')
   assert.equal(sourceLabel(null).text, 'No row on file')
 })
+
+test("once a person decides Claude's proposal, the person is named", () => {
+  const l = sourceLabel({ source: 'ai_proposed', status: 'confirmed', decided_by: 'Ms. Registrar', decided_at: '2026-11-13', notes: 'Proposed by Claude: Same course.' })
+  assert.equal(l.text, 'Confirmed by Ms. Registrar, 2026-11-13 (proposed by Claude)')
+  assert.equal(l.reason, 'Same course.')
+})

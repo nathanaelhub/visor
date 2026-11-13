@@ -13,7 +13,7 @@ const MEANING = {
   unknown: 'No match on file. Flag it for a professor.',
 }
 
-export default function Transfer() {
+export default function Transfer({ account }) {
   const [schools, setSchools] = useState([])
   const [schoolId, setSchoolId] = useState('')
   const [code, setCode] = useState('CISP 1020')
@@ -52,6 +52,18 @@ export default function Transfer() {
       const lip = r.equivalency?.course?.code
       if (lip) api(`/api/courses/${encodeURIComponent(lip)}/info`).then((i) => setFills(i.fills)).catch(() => setFills([]))
     } catch (e) { setError(e.message) } finally { setBusy(false) }
+  }
+
+  // A signed-in registrar (or admin) decides a proposal, including Claude's (spec 08, US-8.3).
+  const canDecide = account && (account.role === 'registrar' || account.role === 'admin')
+  async function decide(status) {
+    try {
+      await api(`/api/equivalencies/${result.equivalency.id}`, { method: 'PUT', body: { status } })
+      setFlagMsg(status === 'confirmed' ? `Confirmed by ${account.name}.` : `Rejected by ${account.name}.`)
+      const ext = result.external_course
+      const r = await api('/api/equivalencies/lookup', { method: 'POST', body: { school_id: ext.school_id, subject: ext.subject, number: ext.number } })
+      setResult(r)
+    } catch (e) { setFlagMsg(`Could not save: ${e.message}`) }
   }
 
   async function flag() {
@@ -130,6 +142,12 @@ export default function Transfer() {
                 <div><span className="small muted">Requirement</span><div>{fills === null ? (lip ? '…' : '—') : fills[0]?.name ?? 'Elective credit'}</div></div>
               </div>
               <div className="result-foot">
+                {canDecide && result.status === 'proposed' && result.equivalency?.id && (
+                  <>
+                    <button type="button" className="btn" onClick={() => decide('confirmed')}><Icon name="check" />Confirm</button>
+                    <button type="button" className="btn2" onClick={() => decide('rejected')}>Reject</button>
+                  </>
+                )}
                 {result.status !== 'confirmed'
                   ? <button type="button" className="btn2" onClick={flag}><Icon name="flag" />Flag for review</button>
                   : <span className="small muted">Confirmed answers are not re-flagged.</span>}

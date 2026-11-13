@@ -1,9 +1,11 @@
+import { authHeaders } from './session.js'
+
 // API client and formatting helpers shared by every view.
 
 export async function api(path, { method = 'GET', body, headers = {} } = {}) {
   const r = await fetch(path, {
     method,
-    headers: { ...(body ? { 'Content-Type': 'application/json' } : {}), ...headers },
+    headers: { ...(body ? { 'Content-Type': 'application/json' } : {}), ...(await authHeaders()), ...headers },
     body: body ? JSON.stringify(body) : undefined,
   })
   let data = null

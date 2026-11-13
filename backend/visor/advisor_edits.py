@@ -14,10 +14,16 @@ from datetime import datetime, timezone
 from flask import Blueprint, jsonify, request
 
 from .audit_api import AuditError, compute_audit, parse_edits
-from .auth import write_guard
+from .accounts import current_user, staff_guard
 from .models import PlanApproval, PlanEdits, db
 
 bp = Blueprint("advisor_edits", __name__, url_prefix="/api/students")
+
+
+def _who(typed: str | None) -> str | None:
+    """A signed-in person's own name wins over a typed one (spec 08); scripts still type it."""
+    u = current_user()
+    return u.name if u else typed
 
 
 def _approval(a: PlanApproval | None) -> dict | None:
@@ -40,30 +46,31 @@ def get_edits(key):
     return jsonify({"edits": row.edits if row else None, "updated_by": row.updated_by if row else None,
                     "updated_at": row.updated_at.isoformat() if row and row.updated_at else None,
                     "approval": _approval(history[0] if history else None),
-                    "history": [_approval(a) for a in history], "can_save": write_guard() is None})
+                    "history": [_approval(a) for a in history],
+                    "can_save": staff_guard("advisor", student_key=key) is None})
 
 
 @bp.put("/<key>/plan-edits")
 def put_edits(key):
-    if (denied := write_guard()) is not None:
+    if (denied := staff_guard("advisor", student_key=key)) is not None:
         return denied
     body = request.get_json(silent=True) or {}
     try:
         _, _, edits = parse_edits(body.get("edits"))
     except AuditError as e:
         return jsonify({"error": "bad_edits", "message": str(e)}), 400
-    _save_edits(key, edits, (body.get("updated_by") or "").strip() or None)
+    _save_edits(key, edits, _who((body.get("updated_by") or "").strip() or None))
     db.session.commit()
     return get_edits(key)
 
 
 @bp.post("/<key>/approval")
 def approve(key):
-    if (denied := write_guard()) is not None:
+    if (denied := staff_guard("advisor", student_key=key)) is not None:
         return denied
     body = request.get_json(silent=True) or {}
     student = body.get("student") or {}
-    by = (body.get("approved_by") or "").strip()
+    by = _who((body.get("approved_by") or "").strip())
     if not by:
         return jsonify({"error": "bad_request", "message": "Say who is approving the plan."}), 400
     if key not in (student.get("student_number"), student.get("id")):

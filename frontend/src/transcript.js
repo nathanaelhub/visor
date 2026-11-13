@@ -2,6 +2,7 @@
 // Pure, so it can be tested without a browser. Returns { student, problems }: problems are rows the
 // person must fix before "Use this record" is allowed.
 import { parseCourseCode } from './courseCode.js'
+import { authHeaders } from './session.js'
 
 const blank = (s) => String(s ?? '').trim() === ''
 
@@ -41,9 +42,10 @@ export function ndjsonLines(buffer) {
  *  Resolves to the final result; rejects with { message, code, status } like api(). */
 export async function streamRead(body, headers, onRow) {
   const isForm = typeof FormData !== 'undefined' && body instanceof FormData
+  const auth = await authHeaders()
   const r = await fetch('/api/transcript?stream=1', {
     method: 'POST', body: isForm ? body : JSON.stringify(body),
-    headers: isForm ? headers : { 'Content-Type': 'application/json', ...headers },
+    headers: isForm ? { ...auth, ...headers } : { 'Content-Type': 'application/json', ...auth, ...headers },
   })
   if (!r.ok) {
     let data = null
