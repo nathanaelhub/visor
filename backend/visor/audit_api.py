@@ -280,7 +280,7 @@ def compute_audit(body: dict) -> dict:
              "credits": t.credits} for t in taken if t.in_progress]},
         plan=None if plan is None else {
             "start_term": plan.start_term, "complete": plan.complete,
-            "free_elective_hours": plan.free_elective_hours,
+            "free_elective_hours": plan.free_elective_hours, "note": plan.note,
             "terms": [asdict(t) for t in plan.terms]},
         unknown_codes=sorted({t.code for t in taken if t.code not in catalog.courses and not t.elective_only}),
     )
