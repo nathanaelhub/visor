@@ -1,6 +1,6 @@
 # Handoff: Visor showcase
 
-Updated: 2026-11-12
+Updated: 2026-11-13
 
 ## What this is
 
@@ -78,12 +78,29 @@ issue → `type/desc` branch → failing-test commit → fix commit → PR (temp
   - **Transcripts from other schools**: the transfer blocks keep their own schools, rows stream live as Claude reads, and a file picker appears only where uploads are open. There are 6 fictional test transcripts (scanned style) in `data/test-transcripts/`; the eval read 57/57 rows exactly.
   - **The real MTSU sample** lives only in `data/private/transcripts/` (git-ignored, never committed or deployed).
 
+## Finished 2026-11-12 to 13
+
+- **Ask Visor 📎** (US-7.6, #52/#53): start from a transcript inside the chat.
+- **Spec 08, login and roles** (#55/#56):
+  - Clerk through the Vercel Marketplace (`visor-showcase-auth`, a **development** instance).
+  - Admins come from `VISOR_ADMIN_EMAILS` (production: Nathanael's Lipscomb address); an admin page sets roles and advisees.
+  - Advisors save and approve for their advisees; registrars confirm or reject equivalencies (Claude's too); staff can upload transcripts.
+  - Flask verifies the Clerk JWT (`backend/visor/accounts.py`).
+- **Spec 09, saved chats and the conversation log** (#60/#61):
+  - Signed-in chats are saved, with History; advisors and admins get the Conversations page.
+  - The log is hash-chained ("Log verified"), and reads are recorded.
+  - A daily Vercel Cron purge after 365 days (`CRON_SECRET`).
+  - IT sign-off is still needed before real students use it.
+- **MTSU** (#62): the sixth school, with 3,471 courses and 1,198 proposals. Test transcripts were updated to ECON 2100/2200 (#63).
+- **User-case report** refreshed (#58 and this PR): 35 cases with the status of every finding.
+- **Test accounts** in the Clerk dev instance: `visor-{admin,advisor,student}+clerk_test@example.com`, code 424242. Delete them when no longer needed.
+
 ## In progress / unfinished
 
 - No open issues.
-- **The Ask Visor key expires around 2026-12-05.** Replace `VISOR_ANTHROPIC_API_KEY` in Vercel production before then.
-- The browser can't send the write token yet, so advisor saves and uploads from the UI only work in local dev until real login exists (KAN-30).
-- Most Claude proposals are "elective" because Visor's catalog holds only the five majors' Lipscomb courses. Adding more Lipscomb prefixes would turn many into direct matches.
+- **The Ask Visor key expires around 2026-12-05.** Replace `VISOR_ANTHROPIC_API_KEY` in Vercel production, ideally in its own Console workspace with a spend cap.
+- Clerk is a development instance. A production instance needs a custom domain; Lipscomb Microsoft sign-in needs an IT app registration.
+- Open low findings from the user-case report: F6, F10–F13 and N-F3 (most proposals are "elective" because Visor holds only five majors' Lipscomb courses).
 
 ## Next steps
 
@@ -97,7 +114,7 @@ issue → `type/desc` branch → failing-test commit → fix commit → PR (temp
 ```bash
 # backend (venv at backend/.venv)
 cd backend
-.venv/bin/ruff check . && .venv/bin/python -m pytest -q          # 238 tests
+.venv/bin/ruff check . && .venv/bin/python -m pytest -q          # 258 tests
 DATABASE_URL=sqlite:///visor-demo.db VISOR_DATA_DIR=../data/catalog/2026-27 \
   VISOR_EQUIV_DATA_DIR=../data/demo .venv/bin/flask --app wsgi seed
 .venv/bin/flask --app wsgi run --debug --port 5050                # macOS: 5000 is AirPlay
