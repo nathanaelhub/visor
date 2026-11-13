@@ -87,20 +87,20 @@ tr { break-inside: avoid; }
   <div>
     <p class="muted" style="font-weight:600; letter-spacing:.04em; text-transform:uppercase; font-size:9.5pt">User cases and hands-on test report</p>
     <h1>How Visor holds up for students, advisors and the registrar</h1>
-    <p class="lede">Twenty-five user cases, each run by hand against the working app: what the person wants,
-      what we did, what Visor showed, and whether that was right. Findings at the end are ranked so the team
-      can pick what to build next.</p>
+    <p class="lede">Twenty-five user cases run by hand on 31 October, and nine more on 13 November after the
+      team's findings were worked through: what the person wants, what we did, what Visor showed, and whether
+      that was right. Findings are ranked so the team can pick what to build next.</p>
     <div class="stats">
-      <div class="stat"><b>25</b><span class="muted">user cases</span></div>
-      <div class="stat"><b style="color:var(--metF)">17</b><span class="muted">pass</span></div>
-      <div class="stat"><b style="color:var(--rvF)">7</b><span class="muted">pass with a note</span></div>
-      <div class="stat"><b style="color:var(--erF)">1</b><span class="muted">fail</span></div>
+      <div class="stat"><b>34</b><span class="muted">user cases</span></div>
+      <div class="stat"><b style="color:var(--metF)">25</b><span class="muted">pass</span></div>
+      <div class="stat"><b style="color:var(--rvF)">8</b><span class="muted">pass with a note</span></div>
+      <div class="stat"><b style="color:var(--erF)">1</b><span class="muted">fail (since fixed)</span></div>
     </div>
   </div>
   <dl class="meta">
-    <dt>Build tested</dt><dd><span class="mono">nathanaelhub/visor</span> at commit <span class="mono">96d1672</span> (31 Oct 2026)</dd>
-    <dt>Catalog</dt><dd>Lipscomb University 2026-27, B.S. Computer Science (127 hours)</dd>
-    <dt>Data</dt><dd>Five fictional demo students and illustrative equivalencies. No real student records.</dd>
+    <dt>Build tested</dt><dd><span class="mono">nathanaelhub/visor</span> at commit <span class="mono">96d1672</span> (31 Oct 2026); new cases at <span class="mono">04747b8</span> (13 Nov 2026), live at visor-showcase.vercel.app</dd>
+    <dt>Catalog</dt><dd>Lipscomb University 2026-27: Computer Science (from 31 Oct); Biology, Management (B.B.A.), Nursing (BSN) and Psychology (from 13 Nov)</dd>
+    <dt>Data</dt><dd>Fictional demo students (5, then 13), fictional transcripts, and the public catalogs of five Tennessee transfer schools. No real student records.</dd>
     <dt>Tested by</dt><dd>Nathanael Johnson (graduate assistant), with Claude</dd>
     <dt>Builds on</dt><dd>Lunatic Labs Visor: Austin Patton, Gabriel Pop, Firas Adas, with Dr. Steve Nordstrom</dd>
   </dl>
@@ -152,7 +152,161 @@ tr { break-inside: avoid; }
     <tr><td class="mono">G1</td><td>Visitor understands Visor from the landing page</td><td><span class="pill pass">Pass</span></td><td>F1</td></tr>
     <tr><td class="mono">G2</td><td>Dark mode</td><td><span class="pill pass">Pass</span></td><td></td></tr>
     <tr><td class="mono">G3</td><td>Phone layout</td><td><span class="pill pass">Pass</span></td><td>F11</td></tr>
+    <tr><th colspan="4">Added 13 November 2026</th></tr>
+    <tr><td class="mono">N1</td><td>Student starts from a fictional transcript</td><td><span class="pill pass">Pass</span></td><td></td></tr>
+    <tr><td class="mono">N2</td><td>Student opens Ask Visor, attaches a multi-school transcript and asks about it</td><td><span class="pill note">Note</span></td><td>N-F1, N-F2</td></tr>
+    <tr><td class="mono">N3</td><td>Advisor sees the new majors; Nursing shows its admission gate</td><td><span class="pill pass">Pass</span></td><td></td></tr>
+    <tr><td class="mono">N4</td><td>Planner reaches class standing with free electives</td><td><span class="pill pass">Pass</span></td><td></td></tr>
+    <tr><td class="mono">N5</td><td>Advisor adjusts and approves a plan</td><td><span class="pill pass">Pass</span></td><td></td></tr>
+    <tr><td class="mono">N6</td><td>Registrar confirms one of Claude's proposed equivalencies</td><td><span class="pill pass">Pass</span></td><td>N-F3</td></tr>
+    <tr><td class="mono">N7</td><td>Plan shows every transfer course and why</td><td><span class="pill pass">Pass</span></td><td></td></tr>
+    <tr><td class="mono">N8</td><td>Admin gives people roles and advisees</td><td><span class="pill pass">Pass</span></td><td>N-F4</td></tr>
+    <tr><td class="mono">N9</td><td>Claude reads realistic scanned transcripts accurately</td><td><span class="pill pass">Pass</span></td><td></td></tr>
   </table>
+</section>
+
+
+<!-- ============ Update, 13 November ============ -->
+<section>
+  <h2>What changed since 31 October</h2>
+  <p class="intro">Every finding from the first round became a GitHub issue, then a spec where it needed one, then a
+    pull request with tests written first. This page is the status of each finding; the nine cases after it test what was built.</p>
+  <table>
+    <tr><th style="width:0.45in">Finding</th><th>What it was</th><th style="width:1.05in">Status</th><th style="width:1.2in">Where</th></tr>
+    <tr><td class="mono">F1</td><td>Advisors could view plans but not change or approve them</td><td><span class="pill pass">Fixed</span></td><td>Spec 06, PR #39 (case N5)</td></tr>
+    <tr><td class="mono">F2</td><td>Plan page hid transfer credit that didn't count</td><td><span class="pill pass">Fixed</span></td><td>PR #37 (case N7)</td></tr>
+    <tr><td class="mono">F3</td><td>Graduation date shown when courses couldn't be placed</td><td><span class="pill pass">Fixed</span></td><td>PR #13</td></tr>
+    <tr><td class="mono">F4</td><td>The same course could be flagged twice</td><td><span class="pill pass">Fixed</span></td><td>PR #10</td></tr>
+    <tr><td class="mono">F5</td><td>Ask Visor stated a prerequisite without checking</td><td><span class="pill pass">Fixed</span></td><td>PR #14</td></tr>
+    <tr><td class="mono">F6</td><td>Summer can add terms without helping</td><td><span class="pill note">Open</span></td><td></td></tr>
+    <tr><td class="mono">F7</td><td>Course code parsing on the Transfer tab (case R4 failed)</td><td><span class="pill pass">Fixed</span></td><td>PR #12</td></tr>
+    <tr><td class="mono">F8</td><td>The audit API was too forgiving</td><td><span class="pill pass">Fixed</span></td><td>PR #11</td></tr>
+    <tr><td class="mono">F9</td><td>Free-elective hours weren't placed</td><td><span class="pill note">Partly</span></td><td>PR #44: placed when class standing needs them (case N4)</td></tr>
+    <tr><td class="mono">F10</td><td>"Needed" on half-finished groups</td><td><span class="pill note">Open</span></td><td></td></tr>
+    <tr><td class="mono">F11</td><td>Load line isn't a real check</td><td><span class="pill note">Open</span></td><td></td></tr>
+    <tr><td class="mono">F12</td><td>No demo student shows the "needs review" path</td><td><span class="pill note">Open</span></td><td>Nursing's admission notice (N3) is a gate, not a review</td></tr>
+    <tr><td class="mono">F13</td><td>One demo equivalency is unlikely</td><td><span class="pill note">Open</span></td><td></td></tr>
+  </table>
+  <p class="small muted">Also new since 31 October, beyond the findings:
+    <ul class="small" style="margin:4pt 0 0; padding-left:14pt">
+      <li>the live site, with Ask Visor on one shared key and per-visitor limits</li>
+      <li>transcript reading (fictional demo transcripts on the public site)</li>
+      <li>four more majors</li>
+      <li>course lists for five transfer schools, with 2,983 Claude-proposed equivalencies that a person must confirm</li>
+      <li>sign-in with roles (specs 05–08; PRs #16–#56)</li>
+    </ul></p>
+</section>
+
+<section>
+  <h2>New cases, 13 November</h2>
+  <p class="intro">Run in a real browser. Public cases on the live site, signed out; staff cases on a local copy signed in
+    with test accounts in Visor's Clerk development instance. Every student and transcript is fictional.</p>
+
+  <div class="case">
+    <div class="case-head"><span class="id">UC-N1</span><h3>Student starts from a fictional transcript</h3><span class="pill pass">Pass</span></div>
+    <dl>
+      <dt>Who</dt><dd>A student on the public site, using the bundled transcript for Sam Okafor (fictional).</dd>
+      <dt>Goal</dt><dd>"Build my plan from my transcript instead of typing every course."</dd>
+      <dt>Steps</dt><dd><ol><li>Student → Start from a transcript → Read it.</li><li>Watch the rows arrive, check the table.</li><li>Use this record.</li></ol></dd>
+      <dt>Expected</dt><dd>Rows appear as Claude reads; nothing is used until the student confirms; the plan runs on the record.</dd>
+      <dt>Actual</dt><dd>Rows streamed in beside the PDF in about three seconds, then the editable table. After <i>Use this record</i>, My Plan
+        showed "Sam Okafor (from transcript)" with plan checks passing. Uploading a real file is closed on the public site.</dd>
+    </dl>
+    <figure class="shot"><img src="screenshots/n1-transcript-review.png" alt="Checking what Claude read" /><figcaption>The check-before-use step: every row can be edited before the plan runs.</figcaption></figure>
+  </div>
+
+  <div class="case">
+    <div class="case-head"><span class="id">UC-N2</span><h3>Student attaches a multi-school transcript in Ask Visor and asks about it</h3><span class="pill note">Note</span></div>
+    <dl>
+      <dt>Who</dt><dd>A student with a scanned university transcript carrying transfer blocks from two community colleges (Theodora J. Brightwater, fictional).</dd>
+      <dt>Goal</dt><dd>"Which of my transfer courses count toward psychology now, and which are still pending?"</dd>
+      <dt>Steps</dt><dd><ol><li>Ask Visor → 📎 → pick the transcript.</li><li>Choose B.S. Psychology, Use this record.</li><li>Ask the question.</li></ol></dd>
+      <dt>Expected</dt><dd>The chat switches to that record and answers from the planner, separating counted, pending and unknown credit.</dd>
+      <dt>Actual</dt><dd>The chat opened with "Using Theodora J. Brightwater's transcript". The answer listed 6 confirmed hours, five pending
+        proposals (for example Columbia State MATH 1130 → MA 1113, "the course PS 2503 needs") and the courses with no match, and told the
+        student to check with an advisor.
+        <br/><b>Notes:</b> courses taken at the issuing university (MTSU) show without a school because MTSU isn't one of Visor's schools yet
+        (N-F1). The fictional transcript uses ECON 2010, the old number; Nashville State now uses ECON 2100 (N-F2).</dd>
+    </dl>
+    <figure class="shot"><img src="screenshots/n2-chat-transcript.png" alt="Ask Visor answering about the attached transcript" /></figure>
+  </div>
+
+  <div class="case">
+    <div class="case-head"><span class="id">UC-N3</span><h3>Advisor sees the new majors; Nursing shows its admission gate</h3><span class="pill pass">Pass</span></div>
+    <dl>
+      <dt>Who</dt><dd>An advisor with 13 fictional advisees across five majors.</dd>
+      <dt>Goal</dt><dd>"Show me plans for students outside Computer Science."</dd>
+      <dt>Steps</dt><dd><ol><li>Advisor → Students.</li><li>Open Talia Brooks-Mendez (Nursing, pre-nursing year).</li></ol></dd>
+      <dt>Expected</dt><dd>Every student plans with no checker violations; Nursing tells the student about admission without the planner deciding it.</dd>
+      <dt>Actual</dt><dd>All 13 plans pass the independent checker. Talia's plan: "Plan checks pass", graduation May 2030, and a notice
+        "Admission required. Upper-division nursing courses need admission to the nursing program".</dd>
+    </dl>
+    <figure class="shot"><img src="screenshots/n3-nursing-plan.png" alt="Nursing plan with the admission notice" /></figure>
+  </div>
+
+  <div class="case">
+    <div class="case-head"><span class="id">UC-N4</span><h3>Planner reaches class standing with free electives</h3><span class="pill pass">Pass</span></div>
+    <dl>
+      <dt>Who</dt><dd>Harper Delacroix (Psychology first-year, fictional). PS 4613 needs 90 hours (senior standing).</dd>
+      <dt>Expected</dt><dd>The plan reaches 90 hours before PS 4613 instead of reporting it unplaceable.</dd>
+      <dt>Actual</dt><dd>A labelled slot "Free elective (your choice) · Hours toward 90 for PS 4613 · 2 hrs" fills the gap; the checker counts its hours
+        and the plan graduates Dec 2029. Computer Science plans are unchanged (tested).</dd>
+    </dl>
+    <figure class="shot"><img src="screenshots/n4-free-elective.png" alt="Free-elective slot in a term" /></figure>
+  </div>
+
+  <div class="case">
+    <div class="case-head"><span class="id">UC-N5</span><h3>Advisor adjusts and approves a plan</h3><span class="pill pass">Pass</span></div>
+    <dl>
+      <dt>Who</dt><dd>An advisor with Jordan Rivera (fictional).</dd>
+      <dt>Steps</dt><dd><ol><li>Pin IT 3313 to Fall 2028 with the course's Adjust menu.</li><li>Approve with a name.</li></ol></dd>
+      <dt>Expected</dt><dd>The planner re-plans around the pin, the checker re-checks it, and the approval is tied to this exact plan.</dd>
+      <dt>Actual</dt><dd>IT 3313 moved to Fall 2028 with "Pinned by your advisor"; checks still pass; "Approved by Dr. Advisor". On the public site this
+        stays in the browser tab ("not saved in the demo"); signed in as an advisor it saves, for that advisor's own advisees only (N8).</dd>
+    </dl>
+    <figure class="shot"><img src="screenshots/n5-adjust-approve.png" alt="Adjust plan and approval" /></figure>
+  </div>
+
+  <div class="case">
+    <div class="case-head"><span class="id">UC-N6</span><h3>Registrar confirms one of Claude's proposed equivalencies</h3><span class="pill pass">Pass</span></div>
+    <dl>
+      <dt>Who</dt><dd>A signed-in registrar (test account) looking up UT Chattanooga PSY 1010.</dd>
+      <dt>Expected</dt><dd>Claude's suggestion is clearly a proposal that doesn't count; only a person can confirm it, and the person is named.</dd>
+      <dt>Actual</dt><dd>Before: "Proposed by Claude · needs a person to confirm", with Claude's reason. After <i>Confirm</i>: "On file. Counts toward the
+        degree now" and "Confirmed by Ada Admin (test), 2026-11-13 (proposed by Claude)". The name comes from the account, not from anything typed.</dd>
+    </dl>
+    <figure class="shot"><img src="screenshots/n6-confirmed.png" alt="Confirmed Claude proposal" /></figure>
+  </div>
+
+  <div class="case">
+    <div class="case-head"><span class="id">UC-N7</span><h3>Plan shows every transfer course and why</h3><span class="pill pass">Pass</span></div>
+    <dl>
+      <dt>Who</dt><dd>Sam Okafor (transfer from Nashville State and Vol State, fictional). This re-tests finding F2.</dd>
+      <dt>Actual</dt><dd>A Transfer credit card lists all 10 courses: Counts, Pending, Does not transfer or Unknown, each with the reason.</dd>
+    </dl>
+    <figure class="shot"><img src="screenshots/n7-transfer-card.png" alt="Transfer credit card" /></figure>
+  </div>
+
+  <div class="case">
+    <div class="case-head"><span class="id">UC-N8</span><h3>Admin gives people roles and advisees</h3><span class="pill pass">Pass</span></div>
+    <dl>
+      <dt>Steps</dt><dd><ol><li>A new advisor signs in (starts as student; can't save).</li><li>Admin sets them to Advisor and ticks Jordan Rivera.</li><li>The advisor signs in again.</li></ol></dd>
+      <dt>Expected</dt><dd>The role comes from Visor's database, never the browser; an advisor saves only for their advisees.</dd>
+      <dt>Actual</dt><dd>The advisor saved Jordan's plan ("Saved by Dana Advisor (test)") and could not save Casey Lin's. Forged, expired and
+        wrong-site tokens are refused (automated tests). Admins come from the <span class="mono">VISOR_ADMIN_EMAILS</span> setting.</dd>
+    </dl>
+    <figure class="shot"><img src="screenshots/n8-admin-roles.png" alt="Admin page with roles" /></figure>
+  </div>
+
+  <div class="case">
+    <div class="case-head"><span class="id">UC-N9</span><h3>Claude reads realistic scanned transcripts accurately</h3><span class="pill pass">Pass</span></div>
+    <dl>
+      <dt>Who</dt><dd>Six fictional test transcripts: two clean PDFs and four scanned-look JPEGs (rotation, grain, watermark, a repeated course).</dd>
+      <dt>Steps</dt><dd><span class="mono">flask transcript-eval data/test-transcripts</span>, which compares each reading with an answer key.</dd>
+      <dt>Actual</dt><dd><b>57 of 57</b> course rows read exactly (school, code, grade), issuing school right on all six. A recipe PDF was refused as
+        "not a transcript".</dd>
+    </dl>
+  </div>
 </section>
 
 <!-- ============ Student ============ -->
@@ -494,6 +648,17 @@ tr { break-inside: avoid; }
   <div class="finding f-low"><h3><span class="pill low">Low</span>F13 · One demo equivalency is unlikely</h3>
     <p>CSCI 1020 (Object-Oriented Programming) is proposed as CS 2233 (Data Structures). That is fine as illustration, but a closer match makes a better demo.</p></div>
 
+
+  <h2 style="margin-top:14pt">New findings, 13 November</h2>
+  <div class="finding f-med"><h3><span class="pill med">Medium</span>N-F1 · Courses from schools Visor doesn't know can't be looked up</h3>
+    <p>A transcript issued by MTSU lists its own courses without a known school, so Ask Visor can't check them. MTSU (8th on the registrar's list) is being added; a general fix is an "unknown school" row that a registrar can map.</p></div>
+  <div class="finding f-low"><h3><span class="pill low">Low</span>N-F2 · Fictional test transcripts use old course numbers</h3>
+    <p>Tennessee community colleges renumbered economics (ECON 2100/2200); the fictional transcripts still say ECON 2010/2020. Update them so demo lookups find the course.</p></div>
+  <div class="finding f-low"><h3><span class="pill low">Low</span>N-F3 · Most of Claude's proposals are "elective"</h3>
+    <p>Visor only knows the five majors' Lipscomb courses, so Claude often had no specific course to propose. Reading more of the Lipscomb catalog would turn many into specific matches.</p></div>
+  <div class="finding f-low"><h3><span class="pill low">Low</span>N-F4 · Sign-in runs on Clerk's development instance</h3>
+    <p>It shows a "development" badge and has usage limits. A production instance needs a custom domain; Lipscomb Microsoft sign-in needs an app registration from IT.</p></div>
+
   <div class="callout keep"><b>What held up well.</b> Every plan we produced (five students, summer on and off, three credit caps) passed the independent checker with
     zero violations. Reasons on every course matched the catalog. Ask Visor refused to edit, used the planner’s own data, and named what it didn’t know.</div>
 </section>
@@ -501,9 +666,18 @@ tr { break-inside: avoid; }
 <!-- ============ Traceability ============ -->
 <section>
   <h2>Appendix: where each case is specified and tested</h2>
-  <p class="intro">Spec stories are in <span class="mono">specs/05-design-forecast.md</span> (the transfer lookup is the team’s <span class="mono">specs/03</span>). Test names are in <span class="mono">backend/tests/</span>.</p>
+  <p class="intro">Spec stories are in <span class="mono">specs/05</span> to <span class="mono">specs/08</span> (the transfer lookup is the team’s <span class="mono">specs/03</span>). Test names are in <span class="mono">backend/tests/</span>.</p>
   <table>
     <tr><th style="width:0.6in">Case</th><th style="width:1.1in">Spec</th><th>Automated test</th></tr>
+    <tr><td class="mono">N1</td><td>US-5.7, US-7.4</td><td class="mono">test_transcript_is_read_into_courses, test_streamed_read_matches_the_plain_read</td></tr>
+    <tr><td class="mono">N2</td><td>US-7.6</td><td class="mono">test_other_school_courses_become_transfer_rows (chat flow: browser)</td></tr>
+    <tr><td class="mono">N3</td><td>US-7.3</td><td class="mono">test_every_program_plans_cleanly, test_nursing_admission_is_a_warning_not_a_rule</td></tr>
+    <tr><td class="mono">N4</td><td>US-7.3</td><td class="mono">test_every_program_plans_cleanly, test_cs_plans_are_unchanged</td></tr>
+    <tr><td class="mono">N5</td><td>US-6.2, 6.4</td><td class="mono">test_pin_places_the_course, test_approve_records_the_fingerprint</td></tr>
+    <tr><td class="mono">N6</td><td>US-7.2, US-8.3</td><td class="mono">test_ai_proposals_never_count, test_registrar_decides_equivalencies</td></tr>
+    <tr><td class="mono">N7</td><td>#2</td><td class="mono">test_advisor_list_names_the_pending_transfer_courses</td></tr>
+    <tr><td class="mono">N8</td><td>US-8.2, 8.3, 8.4</td><td class="mono">test_admin_sets_roles_and_advisees, test_advisor_edits_own_advisees_only, test_forged_or_expired_tokens_are_refused</td></tr>
+    <tr><td class="mono">N9</td><td>US-7.5</td><td class="mono">flask transcript-eval (real API, run by hand)</td></tr>
     <tr><td class="mono">S1</td><td>US-5.1.1, 5.1.4</td><td class="mono">test_every_requirement_placed_or_warned, test_start_term_and_summer</td></tr>
     <tr><td class="mono">S3</td><td>US-5.2.1</td><td class="mono">test_every_planned_course_has_a_reason</td></tr>
     <tr><td class="mono">S4</td><td>US-5.1.5</td><td class="mono">test_nothing_left</td></tr>
