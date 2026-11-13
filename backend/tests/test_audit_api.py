@@ -135,3 +135,11 @@ def test_course_info_accepts_an_encoded_code(demo_client):
     for path in ["/api/courses/CS%2520%32233/info", "/api/courses/CS%25202233/info", "/api/courses/CS+2233/info"]:
         r = demo_client.get(path)
         assert r.status_code == 200 and r.get_json()["code"] == "CS 2233", path
+
+
+def test_demo_proposed_equivalency_is_a_close_match(demo_client):
+    """F13: the demo's proposed row should be one a registrar would take seriously."""
+    sid = next(s["id"] for s in demo_client.get("/api/schools").get_json() if s["name"].startswith("Columbia"))
+    body = demo_client.post("/api/equivalencies/lookup", json={"school_id": sid, "subject": "CSCI", "number": "1020"}).get_json()
+    assert body["status"] == "proposed" and body["equivalency"]["course"]["code"] == "CS 2233"
+    assert body["external_course"]["title"] == "Computer Science II"
