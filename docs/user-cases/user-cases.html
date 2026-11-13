@@ -179,14 +179,14 @@ tr { break-inside: avoid; }
     <tr><td class="mono">F3</td><td>Graduation date shown when courses couldn't be placed</td><td><span class="pill pass">Fixed</span></td><td>PR #13</td></tr>
     <tr><td class="mono">F4</td><td>The same course could be flagged twice</td><td><span class="pill pass">Fixed</span></td><td>PR #10</td></tr>
     <tr><td class="mono">F5</td><td>Ask Visor stated a prerequisite without checking</td><td><span class="pill pass">Fixed</span></td><td>PR #14</td></tr>
-    <tr><td class="mono">F6</td><td>Summer can add terms without helping</td><td><span class="pill note">Open</span></td><td></td></tr>
+    <tr><td class="mono">F6</td><td>Summer can add terms without helping</td><td><span class="pill pass">Fixed</span></td><td>PR #66</td></tr>
     <tr><td class="mono">F7</td><td>Course code parsing on the Transfer tab (case R4 failed)</td><td><span class="pill pass">Fixed</span></td><td>PR #12</td></tr>
     <tr><td class="mono">F8</td><td>The audit API was too forgiving</td><td><span class="pill pass">Fixed</span></td><td>PR #11</td></tr>
     <tr><td class="mono">F9</td><td>Free-elective hours weren't placed</td><td><span class="pill note">Partly</span></td><td>PR #44: placed when class standing needs them (case N4)</td></tr>
-    <tr><td class="mono">F10</td><td>"Needed" on half-finished groups</td><td><span class="pill note">Open</span></td><td></td></tr>
-    <tr><td class="mono">F11</td><td>Load line isn't a real check</td><td><span class="pill note">Open</span></td><td></td></tr>
-    <tr><td class="mono">F12</td><td>No demo student shows the "needs review" path</td><td><span class="pill note">Open</span></td><td>Nursing's admission notice (N3) is a gate, not a review</td></tr>
-    <tr><td class="mono">F13</td><td>One demo equivalency is unlikely</td><td><span class="pill note">Open</span></td><td></td></tr>
+    <tr><td class="mono">F10</td><td>"Needed" on half-finished groups</td><td><span class="pill pass">Fixed</span></td><td>PR #69</td></tr>
+    <tr><td class="mono">F11</td><td>Load line isn't a real check</td><td><span class="pill pass">Fixed</span></td><td>PR #69</td></tr>
+    <tr><td class="mono">F12</td><td>No demo student shows the "needs review" path</td><td><span class="pill pass">Fixed</span></td><td>PR #71</td></tr>
+    <tr><td class="mono">F13</td><td>One demo equivalency is unlikely</td><td><span class="pill pass">Fixed</span></td><td>PR #73</td></tr>
   </table>
   <p class="small muted">Also new since 31 October, beyond the findings:
     <ul class="small" style="margin:4pt 0 0; padding-left:14pt">
@@ -639,8 +639,8 @@ tr { break-inside: avoid; }
     <p>The claim that CS 3433 depended on MA 3213 was wrong, because Casey’s MA 2314 already satisfies it. Either include each planned course’s prerequisites in the audit tool’s result,
       or add a line to the system prompt: call <span class="mono">course_info</span> before stating that one course depends on another.</p></div>
 
-  <div class="finding f-low"><h3><span class="pill low">Low</span>F6 · Turning on summer can add terms without helping</h3>
-    <p>Only open a summer term when it moves graduation earlier, and run the same last-term compaction with summer on.</p></div>
+  <div class="finding f-low"><h3><span class="pill pass">Fixed</span>F6 · Turning on summer can add terms without helping</h3>
+    <p><b>Fixed in PR #66:</b> the planner plans without summer first and keeps a summer term only when it moves graduation earlier.</p></div>
 
   <div class="finding f-low"><h3><span class="pill low">Low</span>F7 · Course code parsing on the Transfer tab</h3>
     <p>Require a letter subject followed by a number starting with a digit (<span class="mono">^([A-Z]{2,5})\s*-?\s*(\d[\w]*)$</span>), accept a hyphen, and clear the old result when showing an input error.</p></div>
@@ -651,17 +651,17 @@ tr { break-inside: avoid; }
   <div class="finding f-low"><h3><span class="pill low">Low</span>F9 · Free-elective hours aren’t placed</h3>
     <p>When the last term is light, say “add 4 hours of free electives here” on that term instead of only in the footnote.</p></div>
 
-  <div class="finding f-low"><h3><span class="pill low">Low</span>F10 · “Needed” on half-finished groups</h3>
-    <p>Show a third state such as “Partly done” when some hours count but the group isn’t met.</p></div>
+  <div class="finding f-low"><h3><span class="pill pass">Fixed</span>F10 · “Needed” on half-finished groups</h3>
+    <p><b>Fixed in PR #69:</b> a group with some hours counted now shows <b>Partly done</b>, and the summary counts it separately.</p></div>
 
-  <div class="finding f-low"><h3><span class="pill low">Low</span>F11 · Load line isn’t a real check</h3>
-    <p>Compare <span class="mono">checks.max_load</span> with <span class="mono">checks.load_limit</span> and show a check or alert like the other lines.</p></div>
+  <div class="finding f-low"><h3><span class="pill pass">Fixed</span>F11 · Load line isn’t a real check</h3>
+    <p><b>Fixed in PR #69:</b> the line compares the heaviest term with the limit (“Every term at or under 18 hrs (heaviest 18)”) and turns into an alert when a term is over.</p></div>
 
-  <div class="finding f-low"><h3><span class="pill low">Low</span>F12 · No demo student shows the “needs review” path</h3>
-    <p>Add a sixth fictional student whose plan produces a warning, so the advisor demo and the Needs review chip show something.</p></div>
+  <div class="finding f-low"><h3><span class="pill pass">Fixed</span>F12 · No demo student shows the “needs review” path</h3>
+    <p><b>Fixed in PR #71:</b> Reese Calloway (fictional) is returning with CS 2113 from an older catalog; the plan asks an advisor to decide what it counts as, and the Needs review chip shows 1.</p></div>
 
-  <div class="finding f-low"><h3><span class="pill low">Low</span>F13 · One demo equivalency is unlikely</h3>
-    <p>CSCI 1020 (Object-Oriented Programming) is proposed as CS 2233 (Data Structures). That is fine as illustration, but a closer match makes a better demo.</p></div>
+  <div class="finding f-low"><h3><span class="pill pass">Fixed</span>F13 · One demo equivalency is unlikely</h3>
+    <p><b>Fixed in PR #73:</b> the fictional CSCI 1020 is now “Computer Science II”, the course where data structures are taught (as Columbia State’s real CISP 1020 is), so CS 2233 is a close match.</p></div>
 
 
   <h2 style="margin-top:14pt">New findings, 13 November</h2>
