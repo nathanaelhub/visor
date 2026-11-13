@@ -76,6 +76,8 @@ def create_app(config: dict | None = None) -> Flask:
     app.register_blueprint(advisor_edits_bp)
     from .accounts import bp as accounts_bp
     app.register_blueprint(accounts_bp)
+    from .chat_log import bp as chat_log_bp
+    app.register_blueprint(chat_log_bp)
 
     with app.app_context():
         db.create_all()

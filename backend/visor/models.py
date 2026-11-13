@@ -199,3 +199,39 @@ class Advisee(db.Model):
     assigned_by = db.Column(db.String(120))
     assigned_at = db.Column(db.DateTime(timezone=True), nullable=False, default=_now)
     __table_args__ = (UniqueConstraint("advisor_id", "student_key"),)
+
+
+class Conversation(db.Model):
+    """A signed-in person's Ask Visor conversation (spec 09). Kept 365 days, then purged."""
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.ForeignKey("app_user.id"), nullable=False, index=True)
+    student_key = db.Column(db.String(64), index=True)  # student number, or transcript:<id>
+    student_name = db.Column(db.String(160))
+    model = db.Column(db.String(40))
+    started_at = db.Column(db.DateTime(timezone=True), nullable=False, default=_now)
+    last_at = db.Column(db.DateTime(timezone=True), nullable=False, default=_now)
+    user = db.relationship("AppUser")
+
+
+class ChatMessage(db.Model):
+    """One question or answer. Rows are only added; each carries a hash of the previous row (spec 09)."""
+    id = db.Column(db.Integer, primary_key=True)
+    conversation_id = db.Column(db.ForeignKey("conversation.id"), nullable=False, index=True)
+    seq = db.Column(db.Integer, nullable=False)
+    role = db.Column(db.String(10), nullable=False)  # user / assistant
+    text = db.Column(db.Text, nullable=False)
+    tools = db.Column(db.JSON)  # [{tool, input, summary, status}]
+    model = db.Column(db.String(40))
+    created_at = db.Column(db.DateTime(timezone=True), nullable=False, default=_now)
+    prev_hash = db.Column(db.String(64), nullable=False)
+    hash = db.Column(db.String(64), nullable=False)
+    __table_args__ = (UniqueConstraint("conversation_id", "seq"),)
+
+
+class LogAccess(db.Model):
+    """Someone other than the owner opened a conversation (spec 09, US-9.2)."""
+    id = db.Column(db.Integer, primary_key=True)
+    conversation_id = db.Column(db.ForeignKey("conversation.id"), nullable=False, index=True)
+    reader_id = db.Column(db.ForeignKey("app_user.id"), nullable=False)
+    read_at = db.Column(db.DateTime(timezone=True), nullable=False, default=_now)
+    reader = db.relationship("AppUser")

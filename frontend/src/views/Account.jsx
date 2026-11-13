@@ -21,7 +21,7 @@ export function AuthBridge({ onAccount }) {
   return null
 }
 
-export function AccountButton({ account, onAdmin }) {
+export function AccountButton({ account, onAdmin, onLog }) {
   const { isSignedIn } = useAuth()
   if (!isSignedIn) {
     return <SignInButton mode="modal"><button type="button" className="btn2" style={{ minHeight: 38 }}>Sign in</button></SignInButton>
@@ -29,6 +29,11 @@ export function AccountButton({ account, onAdmin }) {
   return (
     <span className="row account" style={{ gap: 8, flexWrap: 'nowrap' }}>
       {account && account.role !== 'admin' && <span className="pill pill-ok hidem" title={account.email ?? ''}>{ROLE_LABEL[account.role] ?? account.role}</span>}
+      {(account?.role === 'admin' || account?.role === 'advisor') && (
+        <button type="button" className="btn2" style={{ minHeight: 38 }} onClick={onLog} aria-label="Conversations">
+          <span className="admin-label">Conversations</span><span className="admin-icon" aria-hidden="true">💬</span>
+        </button>
+      )}
       {account?.role === 'admin' && (
         <button type="button" className="btn2" style={{ minHeight: 38 }} onClick={onAdmin} aria-label="Admin">
           <span className="admin-label">Admin</span><span className="admin-icon" aria-hidden="true">⚙</span>
@@ -109,6 +114,75 @@ export function Admin({ onBack }) {
             </tbody>
           </table>
         </div>
+      )}
+    </div>
+  )
+}
+
+/** Advisors and admins check what Ask Visor said (spec 09, US-9.2). Opening someone else's
+ *  conversation is recorded, and the hash chain shows whether the log is intact. */
+export function Conversations({ onBack }) {
+  const [rows, setRows] = useState(null)
+  const [open, setOpen] = useState(null)
+  const [error, setError] = useState('')
+  useEffect(() => { api('/api/admin/conversations').then(setRows).catch((e) => setError(e.message)) }, [])
+  const show = (id) => api(`/api/chats/${id}`).then(setOpen).catch((e) => setError(e.message))
+
+  return (
+    <div className="wrap">
+      <button type="button" className="linkbtn row small" onClick={open ? () => setOpen(null) : onBack} style={{ alignSelf: 'flex-start', gap: 6 }}>
+        <Icon name="left" /> {open ? 'All conversations' : 'Back'}
+      </button>
+      <div>
+        <h1 className="h1">{open ? `Conversation with ${open.user}` : 'Conversations'}</h1>
+        <p className="muted" style={{ margin: '6px 0 0' }}>
+          Saved Ask Visor conversations of signed-in people, kept one year. Advisors see their advisees only. Opening one is recorded.
+        </p>
+      </div>
+      {error && <div className="notice err" role="alert"><Icon name="alert" />{error}</div>}
+      {!rows && !error && <p className="row muted"><Spinner /> Loading…</p>}
+      {rows && !open && (
+        <div className="card table-card">
+          <table className="tbl">
+            <thead><tr><th>Person</th><th>About</th><th>First question</th><th className="hidem">Last message</th></tr></thead>
+            <tbody>
+              {rows.length === 0 && <tr><td colSpan={4} className="muted">No saved conversations yet.</td></tr>}
+              {rows.map((c) => (
+                <tr key={c.id}>
+                  <td>{c.user}</td>
+                  <td className="small">{c.student_name ? cleanName(c.student_name) : '—'}{c.student_key && <div className="mono muted">{c.student_key}</div>}</td>
+                  <td><button type="button" className="linkbtn" onClick={() => show(c.id)}>{c.first_question || '(empty)'}</button></td>
+                  <td className="hidem small muted">{new Date(c.last_at).toLocaleString()}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+      {open && (
+        <section className="card" style={{ padding: 20, display: 'flex', flexDirection: 'column', gap: 12 }} aria-label="Conversation">
+          <div className={`notice ${open.verified ? 'ok-notice' : 'err'}`} role="status">
+            <Icon name={open.verified ? 'check' : 'alert'} />
+            {open.verified ? 'Log verified: every message is as it was saved.' : `Log broken at message ${open.broken_at}: something was changed or removed.`}
+          </div>
+          <p className="small muted" style={{ margin: 0 }}>
+            About {open.student_name ? cleanName(open.student_name) : 'no student record'} · model {open.model} · started {new Date(open.started_at).toLocaleString()}
+          </p>
+          {open.messages.map((m) => (
+            <div key={m.seq} className={m.role === 'user' ? 'ubub' : 'card'} style={m.role === 'user' ? {} : { padding: 12 }}>
+              {m.role === 'assistant' && m.tools.length > 0 && (
+                <ul className="small muted" style={{ margin: '0 0 6px', paddingLeft: 18 }}>
+                  {m.tools.map((t, i) => <li key={i}><span className="mono">{t.tool}</span> · {t.summary}</li>)}
+                </ul>
+              )}
+              <div style={{ whiteSpace: 'pre-wrap' }}>{m.text}</div>
+              <div className="small muted" style={{ marginTop: 4 }}>{new Date(m.created_at).toLocaleString()}</div>
+            </div>
+          ))}
+          <p className="small muted" style={{ margin: 0 }}>
+            Read by: {open.read_by.length ? open.read_by.map((r) => `${r.reader} (${new Date(r.at).toLocaleString()})`).join(', ') : 'nobody else yet'}
+          </p>
+        </section>
       )}
     </div>
   )
