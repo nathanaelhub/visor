@@ -126,6 +126,7 @@ function Plan({ r, story, mode, edit }) {
             <h2 className="serif" style={{ fontSize: 24 }}>Semester plan</h2>
             <span className="small muted">Built by Visor’s planner from the {r.catalog_year} catalog</span>
           </div>
+          {plan?.note && <p className="small muted" role="note" style={{ margin: 0 }}>{plan.note}</p>}
           <div className="terms">
             {r.in_progress.courses.length > 0 && <InProgress term={r.in_progress} />}
             {plan?.complete && <div className="card" style={{ padding: 20 }}>Every requirement is met or in progress. Nothing left to plan.</div>}

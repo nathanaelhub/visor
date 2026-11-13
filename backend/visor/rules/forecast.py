@@ -101,6 +101,7 @@ class Plan:
     complete: bool  # nothing left to plan
     warnings: list = field(default_factory=list)  # list[Warning]
     free_elective_hours: float = 0  # hours still short of the degree total after everything planned
+    note: str | None = None  # a plain remark about how the plan was built (e.g. why summer wasn't used)
 
     @property
     def needs_review(self) -> bool:
@@ -292,6 +293,23 @@ def _prereqs_ok(code: str, catalog: Catalog, passed: dict[str, str | None], plan
 
 def project(program: Program, catalog: Catalog, taken: list[Taken], result: AuditResult,
             start_term: str, settings: Settings = Settings(), edits: Edits = Edits()) -> Plan:
+    """The plan. With summers on, summer terms are used only when they bring graduation earlier
+    (user-case finding F6); otherwise the Fall/Spring plan is returned with a note saying so."""
+    plan = _project(program, catalog, taken, result, start_term, settings, edits)
+    if not settings.include_summer or not any(parse_term(t.term).season == "SU" for t in plan.terms):
+        return plan
+    without = _project(program, catalog, taken, result, start_term,
+                       Settings(**{**settings.__dict__, "include_summer": False}), edits)
+    earlier = plan.projected_term and (without.projected_term is None
+                                       or parse_term(plan.projected_term) < parse_term(without.projected_term))
+    if earlier:
+        return plan
+    without.note = "Summer terms wouldn't bring graduation any earlier, so this plan uses Fall and Spring only."
+    return without
+
+
+def _project(program: Program, catalog: Catalog, taken: list[Taken], result: AuditResult,
+             start_term: str, settings: Settings, edits: Edits) -> Plan:
     warnings: list[Warning] = []
     needs = _outstanding(program, catalog, taken, result, warnings)
     pins: dict[str, str] = {}
