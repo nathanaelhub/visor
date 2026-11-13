@@ -57,7 +57,7 @@ export function Logo({ size = 30 }) {
 }
 
 const STATUS = {
-  met: ['check', 'Met'], in_progress: ['half', 'In progress'], needed: ['dashed', 'Needed'],
+  met: ['check', 'Met'], in_progress: ['half', 'In progress'], partial: ['half', 'Partly done'], needed: ['dashed', 'Needed'],
   confirmed: ['check', 'Confirmed'], proposed: ['half', 'Proposed'], unknown: ['dashed', 'Unknown'],
   review: ['alert', 'Needs review'], retake: ['retake', 'Retake'], ok: ['check', 'OK'], error: ['alert', 'Error'],
   pending: ['half', 'Transfer pending'],

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { api, cleanName, gradName, hrs, termName, termsAfter } from '../lib.js'
 import { Bar, Chip, Icon, Pill, Spinner } from '../ui.jsx'
 import { transferStatus } from '../transferStatus.js'
+import { groupStatus, loadCheck } from '../planStatus.js'
 import { AdjustPanel, ApprovalBanner, ApprovePanel, CourseAdjust } from './AdvisorEdits.jsx'
 
 // My Plan (student) and an advisee's plan (advisor). Everything on this page comes from
@@ -110,7 +111,7 @@ function Plan({ r, story, mode, edit }) {
           {retakes.length > 0
             ? <Check ok={false} bad={`${retakes.length} retake${retakes.length > 1 ? 's' : ''} required: ${retakes.join(', ')}`} />
             : <Check ok good="No retakes needed" />}
-          <span className="muted">Load per term stays at or under {r.checks.load_limit} hrs</span>
+          <Check ok={loadCheck(r.checks).ok} good={loadCheck(r.checks).text} bad={loadCheck(r.checks).text} />
         </section>
       )}
 
@@ -190,16 +191,16 @@ function Check({ ok, good, bad }) {
 }
 
 function Requirements({ groups }) {
-  const n = (s) => groups.filter((g) => g.status === s).length
+  const n = (s) => groups.filter((g) => groupStatus(g) === s).length
   return (
     <section className="card reqs" aria-label="Requirements">
       <header>
         <h2 className="serif" style={{ fontSize: 24 }}>Requirements</h2>
-        <span className="small muted">{n('met')} met · {n('in_progress')} in progress · {n('needed')} needed</span>
+        <span className="small muted">{n('met')} met · {n('in_progress')} in progress{n('partial') ? ` · ${n('partial')} partly done` : ''} · {n('needed')} needed</span>
       </header>
       {groups.map((g) => (
         <div className="req" key={g.id}>
-          <div className="top"><span className="name">{g.name.replace(/^Core: /, '')}</span><Pill status={g.status} /></div>
+          <div className="top"><span className="name">{g.name.replace(/^Core: /, '')}</span><Pill status={groupStatus(g)} /></div>
           <div className="meter">
             <Bar thin status={g.status} done={g.done_hours} prog={g.counted_hours} total={g.required_hours}
               label={`${g.counted_hours} of ${g.required_hours} hours`} />
