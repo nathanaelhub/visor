@@ -68,3 +68,13 @@ def test_cs_plans_are_unchanged(client):
     got = {s["id"]: client.post("/api/audit", json=s).get_json()["projected_term"] for s in students(client)
            if s["id"] in expected}
     assert got == expected
+
+
+def test_one_demo_student_needs_review(client):
+    """F12: the advisor demo needs a plan that asks for review, for a reason a real record would have."""
+    flagged = {s["id"]: client.post("/api/audit", json=s).get_json() for s in students(client)}
+    flagged = {k: r for k, r in flagged.items() if r["needs_review"]}
+    assert list(flagged) == ["demo-14"]
+    r = flagged["demo-14"]
+    assert [w["code"] for w in r["warnings"] if w["kind"] == "unknown_course"] == ["CS 2113"]
+    assert r["projected_term"]  # the rest of the plan still works

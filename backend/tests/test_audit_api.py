@@ -28,7 +28,7 @@ def test_programs_and_demo_students(demo_client):
     programs = demo_client.get("/api/programs").get_json()
     assert "cs-bs-2026-27" in [p["id"] for p in programs] and len(programs) == 5  # spec 07 added four
     students = demo_client.get("/api/demo/students").get_json()
-    assert len(students) == 13 and all("(fictional)" in s["name"] for s in students)
+    assert len(students) == 14 and all("(fictional)" in s["name"] for s in students)
     sam = next(s for s in students if s["id"] == "demo-03")
     assert all(isinstance(t["school_id"], int) for t in sam["transfer"])
 
@@ -101,7 +101,8 @@ def test_audit_api_normalizes_codes_and_fills_credits(demo_client):
 
 def test_advisor_student_list(demo_client):
     rows = {r["id"]: r for r in demo_client.get("/api/students").get_json()}
-    assert len(rows) == 13
+    assert len(rows) == 14
+    assert rows["demo-14"]["flags"]["needs_review"] and "CS 2113" in rows["demo-14"]["first_warning"]
     assert rows["demo-04"]["flags"]["retake"] and rows["demo-03"]["flags"]["transfer_pending"]
     assert rows["demo-02"]["projected_term"] == "2028FA" and rows["demo-02"]["student_number"] == "L00402115"
 
