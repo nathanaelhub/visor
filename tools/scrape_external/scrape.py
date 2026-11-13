@@ -153,7 +153,7 @@ def parse_courses(page: str) -> list[dict]:
         after = body.split("<hr>", 1)[-1]
         if cred is None and "<hr>" in body:  # "<strong>3</strong> <em>Credit Hours</em> <hr>" (UT Knoxville)
             cred = re.search(r"(\d+(?:\.\d+)?)(?:\s*(?:-|–|to)\s*(\d+(?:\.\d+)?))?\s*Credit\s*Hours?\b",
-                             _text(body.split("<hr>", 1)[0]))
+                             _text(body.split("<hr>", 1)[0]), re.I)  # "3 Credit Hours" (UTK), "1 credit hour" (MTSU)
         if cred is None:  # "(Honors Option Offered)<br>3 Credits *<br>2 Class Hours<br><br>description" (Nashville State)
             cred = re.search(r"\(?(\d+(?:\.\d+)?)(?:\s*(?:-|–|to)\s*(\d+(?:\.\d+)?))?\)?\s*Credits?\b",
                              _text(after[:300]))
