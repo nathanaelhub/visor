@@ -100,7 +100,7 @@ issue → `type/desc` branch → failing-test commit → fix commit → PR (temp
 - No open issues.
 - **The Ask Visor key expires around 2026-12-05.** Replace `VISOR_ANTHROPIC_API_KEY` in Vercel production, ideally in its own Console workspace with a spend cap.
 - Clerk is a development instance. A production instance needs a custom domain; Lipscomb Microsoft sign-in needs an IT app registration.
-- Open low findings from the user-case report: F6, F10–F13 and N-F3 (most proposals are "elective" because Visor holds only five majors' Lipscomb courses).
+- Low findings F6 and F10–F13 are fixed (PRs #66, #69, #71, #73). Still open: N-F3, optional (most proposals are "elective" because Visor holds only five majors' Lipscomb courses).
 
 ## Next steps
 
