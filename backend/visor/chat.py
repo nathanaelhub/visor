@@ -20,7 +20,7 @@ import os
 import anthropic
 from flask import Blueprint, current_app, jsonify, request
 
-from . import chat_limits
+from . import chat_limits, chat_log
 from .audit_api import AuditError, compute_audit, course_code, course_info, translate_transfer, catalog_and_programs
 from .rules.grades import meets
 from .rules.terms import parse_term
@@ -282,6 +282,9 @@ def chat():
     messages: list = [{"role": m["role"], "content": m["text"]} for m in history]
     if _shared_key() and (limited := chat_limits.charge(model_key)) is not None:
         return jsonify(limited), 429
+    conv, denied = chat_log.open_conversation(body.get("conversation_id"), body.get("student"), model_key)
+    if denied is not None:
+        return denied
 
     student = body.get("student")
     system = SYSTEM
@@ -300,9 +303,11 @@ def chat():
         for _ in range(MAX_TOOL_ROUNDS + 1):
             response = client.beta.messages.create(messages=messages, **params)
             if response.stop_reason == "refusal":
-                return jsonify({"answer": "I can't help with that one. Try asking about your plan, a course, "
-                                          "or transfer credit.", "refused": True, "tool_calls": tool_calls,
-                                "sources": [], "model": response.model})
+                result = {"answer": "I can't help with that one. Try asking about your plan, a course, "
+                                    "or transfer credit.", "refused": True, "tool_calls": tool_calls,
+                          "sources": [], "model": response.model}
+                chat_log.record(conv, history[-1]["text"], result)
+                return jsonify({**result, "conversation_id": conv.id if conv else None})
             if response.stop_reason == "pause_turn":
                 messages.append({"role": "assistant", "content": response.content})
                 continue
@@ -332,6 +337,8 @@ def chat():
     if not answer:
         answer = "I ran out of steps before finishing. Try a narrower question."
     sources = sorted({c["source"] for c in tool_calls if c["source"] and c["status"] != "error"})
-    return jsonify({"answer": answer, "refused": False, "tool_calls": tool_calls, "sources": sources,
-                    "model": getattr(response, "model", model["id"]),
-                    "truncated": getattr(response, "stop_reason", None) == "max_tokens"})
+    result = {"answer": answer, "refused": False, "tool_calls": tool_calls, "sources": sources,
+              "model": getattr(response, "model", model["id"]),
+              "truncated": getattr(response, "stop_reason", None) == "max_tokens"}
+    chat_log.record(conv, history[-1]["text"], result)  # signed-in people only (spec 09)
+    return jsonify({**result, "conversation_id": conv.id if conv else None})

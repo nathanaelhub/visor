@@ -9,7 +9,7 @@ import AskVisor, { useChat } from './views/AskVisor.jsx'
 import Transcript from './views/Transcript.jsx'
 import { isEmpty } from './planEdits.js'
 import { CLERK_KEY } from './session.js'
-import { AccountButton, Admin, AuthBridge } from './views/Account.jsx'
+import { AccountButton, Admin, AuthBridge, Conversations } from './views/Account.jsx'
 
 // Only the tabs each role needs (design brief): schedule and prerequisite checks live inside My Plan.
 const ROLE_TABS = { student: ['myplan', 'ask'], advisor: ['students', 'transfer', 'ask'], registrar: ['transfer', 'ask'] }
@@ -48,7 +48,7 @@ export default function App() {
   const [opened, setOpened] = useState(null) // advisor: student id whose plan is open
   const [drawer, setDrawer] = useState(false)
   const [account, setAccount] = useState(null) // the signed-in person (spec 08), or null
-  const [admin, setAdmin] = useState(false) // the admin page
+  const [admin, setAdmin] = useState(false) // the admin page, or 'log' for the conversation log
   const [reading, setReading] = useState(false) // student: "Start from a transcript" page (US-5.7)
 
   useEffect(() => {
@@ -145,12 +145,14 @@ export default function App() {
   }
 
   let body
-  if (admin && account?.role === 'admin') {
+  if (admin === 'log' && (account?.role === 'admin' || account?.role === 'advisor')) {
+    body = <Conversations onBack={() => setAdmin(false)} />
+  } else if (admin && account?.role === 'admin') {
     body = <Admin onBack={() => setAdmin(false)} />
   } else if (role === 'student' && reading) {
     body = <Transcript onUse={applyRecord} onCancel={() => setReading(false)} />
   } else if (tab === 'ask') {
-    body = <AskVisor chat={chat} student={contextStudent} role={role} mode="full" onUseRecord={adoptRecordInChat} onOpenPlan={() => setTab(role === 'student' ? 'myplan' : 'students')} />
+    body = <AskVisor chat={chat} account={account} student={contextStudent} role={role} mode="full" onUseRecord={adoptRecordInChat} onOpenPlan={() => setTab(role === 'student' ? 'myplan' : 'students')} />
   } else if (tab === 'myplan' && who) {
     body = <MyPlan student={contextStudent ?? who} mode="student" edit={editFor(who)} onAsk={() => setDrawer(true)} onTranscript={() => setReading(true)} />
   } else if (tab === 'students') {
@@ -197,7 +199,8 @@ export default function App() {
           <button type="button" className="icon" onClick={() => setDark(!dark)} aria-label={dark ? 'Light mode' : 'Dark mode'}>
             <Icon name={dark ? 'sun' : 'moon'} size={18} />
           </button>
-          {CLERK_KEY && <AccountButton account={account} onAdmin={() => { setAdmin(true); window.scrollTo(0, 0) }} />}
+          {CLERK_KEY && <AccountButton account={account} onAdmin={() => { setAdmin(true); window.scrollTo(0, 0) }}
+            onLog={() => { setAdmin('log'); window.scrollTo(0, 0) }} />}
           {role === 'student' ? (
             <label title="Which fictional student you are" style={{ position: 'relative' }}>
               <span className="sr">Demo student</span>
@@ -227,7 +230,7 @@ export default function App() {
       {drawer && (
         <>
           <button type="button" className="scrim" aria-label="Close Ask Visor" onClick={() => setDrawer(false)} />
-          <AskVisor chat={chat} student={contextStudent} role={role} mode="drawer" onUseRecord={adoptRecordInChat} onClose={() => setDrawer(false)} />
+          <AskVisor chat={chat} account={account} student={contextStudent} role={role} mode="drawer" onUseRecord={adoptRecordInChat} onClose={() => setDrawer(false)} />
         </>
       )}
     </div>

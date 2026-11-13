@@ -3,6 +3,7 @@ import { api, cleanName, gradName, hrs, keyStore } from '../lib.js'
 import Markdown from '../Markdown.jsx'
 import { Icon, Logo, Pill, Spinner } from '../ui.jsx'
 import { LiveRead, TranscriptReview, useTranscriptRead } from './TranscriptRead.jsx'
+import { fromSaved, savedNotice } from '../chatHistory.js'
 
 // Ask Visor: Claude, with the user's own Anthropic key, answering from Visor's planner, catalog and
 // equivalency table (POST /api/chat). The key lives in sessionStorage and goes only to Visor's
@@ -16,6 +17,7 @@ export function useChat(student) {
   const [statusMsg, setStatusMsg] = useState('')
   const [msgs, setMsgs] = useState([])
   const [pending, setPending] = useState(false)
+  const [conversationId, setConversationId] = useState(null) // saved chats, signed in only (spec 09)
   const studentId = student?.id
 
   useEffect(() => {
@@ -29,6 +31,7 @@ export function useChat(student) {
   const pendingNote = useRef(null) // shown first in the conversation that starts after a switch (US-7.6)
   useEffect(() => { // a new student is a new conversation
     setMsgs(pendingNote.current ? [{ role: 'note', text: pendingNote.current }] : [])
+    setConversationId(null)
     pendingNote.current = null
   }, [studentId])
 
@@ -62,7 +65,8 @@ export function useChat(student) {
       const transcript = next.filter((m) => m.role === 'user' || m.role === 'bot')
         .map((m) => (m.role === 'user' ? { role: 'user', text: m.text } : { role: 'assistant', text: m.answer }))
       const r = await api('/api/chat', { method: 'POST', headers: headers(),
-        body: { model, messages: transcript, student } })
+        body: { model, messages: transcript, student, conversation_id: conversationId } })
+      if (r.conversation_id) setConversationId(r.conversation_id)
       setMsgs([...next, { role: 'bot', ...r }])
     } catch (e) {
       if (e.code === 'invalid_key' || e.code === 'no_key') { setStatus('invalid'); setStatusMsg(e.message) }
@@ -80,7 +84,12 @@ export function useChat(student) {
 
   const modelLabel = config?.models.find((m) => m.key === model)?.label ?? model
   return { config, key, model, setModel, status, statusMsg, msgs, pending, connect, disconnect, send, retry,
-    newChat: () => setMsgs([]), modelLabel, shared: !!config?.shared_key,
+    newChat: () => { setMsgs([]); setConversationId(null) }, modelLabel, shared: !!config?.shared_key,
+    conversationId,
+    load: async (id) => { // reopen a saved conversation and keep going in it (spec 09)
+      const c = await api(`/api/chats/${id}`)
+      setMsgs(fromSaved(c.messages)); setConversationId(c.id)
+    },
     announce: (text) => { pendingNote.current = text } }
 }
 
@@ -93,12 +102,12 @@ const SUGGEST = {
     'What are the prerequisites for CS 3633?'],
 }
 
-export default function AskVisor({ chat, student, role, mode, onClose, onOpenPlan, onUseRecord }) {
+export default function AskVisor({ chat, student, role, mode, onClose, onOpenPlan, onUseRecord, account }) {
   const connected = chat.status === 'on' || chat.shared
   if (mode === 'drawer') {
     return (
       <aside className="chat chat-drawer" aria-label="Ask Visor">
-        {connected ? <Chat chat={chat} student={student} role={role} onClose={onClose} onUseRecord={onUseRecord} />
+        {connected ? <Chat chat={chat} student={student} role={role} onClose={onClose} onUseRecord={onUseRecord} account={account} />
           : <div style={{ overflowY: 'auto', padding: 20 }}>
               <div className="row" style={{ justifyContent: 'space-between' }}>
                 <h2 className="serif" style={{ fontSize: 22 }}>Ask Visor</h2>
@@ -119,7 +128,7 @@ export default function AskVisor({ chat, student, role, mode, onClose, onOpenPla
   }
   return (
     <div className="asklayout">
-      <div className="chat chat-full"><Chat chat={chat} student={student} role={role} onUseRecord={onUseRecord} /></div>
+      <div className="chat chat-full"><Chat chat={chat} student={student} role={role} onUseRecord={onUseRecord} account={account} /></div>
       <ContextPanel chat={chat} student={student} role={role} onOpenPlan={onOpenPlan} />
     </div>
   )
@@ -225,7 +234,8 @@ function ContextPanel({ chat, student, role, onOpenPlan }) {
   )
 }
 
-function Chat({ chat, student, role, onClose, onUseRecord }) {
+function Chat({ chat, student, role, onClose, onUseRecord, account }) {
+  const [history, setHistory] = useState(null) // the History list, when open
   const [input, setInput] = useState('')
   const [attach, setAttach] = useState(false) // the 📎 panel: read a transcript into the chat (US-7.6)
   const bodyRef = useRef(null)
@@ -246,11 +256,28 @@ function Chat({ chat, student, role, onClose, onUseRecord }) {
               </select></label>
           : <Pill status="ok">{`Connected · ${chat.modelLabel}`}</Pill>}
         <span className="spacer" />
+        {account && (
+          <button type="button" className="btn2" style={{ minHeight: 38 }} aria-expanded={!!history}
+            onClick={() => (history ? setHistory(null) : api('/api/chats').then(setHistory).catch(() => setHistory([])))}>History</button>
+        )}
         <button type="button" className="btn2" style={{ minHeight: 38 }} onClick={chat.newChat}>New chat</button>
         {!chat.shared && <button type="button" className="btn2" style={{ minHeight: 38 }} onClick={chat.disconnect}>Disconnect</button>}
         {onClose && <button type="button" className="icon" onClick={onClose} aria-label="Close"><Icon name="close" /></button>}
       </div>
 
+      {history && (
+        <div className="attach card" style={{ margin: '8px 16px 0' }} aria-label="Saved conversations">
+          <strong>Your saved conversations</strong>
+          {history.length === 0 ? <p className="small muted" style={{ margin: 0 }}>None yet.</p> : (
+            <ul className="live-rows">
+              {history.map((c) => (
+                <li key={c.id}><button type="button" className="linkbtn" onClick={() => { chat.load(c.id); setHistory(null) }}>{c.first_question || '(empty)'}</button>
+                  <span className="small muted"> · {c.student_name ? cleanName(c.student_name) : 'no student'} · {new Date(c.last_at).toLocaleDateString()}</span></li>
+              ))}
+            </ul>
+          )}
+        </div>
+      )}
       <div className="chat-body" ref={bodyRef} aria-live="polite">
         {chat.msgs.length === 0 && (
           <div className="stack" style={{ margin: 'auto 0', gap: 12 }}>
@@ -296,7 +323,8 @@ function Chat({ chat, student, role, onClose, onUseRecord }) {
             onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); submit(input) } }} />
           <button type="submit" className="sendbtn" disabled={!input.trim() || chat.pending} aria-label="Send"><Icon name="send" size={18} /></button>
         </form>
-        <p className="legal" style={{ margin: 0 }}>Visor’s planner decides the plan; Ask Visor explains it. Check with your advisor before registering.</p>
+        <p className="legal" style={{ margin: 0 }}>Visor’s planner decides the plan; Ask Visor explains it. Check with your advisor before registering.
+          {' '}<span>{savedNotice(account)}</span></p>
       </div>
     </>
   )
@@ -333,7 +361,8 @@ function ToolCard({ c }) {
             <tbody>
               <tr><th style={{ width: 150 }}>Tool</th><td className="mono">{c.tool}</td></tr>
               {c.result?.error ? <tr><th>Result</th><td>{c.result.error}</td></tr>
-                : fields.map(([label, f]) => <tr key={label}><th>{label}</th><td>{String(val(f))}</td></tr>)}
+                : c.result == null ? <tr><th>Asked</th><td className="mono">{JSON.stringify(c.input ?? {})} (saved chat: summary only)</td></tr>
+                  : fields.map(([label, f]) => <tr key={label}><th>{label}</th><td>{String(val(f))}</td></tr>)}
             </tbody>
           </table>
         </div>
