@@ -296,3 +296,28 @@ def test_no_graduation_term_while_a_course_cannot_be_placed():
     _, plan = run(tiny_program(), cat, [])
     assert plan.terms, "the courses that do fit are still planned"
     assert plan.projected_term is None and not plan.complete
+
+
+def test_summer_only_when_it_moves_graduation_earlier():
+    """F6: summer terms that don't bring graduation earlier are left out, with a note."""
+    from pathlib import Path
+
+    from visor import create_app
+    from visor.models import db
+    from visor.seed import load, load_equivalencies
+    root = Path(__file__).resolve().parents[2]
+    app = create_app({"SQLALCHEMY_DATABASE_URI": "sqlite:///:memory:", "TESTING": True})
+    with app.app_context():
+        load(root / "data" / "catalog" / "2026-27")
+        load_equivalencies(root / "data" / "demo")
+        c = app.test_client()
+        students = {s["id"]: s for s in c.get("/api/demo/students").get_json()}
+        summer = {"settings": {"include_summer": True}}
+        riley_off = c.post("/api/audit", json=students["demo-01"]).get_json()
+        riley_on = c.post("/api/audit", json={**students["demo-01"], **summer}).get_json()
+        assert [t["term"] for t in riley_on["plan"]["terms"]] == [t["term"] for t in riley_off["plan"]["terms"]]
+        assert "Summer terms wouldn't" in (riley_on["plan"]["note"] or "")
+        jordan_on = c.post("/api/audit", json={**students["demo-02"], **summer}).get_json()
+        assert jordan_on["projected_term"] == "2028SP" and any(t["term"].endswith("SU") for t in jordan_on["plan"]["terms"])
+        assert not jordan_on["plan"]["note"]
+        db.drop_all()
