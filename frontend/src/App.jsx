@@ -8,6 +8,8 @@ import Transfer from './views/Transfer.jsx'
 import AskVisor, { useChat } from './views/AskVisor.jsx'
 import Transcript from './views/Transcript.jsx'
 import { isEmpty } from './planEdits.js'
+import { CLERK_KEY } from './session.js'
+import { AccountButton, Admin, AuthBridge } from './views/Account.jsx'
 
 // Only the tabs each role needs (design brief): schedule and prerequisite checks live inside My Plan.
 const ROLE_TABS = { student: ['myplan', 'ask'], advisor: ['students', 'transfer', 'ask'], registrar: ['transfer', 'ask'] }
@@ -45,6 +47,8 @@ export default function App() {
   const [me, setMe] = useState(DEFAULT_STUDENT)
   const [opened, setOpened] = useState(null) // advisor: student id whose plan is open
   const [drawer, setDrawer] = useState(false)
+  const [account, setAccount] = useState(null) // the signed-in person (spec 08), or null
+  const [admin, setAdmin] = useState(false) // the admin page
   const [reading, setReading] = useState(false) // student: "Start from a transcript" page (US-5.7)
 
   useEffect(() => {
@@ -56,6 +60,7 @@ export default function App() {
   // they can't be saved there, so they stay in this tab (`local`).
   const [plans, setPlans] = useState({})
   const keyOf = (s) => s.student_number || s.id
+  useEffect(() => { setPlans({}) }, [account?.id, account?.role])
   const shownIds = [role === 'student' ? me : opened].filter(Boolean)
   useEffect(() => {
     for (const id of shownIds) {
@@ -111,12 +116,13 @@ export default function App() {
     setOpened(null)
     setDrawer(false)
     setReading(false)
+    setAdmin(false)
     setView('app')
     window.scrollTo(0, 0)
   }
 
   if (view === 'landing') {
-    return <Landing onStart={go} dark={dark} setDark={setDark} />
+    return <>{CLERK_KEY && <AuthBridge onAccount={setAccount} />}<Landing onStart={go} dark={dark} setDark={setDark} /></>
   }
 
   const tabs = ROLE_TABS[role]
@@ -139,7 +145,9 @@ export default function App() {
   }
 
   let body
-  if (role === 'student' && reading) {
+  if (admin && account?.role === 'admin') {
+    body = <Admin onBack={() => setAdmin(false)} />
+  } else if (role === 'student' && reading) {
     body = <Transcript onUse={applyRecord} onCancel={() => setReading(false)} />
   } else if (tab === 'ask') {
     body = <AskVisor chat={chat} student={contextStudent} role={role} mode="full" onUseRecord={adoptRecordInChat} onOpenPlan={() => setTab(role === 'student' ? 'myplan' : 'students')} />
@@ -151,13 +159,14 @@ export default function App() {
       ? <MyPlan student={contextStudent ?? s} mode="advisor" edit={editFor(s)} onBack={() => setOpened(null)} onAsk={() => setDrawer(true)} />
       : <Students onOpen={setOpened} />
   } else if (tab === 'transfer') {
-    body = <Transfer />
+    body = <Transfer account={account} />
   } else {
     body = <div className="wrap"><p className="muted">{loadError || 'Loading…'}</p></div>
   }
 
   return (
     <div className="app">
+      {CLERK_KEY && <AuthBridge onAccount={setAccount} />}
       <header className="topbar">
         <div className="topbar-in">
           <button type="button" className="brand" onClick={() => setView('landing')} aria-label="Visor home">
@@ -166,7 +175,7 @@ export default function App() {
           <nav className="tabs" aria-label="Main">
             {tabs.map((t) => (
               <button key={t} type="button" className="tab" aria-current={tab === t ? 'page' : undefined}
-                onClick={() => { setTab(t); setOpened(null); setReading(false) }}>
+                onClick={() => { setTab(t); setOpened(null); setReading(false); setAdmin(false) }}>
                 <Icon name={TAB[t].icon} />{TAB[t].label}
               </button>
             ))}
@@ -188,6 +197,7 @@ export default function App() {
           <button type="button" className="icon" onClick={() => setDark(!dark)} aria-label={dark ? 'Light mode' : 'Dark mode'}>
             <Icon name={dark ? 'sun' : 'moon'} size={18} />
           </button>
+          {CLERK_KEY && <AccountButton account={account} onAdmin={() => { setAdmin(true); window.scrollTo(0, 0) }} />}
           {role === 'student' ? (
             <label title="Which fictional student you are" style={{ position: 'relative' }}>
               <span className="sr">Demo student</span>
@@ -208,7 +218,7 @@ export default function App() {
       <nav className="botnav" aria-label="Main">
         {tabs.map((t) => (
           <button key={t} type="button" className="bn" aria-current={tab === t ? 'page' : undefined}
-            onClick={() => { setTab(t); setOpened(null); setReading(false) }}>
+            onClick={() => { setTab(t); setOpened(null); setReading(false); setAdmin(false) }}>
             <span className="bni"><Icon name={TAB[t].icon} size={20} /></span>{TAB[t].label}
           </button>
         ))}

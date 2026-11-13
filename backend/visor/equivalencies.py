@@ -10,7 +10,7 @@ from datetime import date, datetime, timezone
 from flask import Blueprint, jsonify, request
 from sqlalchemy import or_
 
-from .auth import require_write_token
+from .accounts import current_user, require_role
 from .models import (EQUIV_KINDS, EQUIV_SOURCES, EQUIV_STATUSES, Course, Equivalency, EquivalencyReview,
                      ExternalCourse, School, db)
 
@@ -175,7 +175,7 @@ def lookup():
 
 
 @bp.post("/equivalencies/lookup/flag")
-@require_write_token
+@require_role("advisor", "registrar")
 def flag_lookup():
     """Flag a course for professor review straight from a lookup, even when it's unknown (KAN-47).
 
@@ -252,7 +252,7 @@ def _apply(q: Equivalency, body: dict):
 
 
 @bp.post("/equivalencies")
-@require_write_token
+@require_role("registrar")
 def create_equivalency():
     body = request.get_json(silent=True) or {}
     ext = db.session.get(ExternalCourse, body.get("external_course_id") or 0)
@@ -268,12 +268,15 @@ def create_equivalency():
 
 
 @bp.put("/equivalencies/<int:equiv_id>")
-@require_write_token
+@require_role("registrar")
 def update_equivalency(equiv_id: int):
     q = db.session.get(Equivalency, equiv_id)
     if q is None:
         return _err("unknown equivalency", 404)
-    if (error := _apply(q, request.get_json(silent=True) or {})) is not None:
+    body = request.get_json(silent=True) or {}
+    if (u := current_user()) is not None and body.get("status") in ("confirmed", "rejected"):
+        body["decided_by"] = u.name  # the signed-in registrar, not a typed name (spec 08)
+    if (error := _apply(q, body)) is not None:
         db.session.rollback()
         return error
     db.session.commit()
@@ -281,7 +284,7 @@ def update_equivalency(equiv_id: int):
 
 
 @bp.post("/equivalencies/<int:equiv_id>/flag")
-@require_write_token
+@require_role("advisor", "registrar")
 def flag(equiv_id: int):
     q = db.session.get(Equivalency, equiv_id)
     if q is None:

@@ -25,7 +25,7 @@ from flask import Blueprint, Response, jsonify, request, send_file, stream_with_
 
 from . import chat_limits
 from .audit_api import catalog_and_programs, course_code, current_term, find_school
-from .auth import write_guard
+from .accounts import STAFF, staff_guard
 from .chat import _api_error, _client, _key_from_request, _shared_key
 from .rules.grades import is_known
 from .rules.terms import next_term, parse_term
@@ -192,7 +192,7 @@ def demo_file(tid):
 @bp.get("/config")
 def config():
     """Whether this deployment takes uploaded files (local dev or the write token), spec 07 US-7.4."""
-    return jsonify({"uploads_open": write_guard() is None, "units": UNITS})
+    return jsonify({"uploads_open": staff_guard(*STAFF) is None, "units": UNITS})
 
 
 def _complete_objects(text: str, start: int) -> tuple[list[dict], int]:
@@ -279,7 +279,7 @@ def _finish(response, source: str) -> tuple[dict, int]:
 @bp.post("")
 def read_transcript():
     if request.files:
-        if write_guard() is not None:
+        if staff_guard(*STAFF) is not None:
             return _err("uploads_off", "Uploading your own transcript is turned off on the public demo. "
                                        "Try one of the fictional transcripts.", 403)
         f = request.files.get("file")

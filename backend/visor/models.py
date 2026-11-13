@@ -176,3 +176,26 @@ class PlanApproval(db.Model):
     approved_by = db.Column(db.String(120), nullable=False)
     approved_at = db.Column(db.DateTime(timezone=True), nullable=False, default=_now)
     note = db.Column(db.Text)
+
+
+class AppUser(db.Model):
+    """Someone who has signed in with Clerk (spec 08). The role is ours, never the browser's."""
+    __tablename__ = "app_user"
+    id = db.Column(db.Integer, primary_key=True)
+    clerk_id = db.Column(db.String(64), nullable=False, unique=True)
+    email = db.Column(db.String(254))
+    name = db.Column(db.String(120), nullable=False)
+    role = db.Column(db.String(12), nullable=False, default="student")  # student / advisor / registrar / admin
+    created_at = db.Column(db.DateTime(timezone=True), nullable=False, default=_now)
+    role_set_by = db.Column(db.String(120))
+    role_set_at = db.Column(db.DateTime(timezone=True))
+
+
+class Advisee(db.Model):
+    """Which students an advisor may edit and approve plans for (spec 08, US-8.2)."""
+    id = db.Column(db.Integer, primary_key=True)
+    advisor_id = db.Column(db.ForeignKey("app_user.id"), nullable=False, index=True)
+    student_key = db.Column(db.String(32), nullable=False)
+    assigned_by = db.Column(db.String(120))
+    assigned_at = db.Column(db.DateTime(timezone=True), nullable=False, default=_now)
+    __table_args__ = (UniqueConstraint("advisor_id", "student_key"),)
