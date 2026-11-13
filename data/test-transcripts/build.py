@@ -40,7 +40,7 @@ STUDENTS = [
              ("CISP", "1020", "Computer Science II", 4, "B", ""), ("ENGL", "1020", "Composition II", 3, "B", ""),
              ("MATH", "1910", "Calculus I", 4, "C+", ""), ("HIST", "2010", "Survey of American History I", 3, "A", "")]),
          ("Nashville State Community College", "Fall 2026", [
-             ("CITC", "1301", "Data Communications", 3, "IP", ""), ("ECON", "2010", "Principles of Macroeconomics", 3, "IP", "")]),
+             ("CITC", "1301", "Data Communications", 3, "IP", ""), ("ECON", "2100", "Principles of Macroeconomics", 3, "IP", "")]),
      ]},
     {"id": "volstate-scan", "style": "scan", "issuer": "Volunteer State Community College",
      "name": "Marisol D. Achterberg", "sid": "V00388150", "major": "General Studies",
@@ -58,10 +58,10 @@ STUDENTS = [
      "name": "Desmond R. Okonkwo-Hale", "sid": "C00510274", "major": "Business Administration",
      "blocks": [
          ("Columbia State Community College", "08/25-12/25", [
-             ("ACCT", "1010", "Principles of Accounting I", 3, "B", ""), ("ECON", "2010", "Principles of Macroeconomics", 3, "B", ""),
+             ("ACCT", "1010", "Principles of Accounting I", 3, "B", ""), ("ECON", "2100", "Principles of Macroeconomics", 3, "B", ""),
              ("ENGL", "1010", "Composition I", 3, "A", ""), ("MATH", "1630", "Finite Mathematics", 3, "C", "")]),
          ("Columbia State Community College", "01/26-05/26", [
-             ("ACCT", "1020", "Principles of Accounting II", 3, "C", ""), ("ECON", "2020", "Principles of Microeconomics", 3, "B+", ""),
+             ("ACCT", "1020", "Principles of Accounting II", 3, "C", ""), ("ECON", "2200", "Principles of Microeconomics", 3, "B+", ""),
              ("BUSN", "1305", "Introduction to Business", 3, "A", ""), ("COMM", "2025", "Fundamentals of Communication", 3, "A-", "")]),
      ]},
     {"id": "utk-clean", "style": "clean", "issuer": "University of Tennessee, Knoxville",
@@ -95,7 +95,7 @@ STUDENTS = [
              ("MATH", "1130", "College Algebra", 3, "C", "I"), ("HIST", "2010", "Survey of American History I", 3, "A", ""),
              ("BIOL", "2010", "Human Anatomy & Physiology I", 4, "C", "")]),
          ("Nashville State Community College", "08/24-12/24", [
-             ("CISP", "1010", "Computer Science I", 4, "B", ""), ("ECON", "2010", "Principles of Macroeconomics", 3, "C", "")]),
+             ("CISP", "1010", "Computer Science I", 4, "B", ""), ("ECON", "2100", "Principles of Macroeconomics", 3, "C", "")]),
          ("Middle Tennessee State University", "Fall 2025", [
              ("ENGL", "1020", "Research and Argumentative Writing", 3, "B", ""), ("CSCI", "1170", "Computer Science I", 4, "B-", ""),
              ("PSY", "1410", "General Psychology", 3, "A", ""), ("COMM", "2200", "Fundamentals of Communication", 3, "A", "")]),
