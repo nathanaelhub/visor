@@ -155,7 +155,7 @@ select.field { padding-right: 32px; }
 .chipkey { font-size: 13px; color: var(--ink3); }
 
 /* Tables (Students, chat) */
-.table-card { overflow-x: auto; }
+.table-card { overflow-x: auto; max-width: 100%; min-width: 0; position: relative; }
 .tbl { width: 100%; border-collapse: collapse; font-size: 14px; }
 .tbl th, .tbl td { padding: 12px 16px; text-align: left; border-top: 1px solid var(--ln); vertical-align: middle; }
 .tbl th { background: transparent; font-weight: 600; color: var(--ink2); border-top: 0; font-size: 13px; }
@@ -325,3 +325,8 @@ select.field { padding-right: 32px; }
 @media (min-width: 761px) { .account .admin-icon { display: none; } }
 
 .pill-partial { background: var(--goS); color: var(--rvF); } /* F10: started, not met */
+/* R3-F7: at phone width the role picker kept getting squeezed ("Stuc"); drop the brand word, never the picker. */
+.rolesel { flex-shrink: 0; }
+.rolesel select { width: auto; }
+@media (max-width: 480px) { .topbar-in .brand-name { display: none; } .topbar-in { gap: 4px; padding: 0 6px 0 8px; } .account { gap: 4px !important; } }
+@media (max-width: 400px) { .topbar-in > .avatar { display: none; } .rolesel select { padding-left: 8px; padding-right: 22px; } } /* staff roles: decorative initials only; the student picker is inside a label and stays */

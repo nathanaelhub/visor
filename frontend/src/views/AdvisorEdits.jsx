@@ -20,7 +20,7 @@ export function ApprovalBanner({ edit, r, mode }) {
         <Icon name="check" />
         <span style={{ flex: '1 1 0', minWidth: 220 }}>
           <strong>Approved by {a.approved_by}</strong> on {fmtDate(a.approved_at)}{a.note ? `: “${a.note}”` : ''}
-          {a.local && <span className="muted"> (in this tab only; not saved in the demo)</span>}
+          {a.local && <span className="muted"> (in this tab only; not saved)</span>}
         </span>
       </div>
     )
@@ -140,7 +140,7 @@ export function AdjustPanel({ edit, r }) {
           edit.dirty
             ? <><span>Unsaved changes.</span><button type="button" className="btn2" onClick={edit.save}>Save changes</button></>
             : <span className="muted">{edit.updatedAt ? `Saved${edit.updatedBy ? ` by ${edit.updatedBy}` : ''} on ${fmtDate(edit.updatedAt)}.` : 'No saved changes.'}</span>
-        ) : <span className="muted"><Icon name="lock" size={14} /> Not saved in the demo. Changes apply in this browser tab only.</span>}
+        ) : <span className="muted"><Icon name="lock" size={14} /> {edit.lockReason}</span>}
         {edit.saveError && <span role="alert" style={{ color: 'var(--rvF)' }}>{edit.saveError}</span>}
       </div>
     </section>

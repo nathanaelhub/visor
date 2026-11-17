@@ -7,11 +7,13 @@ import Students from './views/Students.jsx'
 import Transfer from './views/Transfer.jsx'
 import AskVisor, { useChat } from './views/AskVisor.jsx'
 import Transcript from './views/Transcript.jsx'
-import { isEmpty } from './planEdits.js'
+import { isEmpty, lockedMessage } from './planEdits.js'
+import { restorePlace, savePlace } from './tabState.js'
 import { CLERK_KEY } from './session.js'
 import { AccountButton, Admin, AuthBridge, Conversations } from './views/Account.jsx'
 
 // Only the tabs each role needs (design brief): schedule and prerequisite checks live inside My Plan.
+const tabStorage = () => { try { return window.sessionStorage } catch { return null } }
 const ROLE_TABS = { student: ['myplan', 'ask'], advisor: ['students', 'transfer', 'ask'], registrar: ['transfer', 'ask'] }
 const TAB = {
   myplan: { label: 'My Plan', icon: 'plan' },
@@ -38,9 +40,12 @@ function useTheme() {
 }
 
 export default function App() {
-  const [view, setView] = useState('landing')
-  const [role, setRole] = useState('student')
-  const [tab, setTab] = useState('myplan')
+  // Kept for this browser tab so signing in (which reloads the page) returns to the same place (R3-F8).
+  const [place] = useState(() => restorePlace(tabStorage(), ROLE_TABS))
+  const [view, setView] = useState(place.view)
+  const [role, setRole] = useState(place.role)
+  const [tab, setTab] = useState(place.tab)
+  useEffect(() => { savePlace(tabStorage(), { view, role, tab }) }, [view, role, tab])
   const [dark, setDark] = useTheme()
   const [students, setStudents] = useState([])
   const [loadError, setLoadError] = useState('')
@@ -87,6 +92,7 @@ export default function App() {
     const withEdits = { ...s, edits: st.edits ?? undefined }
     return {
       ...st,
+      lockReason: lockedMessage(account, cleanName(s.name)),
       setEdits: (edits) => patch({ edits, dirty: true, saveError: '' }),
       save: async () => {
         try {
