@@ -98,6 +98,7 @@ I understand it without reading every chip — while the planner, not the AI, st
 Models: Claude Opus 5.5 (default), Sonnet 5.5, Haiku 5.5. Opus and Sonnet requests opt into
 server-side refusal fallbacks (`fallbacks: "default"`). A deployment may set
 `VISOR_ANTHROPIC_API_KEY` to use one shared key instead of per-user keys. [`test_shared_key_mode`]
+
 7. **Given** a follow-up question, **then** Ask Visor doesn't take back an earlier answer just because
    that answer's tool results aren't in the chat history any more; it corrects one only when a tool
    result it has now contradicts it. The audit tool carries the student's grades and reports
