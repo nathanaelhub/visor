@@ -101,6 +101,8 @@ issue → `type/desc` branch → failing-test commit → fix commit → PR (temp
 - **The Ask Visor key expires around 2026-12-05.** Replace `VISOR_ANTHROPIC_API_KEY` in Vercel production, ideally in its own Console workspace with a spend cap.
 - Clerk is a development instance. A production instance needs a custom domain; Lipscomb Microsoft sign-in needs an IT app registration.
 - Low findings F6 and F10–F13 are fixed (PRs #66, #69, #71, #73). Still open: N-F3, optional (most proposals are "elective" because Visor holds only five majors' Lipscomb courses).
+- Round-3 testing (13–16 Nov, in the user-case report) found R3-F1 to R3-F9; all fixed (PRs #76, #79, #81, #83). The main one: the planner now places free-elective hours, so graduation dates include them. Nathanael's own checklist results are still to be added to the report.
+- Test sign-in accounts (Clerk dev instance, fake): `visor-{admin,advisor,student}+clerk_test@example.com`. Delete them when round-3 testing ends.
 
 ## Next steps
 
