@@ -210,3 +210,12 @@ def test_chat_sees_advisor_edits(client):
     digest, _, _ = _run_tool("run_degree_audit", {}, s)
     fall28 = next(t for t in digest["plan"] if t["term"] == "Fall 2028")
     assert any(c["code"] == "IT 3313" and "Pinned by your advisor" in c["why"] for c in fall28["courses"])
+
+
+def test_approval_with_a_wrongly_shaped_student_is_a_400(client):
+    """R3-F5."""
+    for bad in ("x", [1]):
+        r = client.post("/api/students/L00402115/approval",
+                        json={"student": bad, "fingerprint": "f", "approved_by": "Dr. Advisor"})
+        assert r.status_code == 400, bad
+    assert client.post("/api/students/L00402115/approval", json=[1]).status_code == 400

@@ -62,6 +62,15 @@ def create_app(config: dict | None = None) -> Flask:
     app.config.update(config or {})
     db.init_app(app)
 
+    @app.before_request
+    def _json_bodies_are_objects():
+        """R3-F5: every JSON route reads an object; anything else is a 400 with a message, not a 500."""
+        if request.method in ("POST", "PUT", "PATCH") and request.is_json:
+            body = request.get_json(silent=True)
+            if body is not None and not isinstance(body, dict):
+                return jsonify({"error": "bad_request", "message": "The request body must be a JSON object."}), 400
+        return None
+
     from .equivalencies import bp as equivalencies_bp
     app.register_blueprint(equivalencies_bp)
 

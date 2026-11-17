@@ -173,7 +173,15 @@ def parse_edits(raw: dict | None, start_term: str | None = None) -> tuple[dict, 
     raw = raw or {}
     if not isinstance(raw, dict):
         raise AuditError("edits must be an object")
+    for key in ("pins", "holds"):
+        rows = raw.get(key)
+        if rows is not None and (not isinstance(rows, list) or not all(isinstance(r, dict) for r in rows)):
+            raise AuditError(f"edits.{key} must be a list of objects")
     s = raw.get("settings") or {}
+    if not isinstance(s, dict):
+        raise AuditError("edits.settings must be an object")
+    if not isinstance(raw.get("overload_note") or "", str):
+        raise AuditError("edits.overload_note must be text")
     settings: dict = {}
     if "include_summer" in s:
         settings["include_summer"] = bool(s["include_summer"])
@@ -227,8 +235,25 @@ def fingerprint(body: dict, edits: dict, plan: dict | None) -> str:
     return hashlib.sha256(blob.encode()).hexdigest()
 
 
+def _check_shape(body) -> None:
+    """R3-F5: reject a wrongly shaped request with a message before anything reads it."""
+    if not isinstance(body, dict):
+        raise AuditError("the request body must be a JSON object")
+    for key in ("program_id", "start_term"):
+        if body.get(key) is not None and not isinstance(body[key], str):
+            raise AuditError(f"{key} must be a string")
+    for key in ("taken", "transfer"):
+        rows = body.get(key)
+        if rows is not None and (not isinstance(rows, list) or not all(isinstance(r, dict) for r in rows)):
+            raise AuditError(f"{key} must be a list of objects")
+    for key in ("settings", "edits"):
+        if body.get(key) is not None and not isinstance(body[key], dict):
+            raise AuditError(f"{key} must be an object")
+
+
 def compute_audit(body: dict) -> dict:
     """Run transfer translation, the audit and (with a start term) the forecast. Raises AuditError."""
+    _check_shape(body)
     catalog, programs = catalog_and_programs()
     if not body.get("program_id"):
         raise AuditError("program_id is required")
@@ -323,7 +348,8 @@ def compute_audit(body: dict) -> dict:
 @bp.post("/audit")
 def run_audit():
     try:
-        return jsonify(compute_audit(request.get_json(silent=True) or {}))
+        body = request.get_json(silent=True)
+        return jsonify(compute_audit({} if body is None else body))
     except AuditError as e:
         return _err(str(e), e.status)
 

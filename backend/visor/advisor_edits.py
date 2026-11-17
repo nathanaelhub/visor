@@ -59,7 +59,7 @@ def put_edits(key):
         _, _, edits = parse_edits(body.get("edits"))
     except AuditError as e:
         return jsonify({"error": "bad_edits", "message": str(e)}), 400
-    _save_edits(key, edits, _who((body.get("updated_by") or "").strip() or None))
+    _save_edits(key, edits, _who(str(body.get("updated_by") or "").strip() or None))
     db.session.commit()
     return get_edits(key)
 
@@ -69,8 +69,10 @@ def approve(key):
     if (denied := staff_guard("advisor", student_key=key)) is not None:
         return denied
     body = request.get_json(silent=True) or {}
+    if not isinstance(body, dict) or not isinstance(body.get("student") or {}, dict):
+        return jsonify({"error": "bad_request", "message": "Send an object with a student object."}), 400
     student = body.get("student") or {}
-    by = _who((body.get("approved_by") or "").strip())
+    by = _who(str(body.get("approved_by") or "").strip())
     if not by:
         return jsonify({"error": "bad_request", "message": "Say who is approving the plan."}), 400
     if key not in (student.get("student_number"), student.get("id")):
@@ -91,6 +93,6 @@ def approve(key):
                         "reasons": reasons}), 409
     _save_edits(key, r["edits"], by)  # the approval covers these exact edits
     db.session.add(PlanApproval(student_key=key, fingerprint=r["fingerprint"], approved_by=by,
-                                note=(body.get("note") or "").strip() or None))
+                                note=str(body.get("note") or "").strip() or None))
     db.session.commit()
     return get_edits(key), 201

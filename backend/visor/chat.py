@@ -251,7 +251,8 @@ def verify_key():
     key = _key_from_request()
     if not key:
         return jsonify({"error": "no_key", "message": "Enter an API key."}), 400
-    model = MODELS.get((request.get_json(silent=True) or {}).get("model") or _default_model())
+    wanted = (request.get_json(silent=True) or {}).get("model") or _default_model()
+    model = MODELS.get(wanted) if isinstance(wanted, str) else None
     if model is None:
         return jsonify({"error": "bad_model", "message": "Unknown model."}), 400
     try:
@@ -267,12 +268,18 @@ def chat():
     if not key:
         return jsonify({"error": "no_key", "message": "Connect an API key first."}), 401
     body = request.get_json(silent=True) or {}
+    messages_in = body.get("messages", []) if isinstance(body, dict) else None
+    if (not isinstance(body, dict) or not isinstance(messages_in, list) or not all(isinstance(m, dict) for m in messages_in)
+            or (body.get("student") is not None and not isinstance(body["student"], dict))):
+        return jsonify({"error": "bad_request",
+                        "message": "Send an object with a messages list and, optionally, a student object."}), 400
     model_key = body.get("model") or _default_model()
-    model = MODELS.get(model_key)
+    model = MODELS.get(model_key) if isinstance(model_key, str) else None
     if model is None:
         return jsonify({"error": "bad_model", "message": "Unknown model."}), 400
 
-    history = [m for m in body.get("messages", []) if m.get("role") in ("user", "assistant") and m.get("text")]
+    history = [m for m in messages_in
+               if m.get("role") in ("user", "assistant") and isinstance(m.get("text"), str) and m["text"]]
     if (too_big := chat_limits.size_error(history)) is not None:
         return jsonify({"error": too_big[0], "message": too_big[1]}), 400
     while history and history[0]["role"] != "user":

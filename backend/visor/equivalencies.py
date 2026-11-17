@@ -121,7 +121,7 @@ def _external_from_body(body: dict):
     if school is None:
         return None, _err("unknown school", 404)
     subject, number = str(subject).strip().upper(), str(number).strip()
-    title = (body.get("title") or "").strip()
+    title = str(body.get("title") or "").strip()
 
     ext = (ExternalCourse.query.filter_by(school_id=school.id, subject=subject, number=number)
            .order_by(ExternalCourse.catalog_year.desc()).first())
@@ -185,7 +185,7 @@ def flag_lookup():
     confirmed answer: 409 if the course already has one.
     """
     body = request.get_json(silent=True) or {}
-    reviewer = (body.get("reviewer") or "").strip()
+    reviewer = str(body.get("reviewer") or "").strip()
     if not reviewer:
         return _err("reviewer is required")
     ext, error = _external_from_body(body)
@@ -209,7 +209,7 @@ def flag_lookup():
                         "review": review_json(pending), "already_pending": True})
     review = EquivalencyReview(equivalency_id=target.id, reviewer=reviewer,
                                requested_by=(body.get("requested_by") or "registrar").strip(),
-                               notes=(body.get("notes") or "").strip())
+                               notes=str(body.get("notes") or "").strip())
     db.session.add(review)
     db.session.commit()
     return jsonify({"external_course": external_json(ext), "equivalency": equivalency_json(target),
@@ -220,7 +220,7 @@ def _apply(q: Equivalency, body: dict):
     """Validate and copy writable fields onto q. Returns an error response or None."""
     if "course_id" in body:
         cid = body["course_id"]
-        if cid is not None and db.session.get(Course, cid) is None:
+        if cid is not None and (not isinstance(cid, int) or isinstance(cid, bool) or db.session.get(Course, cid) is None):
             return _err("unknown course_id")
         q.course_id = cid
     for field, allowed in (("kind", EQUIV_KINDS), ("status", EQUIV_STATUSES), ("source", EQUIV_SOURCES)):
@@ -255,7 +255,8 @@ def _apply(q: Equivalency, body: dict):
 @require_role("registrar")
 def create_equivalency():
     body = request.get_json(silent=True) or {}
-    ext = db.session.get(ExternalCourse, body.get("external_course_id") or 0)
+    eid = body.get("external_course_id")
+    ext = db.session.get(ExternalCourse, eid) if isinstance(eid, int) and not isinstance(eid, bool) else None
     if ext is None:
         return _err("external_course_id is required and must exist")
     q = Equivalency(external_course_id=ext.id, kind="direct", status="proposed", source="registrar",
@@ -290,12 +291,12 @@ def flag(equiv_id: int):
     if q is None:
         return _err("unknown equivalency", 404)
     body = request.get_json(silent=True) or {}
-    reviewer = (body.get("reviewer") or "").strip()
+    reviewer = str(body.get("reviewer") or "").strip()
     if not reviewer:
         return _err("reviewer is required")
     r = EquivalencyReview(equivalency_id=q.id, reviewer=reviewer,
                           requested_by=(body.get("requested_by") or "registrar").strip(),
-                          notes=(body.get("notes") or "").strip())
+                          notes=str(body.get("notes") or "").strip())
     db.session.add(r)
     db.session.commit()
     return jsonify(review_json(r)), 201

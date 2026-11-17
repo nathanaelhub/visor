@@ -87,3 +87,4 @@ Each line is a decision a person should confirm. Source: 2026-2027 Undergraduate
 - MG 4803: catalog gives no regular term (none); modeled as fall+spring. CONFIRM.
 - MK 4803: catalog gives no regular term (none); modeled as fall+spring. CONFIRM.
 - MG 4253: catalog gives no regular term (none); modeled as fall+spring. CONFIRM.
+- PS 3413: the catalog ends the description with 'PS 1113' without the word 'Prerequisite:', so the parser skipped it; added by hand as a prerequisite (round-3 testing, R3-F4). CONFIRM.

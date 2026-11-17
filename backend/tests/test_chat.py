@@ -291,3 +291,13 @@ def test_shared_mode_offers_models_with_their_cost(shared):
     assert {m["key"]: m["units"] for m in cfg["models"]} == {"haiku": 1, "sonnet": 2, "opus": 4}
     r = c.post("/api/chat", headers={"Origin": SITE}, json={"messages": [{"role": "user", "text": "hi"}]})
     assert r.status_code == 200 and fake.calls[0]["model"] == "claude-sonnet-5-5"
+
+
+def test_wrongly_shaped_student_is_a_400_and_costs_nothing(shared):
+    """R3-F5: a student that isn't an object is refused before the allowance is charged."""
+    c, fake = shared([reply(text("ok"))])
+    for bad in ("x", [1], 5):
+        r = c.post("/api/chat", headers={"X-Forwarded-For": "203.0.113.9", "Origin": SITE},
+                   json={"model": "haiku", "student": bad, "messages": [{"role": "user", "text": "hi"}]})
+        assert r.status_code == 400, bad
+    assert fake.keys == []
