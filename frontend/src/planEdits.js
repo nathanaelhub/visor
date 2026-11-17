@@ -61,3 +61,10 @@ export function approveBlockers(r) {
   return [...(r.checks?.violations ?? []).map((v) => v.message),
     ...r.warnings.filter((w) => w.kind === 'unplaceable').map((w) => w.message)]
 }
+
+/** Why an advisor's changes stay in this tab (R3-F8). */
+export function lockedMessage(account, name) {
+  if (!account) return 'Not saved in the demo. Changes apply in this browser tab only.'
+  if (account.role === 'advisor') return `You’re not ${name}’s advisor, so changes apply in this tab only and aren’t saved.`
+  return `Only ${name}’s advisor can save changes. These apply in this tab only.`
+}

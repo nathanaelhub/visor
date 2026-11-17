@@ -3,7 +3,8 @@ import { api, cleanName, gradName, hrs, keyStore } from '../lib.js'
 import Markdown from '../Markdown.jsx'
 import { Icon, Logo, Pill, Spinner } from '../ui.jsx'
 import { LiveRead, TranscriptReview, useTranscriptRead } from './TranscriptRead.jsx'
-import { fromSaved, savedNotice } from '../chatHistory.js'
+import { fromSaved, readByNote, savedNotice } from '../chatHistory.js'
+import { suggestionsFor } from '../suggestions.js'
 
 // Ask Visor: Claude, with the user's own Anthropic key, answering from Visor's planner, catalog and
 // equivalency table (POST /api/chat). The key lives in sessionStorage and goes only to Visor's
@@ -88,18 +89,9 @@ export function useChat(student) {
     conversationId,
     load: async (id) => { // reopen a saved conversation and keep going in it (spec 09)
       const c = await api(`/api/chats/${id}`)
-      setMsgs(fromSaved(c.messages)); setConversationId(c.id)
+      setMsgs([{ role: 'note', text: readByNote(c.read_by) }, ...fromSaved(c.messages)]); setConversationId(c.id)
     },
     announce: (text) => { pendingNote.current = text } }
-}
-
-const SUGGEST = {
-  student: ['Which requirements am I still missing?', 'What should I register for next term, and why?',
-    'What happens if I fail Data Structures?', 'Can you move Operating Systems to next fall?'],
-  advisor: ['Why does this plan need review?', 'Which courses in this plan are offered only once a year?',
-    'What does this student’s transfer credit count as?'],
-  registrar: ['What does CISP 1020 at Nashville State count as?', 'Is CSCI 1020 at Columbia State confirmed?',
-    'What are the prerequisites for CS 3633?'],
 }
 
 export default function AskVisor({ chat, student, role, mode, onClose, onOpenPlan, onUseRecord, account }) {
@@ -284,7 +276,7 @@ function Chat({ chat, student, role, onClose, onUseRecord, account }) {
             <div className="row"><Logo size={34} /><div>
               <strong>Ask about {student ? `${cleanName(student.name)}’s plan` : 'a course or transfer credit'}</strong>
               <div className="small muted">Answers come from Visor’s planner, the catalog and the equivalency table.</div></div></div>
-            {SUGGEST[role].map((s) => <button key={s} type="button" className="sug" style={{ alignSelf: 'flex-start' }} onClick={() => submit(s)}>{s}</button>)}
+            {suggestionsFor(role, student?.program_id).map((s) => <button key={s} type="button" className="sug" style={{ alignSelf: 'flex-start' }} onClick={() => submit(s)}>{s}</button>)}
           </div>
         )}
         {chat.msgs.map((m, i) => (
@@ -302,7 +294,7 @@ function Chat({ chat, student, role, onClose, onUseRecord, account }) {
       <div className="chat-foot">
         {chat.msgs.length > 0 && (
           <div className="row" style={{ gap: 8 }}>
-            {SUGGEST[role].slice(0, 2).map((s) => <button key={s} type="button" className="sug" onClick={() => submit(s)} disabled={chat.pending}>{s}</button>)}
+            {suggestionsFor(role, student?.program_id).slice(0, 2).map((s) => <button key={s} type="button" className="sug" onClick={() => submit(s)} disabled={chat.pending}>{s}</button>)}
           </div>
         )}
         {attach && onUseRecord && (

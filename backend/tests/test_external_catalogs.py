@@ -63,3 +63,19 @@ def test_lookup_shows_scraped_title(app):
     body = r.get_json()
     assert r.status_code == 200 and body["status"] == "unknown"
     assert body["external_course"]["title"] == course["title"][:160]
+
+
+def test_transfer_page_examples_show_what_they_promise(app):
+    """R3-F2: the Transfer page suggests three lookups, one per status; seeded the way production is."""
+    from visor.seed import load_proposals
+    load_external_catalogs(EXTERNAL)
+    load_proposals(EXTERNAL / "proposed_equivalencies.csv")
+    c = app.test_client()
+    schools = {s["name"]: s["id"] for s in c.get("/api/schools").get_json()}
+    for school, subject, number, status in [("Nashville State Community College", "CISP", "1020", "confirmed"),
+                                            ("Columbia State Community College", "CSCI", "1020", "proposed"),
+                                            ("Nashville State Community College", "ADMN", "1305", "unknown")]:
+        r = c.post("/api/equivalencies/lookup", json={"school_id": schools[school], "subject": subject, "number": number})
+        assert r.get_json()["status"] == status, (subject, number)
+    hint = (ROOT / "frontend" / "src" / "views" / "Transfer.jsx").read_text()
+    assert "ADMN 1305" in hint and "HIST 2010" not in hint

@@ -1,6 +1,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { approvalState, approveBlockers, clearCourse, emptyEdits, hold, isEmpty, pin, setSetting, termsFrom } from './planEdits.js'
+import { approvalState, approveBlockers, clearCourse, emptyEdits, hold, isEmpty, lockedMessage, pin, setSetting, termsFrom } from './planEdits.js'
 
 test('one change per course: a pin replaces a hold and the other way round', () => {
   let e = pin(null, 'CS 2623', '2027FA')
@@ -35,4 +35,10 @@ test('approve is blocked by checker violations and unplaced courses', () => {
   assert.deepEqual(approveBlockers({ plan: {}, checks: { violations: [{ message: 'CS 3123 is not offered' }] },
     warnings: [{ kind: 'unplaceable', message: 'CS 4999 could not be placed' }] }),
   ['CS 3123 is not offered', 'CS 4999 could not be placed'])
+})
+
+test('the locked message says why changes are not saved (R3-F8)', () => {
+  assert.match(lockedMessage(null, 'Casey Lin'), /Not saved in the demo/)
+  assert.match(lockedMessage({ role: 'advisor' }, 'Casey Lin'), /not Casey Lin’s advisor/)
+  assert.match(lockedMessage({ role: 'student' }, 'Casey Lin'), /Only Casey Lin’s advisor can save/)
 })

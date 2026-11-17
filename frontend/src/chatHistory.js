@@ -11,3 +11,10 @@ export function fromSaved(messages) {
 export function savedNotice(account) {
   return account ? 'Saved for one year. Your advisor and Visor admins can read it.' : 'Not saved.'
 }
+
+/** A reopened chat: which staff have read it (R3-F9; students may see who accessed their records). */
+export function readByNote(readBy) {
+  if (!readBy?.length) return 'No staff have opened this conversation.'
+  const day = (at) => new Date(at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+  return `Opened by staff: ${readBy.map((r) => `${r.reader} (${day(r.at)})`).join(', ')}.`
+}

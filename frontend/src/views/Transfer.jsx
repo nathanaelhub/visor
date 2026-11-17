@@ -117,7 +117,7 @@ export default function Transfer({ account }) {
           {!result && !error && (
             <div className="card" style={{ padding: 24 }}>
               <p className="muted" style={{ margin: 0 }}>Try <span className="mono">CISP 1020</span> (confirmed), <span className="mono">CSCI 1020</span> at
-                Columbia State (proposed), or <span className="mono">HIST 2010</span> at Nashville State (unknown).</p>
+                Columbia State (proposed), or <span className="mono">ADMN 1305</span> at Nashville State (unknown).</p>
             </div>
           )}
           {result && (
