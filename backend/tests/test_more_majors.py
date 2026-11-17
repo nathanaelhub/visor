@@ -78,3 +78,18 @@ def test_one_demo_student_needs_review(client):
     r = flagged["demo-14"]
     assert [w["code"] for w in r["warnings"] if w["kind"] == "unknown_course"] == ["CS 2113"]
     assert r["projected_term"]  # the rest of the plan still works
+
+
+def test_social_psychology_comes_after_intro(client):
+    """R3-F4: the catalog lists PS 1113 after PS 3413's description without the word "Prerequisite"."""
+    from visor.audit_api import catalog_and_programs
+    from visor.rules.terms import parse_term
+    catalog, _ = catalog_and_programs()
+    assert [tuple(g.any_of) for g in catalog.prereqs.get("PS 3413", ())] == [("PS 1113",)]
+    for s in students(client):
+        if s["program_id"] != "psych-bs-2026-27":
+            continue
+        r = client.post("/api/audit", json=s).get_json()
+        when = {c["code"]: t["term"] for t in r["plan"]["terms"] for c in t["courses"]}
+        if "PS 3413" in when and "PS 1113" in when:
+            assert parse_term(when["PS 1113"]) < parse_term(when["PS 3413"]), s["id"]

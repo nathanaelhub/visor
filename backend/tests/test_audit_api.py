@@ -143,3 +143,23 @@ def test_demo_proposed_equivalency_is_a_close_match(demo_client):
     body = demo_client.post("/api/equivalencies/lookup", json={"school_id": sid, "subject": "CSCI", "number": "1020"}).get_json()
     assert body["status"] == "proposed" and body["equivalency"]["course"]["code"] == "CS 2233"
     assert body["external_course"]["title"] == "Computer Science II"
+
+
+@pytest.mark.parametrize("body", [
+    [1, 2],
+    {"program_id": "cs-bs-2026-27", "start_term": "2027SP", "taken": "x"},
+    {"program_id": "cs-bs-2026-27", "start_term": "2027SP", "taken": [5]},
+    {"program_id": "cs-bs-2026-27", "start_term": "2027SP", "transfer": "x"},
+    {"program_id": "cs-bs-2026-27", "start_term": "2027SP", "transfer": ["CISP 1020"]},
+    {"program_id": "cs-bs-2026-27", "start_term": "2027SP", "settings": "x"},
+    {"program_id": "cs-bs-2026-27", "start_term": "2027SP", "edits": "x"},
+    {"program_id": "cs-bs-2026-27", "start_term": "2027SP", "edits": {"pins": "x"}},
+    {"program_id": "cs-bs-2026-27", "start_term": "2027SP", "edits": {"holds": [5]}},
+    {"program_id": ["cs-bs-2026-27"], "start_term": "2027SP"},
+    {"program_id": "cs-bs-2026-27", "start_term": 2027},
+])
+def test_audit_api_rejects_wrongly_shaped_json(demo_client, body):
+    """R3-F5: a wrongly shaped request is a 400 with a message, never a 500."""
+    r = demo_client.post("/api/audit", json=body)
+    assert r.status_code == 400, (body, r.status_code)
+    assert r.get_json()["error"]
