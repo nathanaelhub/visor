@@ -55,6 +55,10 @@ never call a course necessary when the student already has another option.
 If asked, start your answer with "I can't edit your plan. Ask your advisor." and then explain why the \
 planner placed things where they are.
 - Only `confirmed` transfer equivalencies count toward the degree; `proposed` ones wait for a person.
+- Your earlier answers in this chat were checked against tool results when you gave them, but those \
+results are not repeated here. Do not take back an earlier answer just because you can't see its \
+evidence now; correct it only when a tool result you have now contradicts it, and then say which one.
+- A requirement with status `partly_done` has some courses counted and some still needed.
 - Be brief and concrete: course codes, terms, hours. Use a short markdown table when comparing \
 several requirements. No preamble.
 - Only help with Lipscomb course planning, transfer credit, the student's plan and how Visor works. \
@@ -160,20 +164,28 @@ def _term_name(code: str | None) -> str | None:
     return parse_term(code).name if code else None
 
 
-def _audit_digest(r: dict) -> dict:
-    """The audit, trimmed to what the model needs (no ids, no duplicated fields)."""
+def _group_status(g: dict) -> str:
+    """As the page shows it (F10): a needed group with some hours counted is partly done."""
+    return "partly_done" if g["status"] == "needed" and (g.get("counted_hours") or 0) > 0 else g["status"]
+
+
+def _audit_digest(r: dict, student: dict) -> dict:
+    """The audit, trimmed to what the model needs (no ids, no duplicated fields). ``record`` is the
+    student's own courses with grades, so earlier statements about grades can be checked (R3-F6)."""
     return {
         "program": r["program"], "hours": {"done": r["hours_done"], "in_progress": r["hours_in_progress"],
                                            "required": r["hours_required"], "transfer": r["transfer_hours"]},
         "projected_graduation": _term_name(r["projected_term"]),
-        "requirements": [{"name": g["name"], "status": g["status"], "remaining": g["remaining"],
+        "record": [{"code": course_code(t["code"]), "grade": t.get("grade") or "in progress"}
+                   for t in student.get("taken", []) if t.get("code")],
+        "requirements": [{"name": g["name"], "status": _group_status(g), "remaining": g["remaining"],
                           "counted": [u["code"] + (f" ({u['via']})" if u["via"] != "completed" else "")
                                       for u in g["used"]]} for g in r["groups"]],
         "in_progress": [c["code"] for c in r["in_progress"]["courses"]],
         "plan": [{"term": t["name"], "hours": t["hours"], "courses": [
             {"code": c["code"], "title": c["title"], "why": [x["text"] for x in c["reasons"]]}
             for c in t["courses"]]} for t in (r["plan"] or {}).get("terms", [])],
-        "free_elective_hours_still_needed": (r["plan"] or {}).get("free_elective_hours"),
+        "free_elective_hours_not_in_plan": (r["plan"] or {}).get("free_elective_hours"),
         "transfer": [{k: t[k] for k in ("school", "external", "status", "counts_as", "note")} for t in r["transfer"]],
         "retakes": [{"code": x["code"], "grade": x["grade"], "needs": x["min_grade"]} for x in r["retakes"]],
         "warnings": [w["message"] for w in r["warnings"]],
@@ -209,7 +221,7 @@ def _run_tool(name: str, args: dict, student: dict | None) -> tuple[dict, str, s
             return {"error": "No student is in context."}, "No student in context", "error"
         r = compute_audit(student)
         needed = sum(1 for g in r["groups"] if g["status"] == "needed")
-        return _audit_digest(r), f"Ran the degree audit · {needed} group{'s' if needed != 1 else ''} still needed", \
+        return _audit_digest(r, student), f"Ran the degree audit · {needed} group{'s' if needed != 1 else ''} still needed", \
             "review" if r["needs_review"] else "ok"
     if name == "transfer_lookup":
         _, report = translate_transfer([{"school": args.get("school"), "subject": args.get("subject"),

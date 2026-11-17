@@ -301,3 +301,18 @@ def test_wrongly_shaped_student_is_a_400_and_costs_nothing(shared):
                    json={"model": "haiku", "student": bad, "messages": [{"role": "user", "text": "hi"}]})
         assert r.status_code == 400, bad
     assert fake.keys == []
+
+
+def test_audit_tool_carries_grades_and_partly_done(make):
+    """R3-F6: the audit tool shows the grades on the record and calls a half-finished group partly done,
+    as the page does, so the model can check what it said earlier instead of guessing."""
+    c, _ = make([reply(tool_use("t1", "run_degree_audit", {}), stop="tool_use"), reply(text("ok"))])
+    result = ask(c, "What am I missing?", sid="demo-02").get_json()["tool_calls"][0]["result"]
+    assert {"code": "CS 2233", "grade": "B+"} in result["record"]
+    statuses = {g["name"]: g["status"] for g in result["requirements"]}
+    assert statuses["Major core"] == "partly_done"
+
+
+def test_prompt_keeps_earlier_answers_unless_a_tool_contradicts_them():
+    from visor.chat import SYSTEM
+    assert "earlier answer" in SYSTEM and "contradicts" in SYSTEM
