@@ -678,6 +678,55 @@ tr { break-inside: avoid; }
     zero violations. Reasons on every course matched the catalog. Ask Visor refused to edit, used the planner’s own data, and named what it didn’t know.</div>
 </section>
 
+<!-- ============ Round 3, 13-16 November ============ -->
+<section>
+  <h2>Round 3, 13 to 16 November</h2>
+  <p class="intro">Every case again, plus what was new since round 2 (sign-in and roles, saved chats, five majors, six transfer schools,
+    transcripts). Public cases ran on the live site, signed out; staff cases ran on a local copy with fake test accounts. Nothing on the
+    live site was changed by testing. Findings were then fixed with tests first.</p>
+  <table>
+    <tr><th style="width:0.75in">Case</th><th style="width:1.9in">What</th><th style="width:0.75in">Round 3</th><th>Notes</th></tr>
+    <tr><td class="mono">N1</td><td>Student starts from a fictional transcript</td><td><span class="pill pass">Pass</span></td><td class="small">Rows stream in beside the scan (“8 rows so far”); major picker for another school’s transcript.</td></tr>
+    <tr><td class="mono">N2</td><td>Transcript attached in Ask Visor</td><td><span class="pill pass">Pass</span></td><td class="small">Answer split counted, pending and unknown credit; noticed the repeated CHEM 1110.</td></tr>
+    <tr><td class="mono">N3</td><td>New majors; Nursing admission gate</td><td><span class="pill pass">Pass</span></td><td class="small">All 14 students plan with zero checker violations; Talia sees the admission notice.</td></tr>
+    <tr><td class="mono">N4</td><td>Class standing reached with free electives</td><td><span class="pill pass">Pass</span></td><td class="small">PS 4613 placed at 90+ hours for both Psychology students.</td></tr>
+    <tr><td class="mono">N5</td><td>Advisor pins, approves; approval goes stale</td><td><span class="pill pass">Pass</span></td><td class="small">IT 3313 pinned to Fall 2028; changing the plan marked the approval out of date.</td></tr>
+    <tr><td class="mono">N6</td><td>Registrar confirms a Claude proposal</td><td><span class="pill pass">Pass</span></td><td class="small">UTK MATH 141 → MA 1314 confirmed, named “Confirmed by Ada Admin (test) (proposed by Claude)”. Local.</td></tr>
+    <tr><td class="mono">N7</td><td>Plan shows every transfer course and why</td><td><span class="pill pass">Pass</span></td><td class="small">Transfer table on Sam’s plan, with pending ones named.</td></tr>
+    <tr><td class="mono">N8</td><td>Admin gives roles and advisees</td><td><span class="pill pass">Pass</span></td><td class="small">New sign-in starts as Student; after the admin’s change the advisor saves for Jordan only. The “not saved” wording for other advisees was unclear (R3-F8). Local.</td></tr>
+    <tr><td class="mono">N9</td><td>Claude reads scanned transcripts accurately</td><td><span class="pill note">Not rerun</span></td><td class="small">Costs a little per run; 57/57 rows on 13 November.</td></tr>
+    <tr><td class="mono">N10</td><td>Staff check what Ask Visor told a student</td><td><span class="pill note">Note</span></td><td class="small">Saved, “Log verified”, reads recorded; the student couldn’t see who read it (R3-F9). Local.</td></tr>
+    <tr><td class="mono">S1–S5</td><td>Student plan cases</td><td><span class="pill note">Note</span></td><td class="small">All pass; graduation dates ignored free-elective hours (R3-F1).</td></tr>
+    <tr><td class="mono">A1–A3</td><td>Advisor cases</td><td><span class="pill pass">Pass</span></td><td class="small">Filters and search right; Reese Calloway under Needs review.</td></tr>
+    <tr><td class="mono">R1, R2, R4</td><td>Registrar lookups and mistyped codes</td><td><span class="pill pass">Pass</span></td><td class="small">Every CISP 1020 variant resolves; new schools answer (UTK, MTSU, Vol State).</td></tr>
+    <tr><td class="mono">R3</td><td>Flag an unknown course</td><td><span class="pill note">Note</span></td><td class="small">The page’s “unknown” example now had a proposal (R3-F2). Staff flag works; a second flag reuses the review.</td></tr>
+    <tr><td class="mono">C1</td><td>Pick a model</td><td><span class="pill pass">Pass</span></td><td class="small">Opus 4, Sonnet 2, Haiku 1 unit.</td></tr>
+    <tr><td class="mono">C2, C3, C5</td><td>Ask Visor answers</td><td><span class="pill note">Note</span></td><td class="small">Right answers; in C3 it took back a true statement from C2 (R3-F6). Suggestions were CS-only (R3-F3).</td></tr>
+    <tr><td class="mono">C4</td><td>Bad key</td><td><span class="pill note">N/A</span></td><td class="small">The site uses one shared key now.</td></tr>
+    <tr><td class="mono">E1–E4</td><td>Planner edge cases</td><td><span class="pill pass">Pass</span></td><td class="small">Same input, same plan; summer helps every time; caps 12/9/6; missing prerequisites chained.</td></tr>
+    <tr><td class="mono">E5</td><td>Bad input to the API</td><td><span class="pill note">Note</span></td><td class="small">Wrongly shaped JSON gave a 500 page (R3-F5).</td></tr>
+    <tr><td class="mono">G1–G3</td><td>Landing, dark mode, phone</td><td><span class="pill note">Note</span></td><td class="small">No sideways scroll; the phone role picker read “Stuc” (R3-F7); sign-in dropped you on the landing page (R3-F8).</td></tr>
+  </table>
+  <h3 style="margin-top:14pt">Round-3 findings</h3>
+  <table>
+    <tr><th style="width:0.5in">Finding</th><th>What it was</th><th style="width:0.6in">Status</th><th style="width:2.2in">Fix</th></tr>
+    <tr><td class="mono">R3-F1</td><td>Graduation dates ignored free-elective hours (19–33 hours for the new majors)</td><td><span class="pill pass">Fixed</span></td><td class="small">PR #76: the planner places them; Harper moves from Dec 2029 to May 2030</td></tr>
+    <tr><td class="mono">R3-F2</td><td>Transfer page’s “unknown” example had a proposal</td><td><span class="pill pass">Fixed</span></td><td class="small">PR #81: ADMN 1305, with a test that the three examples keep their statuses</td></tr>
+    <tr><td class="mono">R3-F3</td><td>Ask Visor suggested CS questions to every major</td><td><span class="pill pass">Fixed</span></td><td class="small">PR #81: two questions per major, naming real courses</td></tr>
+    <tr><td class="mono">R3-F4</td><td>PS 3413 was missing its PS 1113 prerequisite</td><td><span class="pill pass">Fixed</span></td><td class="small">PR #79: added and noted in notes.md (CONFIRM)</td></tr>
+    <tr><td class="mono">R3-F5</td><td>Wrongly shaped requests got a 500 page</td><td><span class="pill pass">Fixed</span></td><td class="small">PR #79: a 400 with a message on every route (fuzzed)</td></tr>
+    <tr><td class="mono">R3-F6</td><td>Ask Visor took back a true statement; said “Needed” for partly done</td><td><span class="pill pass">Fixed</span></td><td class="small">PR #83: grades and partly-done in the audit tool; prompt rule</td></tr>
+    <tr><td class="mono">R3-F7</td><td>Phone role picker cut off; advisor table too wide at 320</td><td><span class="pill pass">Fixed</span></td><td class="small">PR #81</td></tr>
+    <tr><td class="mono">R3-F8</td><td>Sign-in returned to the landing page; unclear “not saved” message</td><td><span class="pill pass">Fixed</span></td><td class="small">PR #81</td></tr>
+    <tr><td class="mono">R3-F9</td><td>Students couldn’t see who read their saved chat</td><td><span class="pill pass">Fixed</span></td><td class="small">PR #81: “Opened by staff: …” on a reopened chat</td></tr>
+  </table>
+  <div class="callout keep"><b>What held up.</b> Every plan, for all 14 students with summer on and off and three credit caps, passed the
+    independent checker. Roles come only from Visor’s database, and an advisor saves only for their own advisees. Claude’s proposals never
+    count until a person confirms them. The conversation log verified, and staff reads were recorded.</div>
+  <p class="small muted">Nathanael’s own checklist (phone, advisor wording, transfer answers, Ask Visor, transcripts, saved chats) is still
+    to be added here.</p>
+</section>
+
 <!-- ============ Traceability ============ -->
 <section>
   <h2>Appendix: where each case is specified and tested</h2>
