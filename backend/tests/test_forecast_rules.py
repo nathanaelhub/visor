@@ -197,8 +197,18 @@ def test_start_term_and_summer():
 def test_nothing_left():
     cat = tiny_catalog()
     taken = [Taken(c, 3, "A") for c in ["AA 1000", "AA 2000", "AA 3000", "SP 1000"]]
-    _, plan = run(tiny_program(), cat, taken)
+    _, plan = run(replace(tiny_program(), total_hours=12), cat, taken)
     assert plan.complete and plan.terms == [] and plan.projected_term is None
+
+
+def test_requirements_done_but_hours_short_plans_elective_terms():
+    """R3-F1: every requirement met but 18 hours short of the degree: those hours are terms, not a footnote."""
+    cat = tiny_catalog()
+    taken = [Taken(c, 3, "A") for c in ["AA 1000", "AA 2000", "AA 3000", "SP 1000"]]
+    _, plan = run(tiny_program(), cat, taken)
+    assert not plan.complete and plan.free_elective_hours == 0
+    assert sum(t.hours for t in plan.terms) == 18 and plan.projected_term == "2027FA"
+    assert all(c.placeholder for t in plan.terms for c in t.courses)
 
 
 def test_compaction_graduates_sooner():
@@ -210,12 +220,38 @@ def test_compaction_graduates_sooner():
     assert plan.projected_term == "2028FA"
 
 
-def test_free_elective_hours_reported():
+@pytest.mark.parametrize("student", demo_students(), ids=lambda s: s["id"])
+def test_plan_reaches_the_degree_total(student):
+    """R3-F1: free-elective hours are placed in terms, so the graduation term accounts for them."""
     cat, programs = load_catalog()
-    s = next(s for s in demo_students() if s["id"] == "demo-01")
-    result, plan = run(programs[s["program_id"]], cat, demo_taken(s, cat), s["start_term"])
+    program = programs[student["program_id"]]
+    result, plan = run(program, cat, demo_taken(student, cat), student["start_term"])
     planned = sum(t.hours for t in plan.terms)
-    assert plan.free_elective_hours == 127 - (result.hours_done + result.hours_in_progress + planned) > 0
+    assert result.hours_done + result.hours_in_progress + planned >= program.total_hours, student["id"]
+    assert plan.free_elective_hours == 0
+    assert all(t.hours <= Settings().max_hours for t in plan.terms)
+
+
+def test_free_electives_fill_light_terms_before_adding_terms():
+    """Jordan's light last term takes the 4 elective hours; Riley's go into existing terms, not a new one."""
+    cat, programs = load_catalog()
+    for sid, grad in (("demo-02", "2028FA"), ("demo-01", "2030SP")):
+        s = next(s for s in demo_students() if s["id"] == sid)
+        _, plan = run(programs[s["program_id"]], cat, demo_taken(s, cat), s["start_term"])
+        assert plan.projected_term == grad, sid
+        assert any(c.placeholder for t in plan.terms for c in t.courses), sid
+
+
+def test_many_elective_hours_move_graduation_later():
+    """Harper (Psychology) was 33 hours short of 126 and still shown graduating Dec 2029."""
+    cat, programs = load_catalog()
+    s = next(s for s in demo_students() if s["id"] == "demo-08")
+    _, plan = run(programs[s["program_id"]], cat, demo_taken(s, cat), s["start_term"])
+    assert parse_term(plan.projected_term) > parse_term("2029FA")
+    electives = [c for t in plan.terms for c in t.courses if c.placeholder and c.reasons[0].kind == "elective"]
+    assert electives and all(c.reasons for c in electives)
+    for t in plan.terms:  # one elective row per term, not a row per 3 hours
+        assert sum(1 for c in t.courses if c.placeholder and c.reasons[0].kind == "elective") <= 1
 
 
 # --- US-5.2 ------------------------------------------------------------------------------------

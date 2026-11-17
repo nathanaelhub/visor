@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { api, cleanName, gradName, hrs, termName, termsAfter } from '../lib.js'
 import { Bar, Chip, Icon, Pill, Spinner } from '../ui.jsx'
 import { transferStatus } from '../transferStatus.js'
-import { groupStatus, loadCheck } from '../planStatus.js'
+import { electiveHours, groupStatus, loadCheck } from '../planStatus.js'
 import { AdjustPanel, ApprovalBanner, ApprovePanel, CourseAdjust } from './AdvisorEdits.jsx'
 
 // My Plan (student) and an advisee's plan (advisor). Everything on this page comes from
@@ -138,9 +138,14 @@ function Plan({ r, story, mode, edit }) {
                     includeSummer={!!r.edits?.settings?.include_summer} />) : null} />
             ))}
           </div>
+          {electiveHours(plan) > 0 && (
+            <p className="small muted" style={{ margin: 0 }}>
+              Includes <strong>{hrs(electiveHours(plan))} hours of free electives</strong> of your choice to reach {r.hours_required} hours.
+            </p>
+          )}
           {plan?.free_elective_hours > 0 && (
             <p className="small muted" style={{ margin: 0 }}>
-              Plus <strong>{hrs(plan.free_elective_hours)} hours of free electives</strong> of your choice to reach {r.hours_required} hours.
+              Plus <strong>{hrs(plan.free_elective_hours)} more hours</strong> that didn’t fit in the plan.
             </p>
           )}
           <p className="chipkey" style={{ margin: 0 }}>

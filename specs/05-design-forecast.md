@@ -39,6 +39,13 @@ the courses in it, **so that** we both know the path and the graduation term.
    [`test_start_term_and_summer`]
 5. **Given** a student with nothing left, **then** the plan is empty and says "complete pending final
    grades". [`test_nothing_left`]
+6. **Given** a plan whose courses add up to fewer hours than the degree total, **then** the missing hours
+   are placed as one "Free elective" row per term, so the graduation term counts them. Light
+   terms fill to the target load first, latest first. Then whole terms at the target load are added. A
+   remainder that existing terms can take up to the *maximum* load goes there rather than into an extra
+   term. `free_elective_hours` is what is still unplaced (normally 0). (R3-F1)
+   [`test_plan_reaches_the_degree_total`, `test_free_electives_fill_light_terms_before_adding_terms`,
+   `test_many_elective_hours_move_graduation_later`, `test_requirements_done_but_hours_short_plans_elective_terms`]
 
 ### US-5.2 Student: know *why* each course is in that term
 

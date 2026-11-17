@@ -59,7 +59,7 @@ class Edits:
 
 @dataclass(frozen=True)
 class Reason:
-    kind: str  # requirement / unlocks / offering / retake / prerequisite / standing / needs
+    kind: str  # requirement / unlocks / offering / retake / prerequisite / standing / needs / elective
     text: str
 
 
@@ -73,7 +73,7 @@ class PlannedCourse:
     deferred_from: str | None = None  # term code it could first have gone in
     pinned: bool = False  # placed by an advisor's pin (spec 06)
     held_until: str | None = None  # an advisor's hold: not before this term code
-    placeholder: bool = False  # a free-elective slot (spec 07): hours toward class standing, any course
+    placeholder: bool = False  # a free-elective slot (spec 07, R3-F1): hours toward standing or the degree total
 
 
 @dataclass
@@ -308,6 +308,59 @@ def project(program: Program, catalog: Catalog, taken: list[Taken], result: Audi
     return without
 
 
+def _elective_title(hours: float) -> str:
+    if hours <= 3:
+        return "Free elective (your choice)"
+    return f"Free electives (your choice), about {round(hours / 3):g} courses"
+
+
+def _add_hours(term: PlannedTerm, hours: float, total: float, settings: Settings) -> None:
+    """One free-elective row per term, growing as hours are added (R3-F1)."""
+    slot = next((c for c in term.courses if c.placeholder and c.reasons and c.reasons[0].kind == "elective"), None)
+    if slot is None:
+        slot = PlannedCourse("Free elective", "", 0.0, [],
+                             [Reason("elective", f"Hours toward the {total:g}-hour degree")], placeholder=True)
+        term.courses.append(slot)
+    slot.credits += hours
+    slot.title = _elective_title(slot.credits)
+    term.hours += hours
+    term.light = term.hours < settings.min_hours
+
+
+def _place_free_electives(terms: list, short: float, first: Term, settings: Settings, total: float) -> float:
+    """R3-F1: put the hours a degree is still short of into the plan, so the graduation term counts them.
+    Light terms fill to the target load first (latest first). Then whole terms of the target load are added;
+    a remainder that existing terms can absorb up to the *maximum* load goes there rather than into a
+    near-empty extra term. Returns the hours left unplaced (only past the horizon)."""
+    if short < 1:
+        return max(0.0, short)
+    for term in reversed(terms):
+        n = min(short, settings.target_hours - term.hours)
+        if n >= 1:
+            _add_hours(term, n, total, settings)
+            short -= n
+    if short < 1:
+        return max(0.0, short)
+    whole, rest = divmod(short, settings.target_hours)
+    spare = sum(max(0.0, settings.max_hours - t.hours) for t in terms)
+    add = [float(settings.target_hours)] * int(whole) + ([rest] if rest and rest > spare else [])
+    t = next_term(parse_term(terms[-1].term), settings.include_summer) if terms else first
+    for n in add:
+        if len(terms) >= settings.horizon:
+            break
+        term = PlannedTerm(t.code, t.name, [], 0.0, False)
+        _add_hours(term, n, total, settings)
+        terms.append(term)
+        short -= n
+        t = next_term(t, settings.include_summer)
+    for term in reversed(terms):
+        n = min(short, settings.max_hours - term.hours)
+        if n > 0:
+            _add_hours(term, n, total, settings)
+            short -= n
+    return max(0.0, short)
+
+
 def _project(program: Program, catalog: Catalog, taken: list[Taken], result: AuditResult,
              start_term: str, settings: Settings, edits: Edits) -> Plan:
     warnings: list[Warning] = []
@@ -322,8 +375,11 @@ def _project(program: Program, catalog: Catalog, taken: list[Taken], result: Aud
     holds = {h.code: parse_term(h.not_before) for h in edits.holds}
     if not needs:
         short = program.total_hours - (result.hours_done + result.hours_in_progress)
-        return Plan(start_term, [], None, complete=all(w.kind == "pin_ignored" for w in warnings), warnings=warnings,
-                    free_elective_hours=max(0.0, short))
+        terms: list[PlannedTerm] = []
+        left = _place_free_electives(terms, short, parse_term(start_term), settings, program.total_hours)
+        return Plan(start_term, terms, terms[-1].term if terms and not left else None,
+                    complete=not terms and all(w.kind == "pin_ignored" for w in warnings), warnings=warnings,
+                    free_elective_hours=left)
 
     unlocks = {c: _unlocks(c, needs, catalog) for c in needs}
     for c, n in unlocks.items():
@@ -427,6 +483,7 @@ def _project(program: Program, catalog: Catalog, taken: list[Taken], result: Aud
                                 f"{code} could not be placed: {why}"))
     planned_hours = sum(pt.hours for pt in terms)
     short = program.total_hours - (result.hours_done + result.hours_in_progress + planned_hours)
+    short = _place_free_electives(terms, short, parse_term(start_term), settings, program.total_hours)
     # Every warning here is a requirement with no place in the plan, so its last term is not a
     # graduation term; there is none until an advisor resolves the warnings.
     projected = terms[-1].term if terms and not any(w.kind == "unplaceable" for w in warnings) else None
