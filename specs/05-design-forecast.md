@@ -99,6 +99,12 @@ Models: Claude Opus 5.5 (default), Sonnet 5.5, Haiku 5.5. Opus and Sonnet reques
 server-side refusal fallbacks (`fallbacks: "default"`). A deployment may set
 `VISOR_ANTHROPIC_API_KEY` to use one shared key instead of per-user keys. [`test_shared_key_mode`]
 
+7. **Given** a follow-up question, **then** Ask Visor doesn't take back an earlier answer just because
+   that answer's tool results aren't in the chat history any more; it corrects one only when a tool
+   result it has now contradicts it. The audit tool carries the student's grades and reports
+   half-finished groups as `partly_done`, as the page does. (R3-F6) [`test_audit_tool_carries_grades_and_partly_done`,
+   `test_prompt_keeps_earlier_answers_unless_a_tool_contradicts_them`]
+
 ### US-5.6 Site owner: one shared key that can't be run up
 
 **As** the person paying for the key, **I want** Ask Visor on the public demo to run on one server
