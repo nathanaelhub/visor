@@ -13,3 +13,8 @@ export function loadCheck(checks) {
     ? { ok, text: `Every term at or under ${checks.load_limit} hrs (heaviest ${checks.max_load})` }
     : { ok, text: `A term has ${checks.max_load} hrs, over the ${checks.load_limit}-hour limit` }
 }
+
+/** Free-elective hours the planner placed in terms (R3-F1). */
+export function electiveHours(plan) {
+  return (plan?.terms ?? []).reduce((n, t) => n + t.courses.filter((c) => c.placeholder).reduce((m, c) => m + c.credits, 0), 0)
+}

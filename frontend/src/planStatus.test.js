@@ -1,6 +1,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { groupStatus, loadCheck } from './planStatus.js'
+import { electiveHours, groupStatus, loadCheck } from './planStatus.js'
 
 test('a started but unmet group is partly done (F10)', () => {
   assert.equal(groupStatus({ status: 'needed', counted_hours: 38 }), 'partial')
@@ -12,4 +12,13 @@ test('a started but unmet group is partly done (F10)', () => {
 test('the load line compares the heaviest term with the limit (F11)', () => {
   assert.deepEqual(loadCheck({ max_load: 18, load_limit: 18 }), { ok: true, text: 'Every term at or under 18 hrs (heaviest 18)' })
   assert.equal(loadCheck({ max_load: 21, load_limit: 18 }).ok, false)
+})
+
+test('electiveHours adds up the free-elective slots the planner placed', () => {
+  const plan = { terms: [
+    { courses: [{ code: 'CS 2623', credits: 3 }, { code: 'Free elective', credits: 3, placeholder: true }] },
+    { courses: [{ code: 'Free elective', credits: 1, placeholder: true }] },
+  ] }
+  assert.equal(electiveHours(plan), 4)
+  assert.equal(electiveHours(null), 0)
 })
