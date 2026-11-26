@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Visor IT Brief</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500&family=IBM+Plex+Sans:wght@400;500;600&family=Source+Serif+4:opsz,wght@8..60,500;8..60,600&display=swap" />
+<style>
+/* Tokens copied from frontend/src/theme.css (light theme), as in docs/user-cases/user-cases.html. */
+:root {
+  --bg:#F7F6F9; --sf2:#F0EEF4; --ln:#DDD9E4;
+  --ink:#1D1628; --ink2:#4E4760; --ink3:#625B70;
+  --pu:#331E54; --puS:#ECE7F4; --rvF:#8A4300; --rvB:#FDEBD3;
+}
+@page { size: Letter; margin: 0.45in 0.6in; }
+* { box-sizing: border-box; }
+body { margin: 0 auto; max-width: 7.3in; padding: 0 16px; background: #fff; color: var(--ink);
+  font-family: 'IBM Plex Sans', system-ui, sans-serif; font-size: 9.1pt; line-height: 1.38; }
+h1, h2 { font-family: 'Source Serif 4', Georgia, serif; font-weight: 600; margin: 0; color: var(--pu); }
+h1 { font-size: 21pt; line-height: 1.15; }
+h2 { font-size: 12.5pt; margin: 10pt 0 3pt; break-after: avoid; }
+p { margin: 0 0 6pt; }
+ul { margin: 0 0 6pt; padding-left: 14pt; } li { margin: 0 0 2pt; }
+code, .mono { font-family: 'IBM Plex Mono', ui-monospace, monospace; font-weight: 500; font-size: 0.9em; }
+.lede { color: var(--ink2); font-size: 10.5pt; margin: 4pt 0 8pt; }
+.meta { display: flex; flex-wrap: wrap; gap: 2pt 16pt; font-size: 8.8pt; color: var(--ink3);
+  border-top: 1px solid var(--ln); border-bottom: 1px solid var(--ln); padding: 5pt 0; margin-bottom: 4pt; }
+.meta b { color: var(--ink); font-weight: 600; }
+.ask { background: var(--puS); border-radius: 8pt; padding: 7pt 10pt; margin: 8pt 0 2pt; }
+.ask b { color: var(--pu); }
+table { width: 100%; border-collapse: collapse; font-size: 8.9pt; margin: 3pt 0 6pt; }
+th { text-align: left; font-weight: 600; color: var(--ink2); background: var(--sf2); }
+th, td { padding: 2.4pt 5pt; border-bottom: 1px solid var(--ln); vertical-align: top; }
+tr { break-inside: avoid; }
+.src { color: var(--ink3); font-size: 8pt; white-space: nowrap; }
+td .src { white-space: normal; }
+.q { counter-reset: q; list-style: none; padding: 0; }
+.q li { counter-increment: q; padding-left: 16pt; position: relative; margin-bottom: 4pt; }
+.q li::before { content: counter(q); position: absolute; left: 0; top: 0; font-weight: 600; color: var(--pu); }
+.tag { display: inline-block; padding: 0 6pt; border-radius: 99pt; font-size: 8pt; font-weight: 600;
+  background: var(--rvB); color: var(--rvF); }
+.page2 { break-before: page; }
+@media screen { body { padding-top: 24px; padding-bottom: 32px; } .page2 { margin-top: 18pt; } }
+@media (max-width: 560px) { .src { white-space: normal; } table { font-size: 8.4pt; } }
+</style>
+</head>
+<body>
+
+<h1>Visor: what it stores, sends, and needs from IT</h1>
+<p class="lede">A degree-planning and transfer-equivalency tool for Lipscomb advising, built as a scaled-up
+showcase of the Lunatic Labs student project. Today it holds <b>fictional students only</b>. This brief is
+for the IT review that has to happen before any real student record goes into it.</p>
+<div class="meta">
+  <span><b>For</b> Brett Hanson, IT</span>
+  <span><b>From</b> Nathanael Johnson</span>
+  <span><b>Date</b> 25 November 2026</span>
+  <span><b>Site</b> visor-showcase.vercel.app</span>
+  <span><b>Code</b> github.com/nathanaelhub/visor (public)</span>
+</div>
+
+<div class="ask"><b>What I'm asking for:</b> a decision on whether Visor may hold real student records (unofficial
+transcripts and saved advising chats), and on what conditions. The questions for IT are at the end.</div>
+
+<h2>Where it runs</h2>
+<table>
+  <tr><th style="width:24%">Part</th><th>Service</th><th style="width:26%">Source</th></tr>
+  <tr><td>Web app and API</td><td>Vercel (project <code>visor-showcase</code>), functions in <b>iad1</b> (Washington, D.C.). A React site, and a Flask API as one Python function.</td><td class="src"><code>vercel.json</code>, Vercel project settings</td></tr>
+  <tr><td>Database</td><td>Neon Postgres, through the Vercel Marketplace. The connection string is held only in Vercel environment variables.</td><td class="src"><code>HANDOFF.md</code>, CLAUDE.md rule 5</td></tr>
+  <tr><td>Sign-in</td><td>Clerk, through the Vercel Marketplace. It is currently a <b>development</b> instance (email code, Google, Microsoft).</td><td class="src">spec 08</td></tr>
+  <tr><td>AI</td><td>Anthropic's Claude API: Sonnet 5.5 by default, with Opus 5.5 and Haiku 5.5 to choose from. One server-side key serves the whole site.</td><td class="src"><code>backend/visor/chat.py</code></td></tr>
+</table>
+
+<h2>What is stored</h2>
+<table>
+  <tr><th style="width:24%">Data</th><th>What exactly</th><th style="width:26%">Source</th></tr>
+  <tr><td>Catalog and transfer data</td><td>Lipscomb's 2026-27 courses and programs; public course lists from six transfer schools; equivalencies. The ones Claude suggests are stored as <i>proposed</i> and never count until a registrar confirms them, and a confirmation always records the person.</td><td class="src"><code>models.py</code>, CLAUDE.md rule 2</td></tr>
+  <tr><td>Accounts</td><td>For each person who signs in: their Clerk id, email, name, role (student, advisor, registrar or admin), and who set the role and when. Advisor-to-advisee links, by student number.</td><td class="src"><code>app_user</code>, <code>advisee</code> tables</td></tr>
+  <tr><td>Plan edits and approvals</td><td>An advisor's settings, pins and holds for a student number, and approvals tied to a fingerprint of the plan, with who approved and when.</td><td class="src"><code>plan_edits</code>, <code>plan_approval</code></td></tr>
+  <tr><td>Saved chats</td><td>Only for <b>signed-in</b> people: each question, the exact answer, the model, the time, and each tool Claude used (its input and a one-line summary). Also the student number and name the chat was about.</td><td class="src">spec 09, <code>conversation</code>, <code>chat_message</code></td></tr>
+  <tr><td>Who read a chat</td><td>Every time someone opens another person's conversation: who, and when. This is shown on the conversation.</td><td class="src"><code>log_access</code>, <code>chat_log.py</code></td></tr>
+  <tr><td>Usage limits</td><td>Hourly and daily counts against a <b>salted hash</b> of the visitor's IP. No message text and no raw IP.</td><td class="src"><code>chat_limits.py</code></td></tr>
+</table>
+<p style="margin-bottom:2pt"><b>Not stored:</b></p>
+<ul>
+<li>Uploaded transcript files. The file goes to Claude for that one read; the course list goes back to the browser and stays in the tab.</li>
+<li>Signed-out chats.</li>
+<li>Anyone's Anthropic key.</li>
+</ul>
+<p class="src"><code>transcript.py</code>, <code>chat.py</code> module notes</p>
+
+<h2>What is sent to Claude, and when</h2>
+<ul>
+  <li><b>Ask Visor (chat).</b> Each question and the text of earlier turns. Claude also has three read-only
+    tools, which run on our server and send their results back to Claude:
+    <ul>
+      <li>the degree audit for the student in context: courses, grades, requirement status and the plan</li>
+      <li>the transfer-equivalency lookup</li>
+      <li>the course catalog</li>
+    </ul>
+    Claude cannot change a plan. <span class="src"><code>chat.py</code> (<code>TOOLS</code>, <code>_audit_digest</code>)</span></li>
+  <li><b>Reading a transcript.</b> The whole file (a PDF of up to 6 pages, or an image, up to 5 MB), so Claude can turn it into a
+    course list. On the public site, only the bundled fictional transcripts can be read. <b>Uploading a file is limited to
+    advisors, registrars and admins.</b> <span class="src"><code>transcript.py</code>, spec 08 US-8.3</span></li>
+  <li><b>Equivalency proposals.</b> Public course titles and descriptions only, sent by a person running an offline
+    batch job, never during a request. <span class="src"><code>propose.py</code></span></li>
+</ul>
+
+<h2>Who can see what</h2>
+<ul>
+  <li>The role always comes from our database, after the server checks the Clerk session token: its signature against Clerk's keys,
+    the issuer, the expiry, and the site that requested it. A role claimed by the browser is ignored. Admins come from a server setting,
+    <code>VISOR_ADMIN_EMAILS</code>; everyone else starts as a student. <span class="src"><code>accounts.py</code></span></li>
+  <li><b>Saved chats</b> can be read by the person themselves, the advisor assigned to that student, and admins. Students get a 403
+    on anyone else's. <span class="src"><code>chat_log.py</code> <code>_can_read</code></span></li>
+  <li>Advisors can edit and approve plans only for their own advisees. Registrars decide equivalencies. <span class="src">spec 08 US-8.3</span></li>
+  <li>The log can't be edited: rows are only ever added, and each message carries a SHA-256 hash of the one before it, so a changed
+    or missing message shows as a broken chain. <span class="src">spec 09, <code>chat_log.py</code></span></li>
+  <li><b>Retention:</b> a daily Vercel Cron job deletes a conversation, its messages and its read log 365 days after its
+    <i>last</i> message. Only the cron secret or the server's write token can call it. <span class="src"><code>chat_log.py</code> <code>purge</code>, <code>vercel.json</code></span></li>
+</ul>
+
+<h2>FERPA position today</h2>
+<p>The public site holds fictional students only. The repository is public, and everything under <code>data/</code> is made up.
+The one real sample, an MTSU transcript, stays on a single Mac in a git-ignored folder. It was never committed or deployed, and
+it is used only for local tests. <span class="src">CLAUDE.md rule 4, spec 08, spec 09</span></p>
+<p>Once real students use it, a saved chat about a student, and any transcript read for one, become part of the education
+record. That is the point at which this review is needed. <span class="tag">Waiting on IT</span></p>
+
+<h2>Questions for IT</h2>
+<ol class="q">
+  <li><b>May Visor hold real records at all</b>: saved advising chats, and unofficial transcripts read by staff? If yes, which data
+    classification applies, and what conditions come with it?</li>
+  <li><b>Sending records to Anthropic.</b> Does Lipscomb need its own agreement with Anthropic, such as a data-processing addendum or
+    zero data retention? Should the key belong to a Lipscomb-owned account rather than mine?</li>
+  <li><b>Sign-in.</b> Should Visor use Lipscomb Microsoft sign-in, which would need an app registration from IT, or a production Clerk
+    instance on a Lipscomb domain? Should <code>lipscomb.edu</code> addresses be the only ones allowed?</li>
+  <li><b>Hosting and location.</b> Are Vercel and Neon acceptable as processors? Which Neon region is required? <i>(To confirm: the
+    current Neon region.)</i></li>
+  <li><b>Retention.</b> Is one year right for saved chats? Who should hold the admin role, and who reviews the read log?</li>
+  <li><b>Ownership.</b> Who owns, runs and pays for it after the showcase (accounts, keys, the domain)?</li>
+</ol>
+
+</body>
+</html>
