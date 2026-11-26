@@ -108,6 +108,7 @@ issue → `type/desc` branch → failing-test commit → fix commit → PR (temp
 
 1. Get the department or advising office to confirm the judgment calls in `data/catalog/2026-27/notes.md` (the four new majors).
 2. Replace the Ask Visor key before about 2026-12-05.
+   - IT review: a two-page brief for Brett Hanson is in `docs/it-review/` (HTML and PDF, rebuilt with `build_pdf.sh`). Send it, then record his answers here.
 3. Optional: read more Lipscomb course prefixes, then rerun `flask propose-equivalencies --school <slug>` (it replaces only that school's rows).
 4. Optional: the next schools on Ms. Hood's list (Harding, Tennessee State, MTSU …) with `tools/scrape_external/scrape.py`.
 
